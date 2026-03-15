@@ -87,6 +87,7 @@ const loadEnvFile = (file) => {
 
 loadEnvFile(ROOT_ENV_FILE);
 
+export const AI_DEVS_API_KEY = process.env.AI_DEVS_API_KEY ?? "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY?.trim() ?? "";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY?.trim() ?? "";
 const requestedProvider = process.env.AI_PROVIDER?.trim().toLowerCase() ?? "";
