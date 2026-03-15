@@ -24,15 +24,15 @@ async function downloadFile(url, outputPath) {
 }
 
 async function main() {
-    await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/people.csv`, './people.csv')
-    const content = readFileSync("./people.csv", "utf-8");
-    const people = parse(content, {
-      columns: true,       // use first row as keys
-      skip_empty_lines: true,
-      trim: true,
-    });
-    console.log(people.filter(person => person.gender == 'M').length);
-    console.log(people.length);
+  await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/people.csv`, './people.csv')
+  const content = readFileSync("./people.csv", "utf-8");
+  const people = parse(content, {
+    columns: true,       // use first row as keys
+    skip_empty_lines: true,
+    trim: true,
+  });
+  console.log(people.filter(person => person.gender == 'M').length);
+  console.log(people.length);
 }
 
 main().catch((error) => {
