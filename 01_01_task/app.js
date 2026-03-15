@@ -31,8 +31,7 @@ async function main() {
     skip_empty_lines: true,
     trim: true,
   });
-  console.log(people.filter(person => person.gender == 'M').length);
-  console.log(people.length);
+  console.log(people.filter(person => person.gender == 'M' && person.birthPlace == 'Grudziądz'));
 }
 
 main().catch((error) => {
