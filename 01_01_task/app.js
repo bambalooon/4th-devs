@@ -1,13 +1,10 @@
 import {
   AI_DEVS_API_KEY,
-  AI_API_KEY,
-  EXTRA_API_HEADERS,
-  RESPONSES_API_ENDPOINT,
-  resolveModelForProvider
 } from "../config.js";
 import { writeFile } from "fs/promises";
 import https from "https";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
+import { parse } from "csv-parse/sync";
 
 async function downloadFile(url, outputPath) {
   if (existsSync(outputPath)) {
@@ -27,7 +24,15 @@ async function downloadFile(url, outputPath) {
 }
 
 async function main() {
-    downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/people.csv`, './people.csv')
+    await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/people.csv`, './people.csv')
+    const content = readFileSync("./people.csv", "utf-8");
+    const people = parse(content, {
+      columns: true,       // use first row as keys
+      skip_empty_lines: true,
+      trim: true,
+    });
+    console.log(people.filter(person => person.gender == 'M').length);
+    console.log(people.length);
 }
 
 main().catch((error) => {

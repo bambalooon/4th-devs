@@ -133,5 +133,8 @@
     "lesson24:ui": "cd 05_04_ui && npm run dev",
     "lesson24:ui:build": "cd 05_04_ui && npm run build",
     "lesson24:ui:preview": "cd 05_04_ui && npm run preview"
+  },
+  "dependencies": {
+    "csv-parse": "^6.1.0"
   }
 }
