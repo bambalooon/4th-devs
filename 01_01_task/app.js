@@ -47,7 +47,8 @@ async function main() {
     skip_empty_lines: true,
     trim: true,
   });
-  console.log(people.filter(person => person.gender == 'M' && person.birthPlace == 'Grudziądz' && calculateAge(person.birthDate) >= 20 && calculateAge(person.birthDate) <= 40));
+  const filteredPeople = people.filter(person => person.gender == 'M' && person.birthPlace == 'Grudziądz' && calculateAge(person.birthDate) >= 20 && calculateAge(person.birthDate) <= 40);
+  console.log(filteredPeople.map(p => `${p.surname} ${p.name}`).sort())
 }
 
 main().catch((error) => {
