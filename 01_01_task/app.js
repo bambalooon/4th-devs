@@ -23,6 +23,22 @@ async function downloadFile(url, outputPath) {
   await writeFile(outputPath, Buffer.from(buffer));
 }
 
+function calculateAge(birthDateStr) {
+  const birth = new Date(birthDateStr);
+  const today = new Date();
+
+  let age = today.getFullYear() - birth.getFullYear();
+
+  // Adjust if birthday hasn't occurred yet this year
+  const hasBirthdayPassed =
+    today.getMonth() > birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+
+  if (!hasBirthdayPassed) age--;
+
+  return age;
+}
+
 async function main() {
   await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/people.csv`, './people.csv')
   const content = readFileSync("./people.csv", "utf-8");
@@ -31,7 +47,7 @@ async function main() {
     skip_empty_lines: true,
     trim: true,
   });
-  console.log(people.filter(person => person.gender == 'M' && person.birthPlace == 'Grudziądz'));
+  console.log(people.filter(person => person.gender == 'M' && person.birthPlace == 'Grudziądz' && calculateAge(person.birthDate) >= 20 && calculateAge(person.birthDate) <= 40));
 }
 
 main().catch((error) => {
