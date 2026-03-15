@@ -143,7 +143,15 @@ async function main() {
   Below is the list of job descriptions to classify:
   ${filteredPeople.map((p, index) => `#${index + 1}: ${p.job}`).join("\n")}`;
   let result = await classifyJobs(prompt);
-  console.log(result);
+  const mergedResult = result.job_tags.map(job => ({ ...filteredPeople[job.id - 1], tags: job.tags }));
+  const finalPeople = mergedResult.filter(p => p.tags.includes("transport"));
+  const answerPeople = finalPeople.map(p => ({ name: p.name, surname: p.surname, gender: p.gender, born: new Date(p.birthDate).getFullYear(), city: p.birthPlace, tags: p.tags }));
+  const answer = {
+    apikey: AI_DEVS_API_KEY,
+    task: "people",
+    "answer": answerPeople
+  }
+  console.log(JSON.stringify(answer, null, 2));
 }
 
 main().catch((error) => {
