@@ -111,5 +111,8 @@
     "lesson20:apps:mcp": "cd 04_05_apps && bun run start:mcp",
     "lesson20:review": "cd 04_05_review && bun run start",
     "lesson20:review:dev": "cd 04_05_review && bun run dev:server"
+  },
+  "dependencies": {
+    "csv-parse": "^6.1.0"
   }
 }
