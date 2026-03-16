@@ -151,7 +151,14 @@ async function main() {
     task: "people",
     "answer": answerPeople
   }
-  console.log(JSON.stringify(answer, null, 2));
+  const response = await fetch("https://hub.ag3nts.org/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(answer)
+  });
+
+  const data = await response.json();
+  console.log(data);
 }
 
 main().catch((error) => {
