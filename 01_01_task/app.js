@@ -146,6 +146,7 @@ async function main() {
   const mergedResult = result.job_tags.map(job => ({ ...filteredPeople[job.id - 1], tags: job.tags }));
   const finalPeople = mergedResult.filter(p => p.tags.includes("transport"));
   const answerPeople = finalPeople.map(p => ({ name: p.name, surname: p.surname, gender: p.gender, born: new Date(p.birthDate).getFullYear(), city: p.birthPlace, tags: p.tags }));
+  writeFile('./people.json', JSON.stringify(answerPeople));
   const answer = {
     apikey: AI_DEVS_API_KEY,
     task: "people",
