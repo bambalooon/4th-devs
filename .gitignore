@@ -6,3 +6,4 @@ translated/
 vault/
 
 *.csv
+*_task/*.json
