@@ -1,6 +1,12 @@
 import http from "http";
+import { z } from "zod";
 
 const PORT = 3000;
+
+const RequestSchema = z.object({
+  sessionID: z.string().min(1),
+  msg: z.string().min(1),
+});
 
 const server = http.createServer((req, res) => {
   if (req.method !== "POST") {
@@ -26,11 +32,24 @@ const server = http.createServer((req, res) => {
       return;
     }
 
+    const result = RequestSchema.safeParse(parsed);
+
+    if (!result.success) {
+      res.writeHead(422, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          error: "Validation failed",
+          issues: result.error.issues,
+        })
+      );
+      return;
+    }
+
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
         message: "OK",
-        received: parsed,
+        received: result.data,
       })
     );
   });
