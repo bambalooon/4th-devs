@@ -251,8 +251,6 @@ const requestResponse = async (input) => {
     tools,
     webSearch,
   });
-  // console.log("Request body:");
-  // console.log(JSON.stringify(body));
 
   const response = await fetch(RESPONSES_API_ENDPOINT, {
     method: "POST",
@@ -266,8 +264,6 @@ const requestResponse = async (input) => {
 
   const data = await response.json();
   if (!response.ok) throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
-  // console.log("Response body:");
-  // console.log(data);
   return data;
 };
 
