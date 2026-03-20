@@ -48,8 +48,10 @@ const server = http.createServer((req, res) => {
     }
 
     const messages = history.get(result.data.sessionID) ?? [];
-    messages.push({ role: "user", content: result.data.msg });
+    const newMessage = { role: "user", content: result.data.msg };
+    messages.push(newMessage);
     history.set(result.data.sessionID, messages);
+    console.log(`[${result.data.sessionID}] user message:`, newMessage);
 
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
