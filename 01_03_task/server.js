@@ -1,5 +1,7 @@
 import http from "http";
 import { z } from "zod";
+import {logAnswer, logQuestion} from "../01_02_tools/helper.js";
+import {chat} from "./ai.js";
 
 const PORT = 3000;
 
@@ -23,7 +25,7 @@ const server = http.createServer((req, res) => {
     body += chunk.toString();
   });
 
-  req.on("end", () => {
+  req.on("end", async () => {
     let parsed;
 
     try {
@@ -51,7 +53,11 @@ const server = http.createServer((req, res) => {
     const newMessage = { role: "user", content: result.data.msg };
     messages.push(newMessage);
     history.set(result.data.sessionID, messages);
-    console.log(`[${result.data.sessionID}] user message:`, newMessage);
+
+    logQuestion(`[${result.data.sessionID}] ${result.data.msg}`);
+    const answer = await chat(messages);
+    logAnswer(`[${result.sessionID}] ${answer}`);
+    messages.push(answer);
 
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
