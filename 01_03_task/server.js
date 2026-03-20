@@ -8,6 +8,8 @@ const RequestSchema = z.object({
   msg: z.string().min(1),
 });
 
+const history = new Map();
+
 const server = http.createServer((req, res) => {
   if (req.method !== "POST") {
     res.writeHead(405, { "Content-Type": "application/json" });
@@ -45,10 +47,14 @@ const server = http.createServer((req, res) => {
       return;
     }
 
+    const messages = history.get(result.data.sessionID) ?? [];
+    messages.push({ role: "user", content: result.data.msg });
+    history.set(result.data.sessionID, messages);
+
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
-        msg: result.data.msg
+        msg: messages
       })
     );
   });
