@@ -52,17 +52,17 @@ const server = http.createServer((req, res) => {
     const messages = history.get(result.data.sessionID) ?? [];
     const newMessage = { role: "user", content: result.data.msg };
     messages.push(newMessage);
-    history.set(result.data.sessionID, messages);
 
     logQuestion(`[${result.data.sessionID}] ${result.data.msg}`);
     const answer = await chat(messages);
-    logAnswer(`[${result.sessionID}] ${answer}`);
-    messages.push(answer);
+    logAnswer(`[${result.data.sessionID}] ${answer}`);
+    messages.push({ role: "assistant", content: answer });
+    history.set(result.data.sessionID, messages);
 
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
-        msg: messages
+        msg: answer
       })
     );
   });
