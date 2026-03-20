@@ -1,7 +1,9 @@
 import http from "http";
-import { z } from "zod";
+import {z} from "zod";
 import {logAnswer, logQuestion} from "../01_02_tools/helper.js";
-import {chat} from "./ai.js";
+import {createAgent} from "./ai.js";
+import {createMcpServer} from "./mcp/server.js";
+import {createMcpClient, listMcpTools, mcpToolsToOpenAI, callMcpTool} from "./mcp/client.js";
 
 const PORT = 3000;
 
@@ -12,44 +14,61 @@ const RequestSchema = z.object({
 
 const history = new Map();
 
-const server = http.createServer((req, res) => {
-  if (req.method !== "POST") {
-    res.writeHead(405, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Method Not Allowed. Use POST." }));
-    return;
-  }
+const main = async () => {
+  // Start in-memory MCP server and connect a client
+  const mcpServer = createMcpServer();
+  const mcpClient = await createMcpClient(mcpServer);
+  const mcpTools = await listMcpTools(mcpClient);
 
-  let body = "";
+  const handlers = Object.fromEntries([
+    ...mcpTools.map((t) => [t.name, {
+      execute: (args) => callMcpTool(mcpClient, t.name, args),
+    }])
+  ]);
 
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
+  const tools = [...mcpToolsToOpenAI(mcpTools)];
+  const agent = createAgent({ tools, handlers });
 
-  req.on("end", async () => {
-    let parsed;
+  console.log(`MCP tools: ${mcpTools.map((t) => t.name).join(", ")}`);
 
-    try {
-      parsed = JSON.parse(body);
-    } catch {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Invalid JSON body" }));
+  const server = http.createServer((req, res) => {
+    if (req.method !== "POST") {
+      res.writeHead(405, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Method Not Allowed. Use POST." }));
       return;
     }
 
-    const result = RequestSchema.safeParse(parsed);
+    let body = "";
 
-    if (!result.success) {
-      res.writeHead(422, { "Content-Type": "application/json" });
-      res.end(
-        JSON.stringify({
-          error: "Validation failed",
-          issues: result.error.issues,
-        })
-      );
-      return;
-    }
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+    });
 
-    const messages = history.get(result.data.sessionID) ?? [{ role: "system", content: `
+    req.on("end", async () => {
+      let parsed;
+
+      try {
+        parsed = JSON.parse(body);
+      } catch {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Invalid JSON body" }));
+        return;
+      }
+
+      const result = RequestSchema.safeParse(parsed);
+
+      if (!result.success) {
+        res.writeHead(422, { "Content-Type": "application/json" });
+        res.end(
+            JSON.stringify({
+              error: "Validation failed",
+              issues: result.error.issues,
+            })
+        );
+        return;
+      }
+
+      const messages = history.get(result.data.sessionID) ?? [{ role: "system", content: `
       Jesteś tajnym agentem, który podszywa się za pracownika centrum logistycznego. 
       Masz zachowywać się jak człowiek i nie zdradzać, że jesteś sztuczną inteligencją.
       Bądź pomocny i serdeczny.
@@ -59,25 +78,38 @@ const server = http.createServer((req, res) => {
       i potwierdź operatorowi, że paczka trafiła tam gdzie chciał nie zdradzając prawdziwego celu.
       Rozmowe prowadź w języku operatora.   
     ` }];
-    const newMessage = { role: "user", content: result.data.msg };
-    messages.push(newMessage);
+      const newMessage = { role: "user", content: result.data.msg };
+      messages.push(newMessage);
 
-    logQuestion(`[${result.data.sessionID}] ${result.data.msg}`);
-    const answer = await chat(messages);
-    logAnswer(`[${result.data.sessionID}] ${answer}`);
-    messages.push({ role: "assistant", content: answer });
-    history.set(result.data.sessionID, messages);
+      logQuestion(`[${result.data.sessionID}] ${result.data.msg}`);
+      const answer = await agent.chat(messages);
+      logAnswer(`[${result.data.sessionID}] ${answer}`);
+      messages.push({ role: "assistant", content: answer });
+      history.set(result.data.sessionID, messages);
 
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(
-      JSON.stringify({
-        msg: answer
-      })
-    );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+          JSON.stringify({
+            msg: answer
+          })
+      );
+    });
   });
-});
 
-server.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+  server.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT}`);
+  });
 
+  const handler = async () => {
+    console.log("Closing MCP client and server...")
+    await mcpClient.close();
+    await mcpServer.close();
+    console.log("Closing MCP client and server... done")
+    process.exit(0);
+  };
+
+  process.on("SIGINT", handler);
+  process.on("SIGTERM", handler);
+};
+
+main().catch(console.error);
