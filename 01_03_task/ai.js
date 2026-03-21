@@ -13,7 +13,7 @@ const MAX_TOOL_STEPS = 5;
 
 export const createAgent = ({ tools, handlers }) => ({
   async requestResponse(input){
-    const webSearch = false
+    const webSearch = true;
     const body = buildResponsesRequest({
       model,
       input,
