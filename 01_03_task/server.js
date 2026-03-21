@@ -21,9 +21,7 @@ const main = async () => {
   const mcpTools = await listMcpTools(mcpClient);
 
   const handlers = Object.fromEntries([
-    ...mcpTools.map((t) => [t.name, {
-      execute: (args) => callMcpTool(mcpClient, t.name, args),
-    }])
+    ...mcpTools.map((t) => [t.name, (args) => callMcpTool(mcpClient, t.name, args)])
   ]);
 
   const tools = [...mcpToolsToOpenAI(mcpTools)];
