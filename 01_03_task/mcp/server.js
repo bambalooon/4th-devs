@@ -32,18 +32,21 @@ export const createMcpServer = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            api_key: AI_DEVS_API_KEY,
+            apikey: AI_DEVS_API_KEY,
             action: "check",
             packageid: package_id
           })
         });
 
         const data = await response.json();
-        console.log(`Checking package ${package_id}: ${data}`);
+        console.log(`Checking package ${package_id}: ${JSON.stringify(data)}`);
 
         if (!response.ok || data.error) {
-          const message = data?.error?.message ?? `Request failed with status ${response.status}`;
-          throw new Error(message);
+          const message = data?.message ?? `Request failed with status ${response.status}`;
+          return {
+            content: [ { type: 'text', text: message } ],
+            isError: true
+          }
         }
 
         return data;
@@ -64,7 +67,7 @@ export const createMcpServer = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            api_key: AI_DEVS_API_KEY,
+            apikey: AI_DEVS_API_KEY,
             action: "redirect",
             packageid: package_id,
             destination: destination,
@@ -73,11 +76,14 @@ export const createMcpServer = () => {
         });
 
         const data = await response.json();
-        console.log(`Redirecting package ${package_id} to ${destination} with code ${code}: ${data}`);
+        console.log(`Redirecting package ${package_id} to ${destination} with code ${code}: ${JSON.stringify(data)}`);
 
         if (!response.ok || data.error) {
-          const message = data?.error?.message ?? `Request failed with status ${response.status}`;
-          throw new Error(message);
+          const message = data?.message ?? `Request failed with status ${response.status}`;
+          return {
+            message: message,
+            isError: true
+          }
         }
 
         return data;
