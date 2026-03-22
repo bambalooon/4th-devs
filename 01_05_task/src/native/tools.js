@@ -25,8 +25,7 @@ export const nativeTools = [
       },
       required: ["data"],
       additionalProperties: false
-    },
-    strict: true
+    }
   },
   {
     type: "function",
@@ -63,7 +62,7 @@ export const nativeHandlers = {
       const response = await fetch("https://hub.ag3nts.org/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answer)
+        body: JSON.stringify(request)
       });
 
       const result = {
