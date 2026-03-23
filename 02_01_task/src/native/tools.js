@@ -95,3 +95,9 @@ export const nativeHandlers = {
     return csvToObjects(csvContent);
   }
 };
+
+export const executeNativeTool = async (name, args) => {
+  const handler = nativeHandlers[name];
+  if (!handler) throw new Error(`Unknown native tool: ${name}`);
+  return handler(args);
+};
