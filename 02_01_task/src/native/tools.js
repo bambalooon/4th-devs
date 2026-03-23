@@ -68,14 +68,15 @@ export const nativeHandlers = {
         body: JSON.stringify(request)
       });
 
+      const result = await response.json();
       if (!response.ok) {
         return {
           isError: true,
-          message: `Categorize call failed with response status ${response.status}`
+          message: `Categorize call failed with response status ${response.status}`,
+          result: result
         }
       }
 
-      const result = await response.json();
       console.log("API call result: ", result);
       return result;
     } catch (error) {
