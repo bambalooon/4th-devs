@@ -25,6 +25,12 @@ export const nativeTools = [
     type: "function",
     name: "reset_and_get_new_items_to_categorize",
     description: "Reset items categorization after failure and get new items for categorization",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: [],
+      additionalProperties: false
+    },
     strict: true
   }
 ];
