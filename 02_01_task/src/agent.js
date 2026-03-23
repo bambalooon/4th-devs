@@ -7,7 +7,7 @@ import {chat, extractText, extractToolCalls} from "./api.js";
 import {executeNativeTool, nativeTools} from "./native/tools.js";
 import log from "./helpers/logger.js";
 
-const MAX_STEPS = 100;
+const MAX_STEPS = 1000;
 
 const runTool = async (toolCall) => {
   const args = JSON.parse(toolCall.arguments);
