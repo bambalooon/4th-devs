@@ -51,7 +51,7 @@ const csvToObjects = (csvContent) => {
  * Native tool handlers.
  */
 export const nativeHandlers = {
-  async categorize(prompt) {
+  async categorize({ prompt } = {}) {
     try {
       const request = {
         apikey: AI_DEVS_API_KEY,
@@ -75,7 +75,7 @@ export const nativeHandlers = {
         }
       }
 
-      const result = response.json();
+      const result = await response.json();
       console.log("API call result: ", result);
       return result;
     } catch (error) {
@@ -86,7 +86,7 @@ export const nativeHandlers = {
     }
   },
   async reset_and_get_new_items_to_categorize() {
-    await this.categorize("reset");
+    await this.categorize({ prompt: "reset" });
 
     const response = await fetch(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/categorize.csv`);
 
@@ -105,5 +105,5 @@ export const nativeHandlers = {
 export const executeNativeTool = async (name, args) => {
   const handler = nativeHandlers[name];
   if (!handler) throw new Error(`Unknown native tool: ${name}`);
-  return handler(args);
+  return handler.call(nativeHandlers, args);
 };
