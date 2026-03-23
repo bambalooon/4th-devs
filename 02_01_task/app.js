@@ -59,6 +59,11 @@ Upewnij się, że Twój prompt obsługuje te przypadki.
 
 Czytaj odpowiedzi narzędzi - zwraca ono szczegółowe komunikaty o błędach (np. który towar został źle sklasyfikowany, czy budżet się skończył). 
 Wykorzystaj te informacje do poprawy promptu.
+
+Rozpocznij od:
+Reply DNG only for weapons, firearms, blades, ammo, explosives, poisons, radioactive or hazardous substances. If reactor/fuel cassette/shielding -> NEU. Tools, parts, wire, springs, engine parts, switches -> NEU. {id} {description}
+Koniecznie zwróć otrzymaną flagę.
+Wywołuj narzędzie categorize sekwencyjnie.
 `;
 
 const main = async () => {
