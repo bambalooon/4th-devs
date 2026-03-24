@@ -7,7 +7,11 @@ import {
 import { extractResponseText } from "../helpers/response.js";
 import { recordUsage } from "../helpers/stats.js";
 
-export const vision = async ({ imageBase64, mimeType, question }) => {
+export const vision = async ({ images, question }) => {
+  const imageItems = images.map(({imageBase64: base64, mimeType: mimeType}) => ({
+    type: "input_image",
+    image_url: `data:${mimeType};base64,${base64}`
+  }));
   const response = await fetch(RESPONSES_API_ENDPOINT, {
     method: "POST",
     headers: {
@@ -22,7 +26,7 @@ export const vision = async ({ imageBase64, mimeType, question }) => {
           role: "user",
           content: [
             { type: "input_text", text: question },
-            { type: "input_image", image_url: `data:${mimeType};base64,${imageBase64}` }
+            ...imageItems
           ]
         }
       ]
