@@ -8,10 +8,9 @@ import {AI_DEVS_API_KEY} from "../config.js";
 import {vision} from "./src/native/vision.js";
 
 const QUERY = `
-Analyze the 3x3 board.
-Draw it in simple ASCII format - only board and return as result.
+Analyze the 3x3 board on both images.
 
-This is empty board:
+This is empty board in ASCII format:
 +---+---+---+
 |   |   |   |
 |   |   |   |
@@ -26,40 +25,37 @@ This is empty board:
 |   |   |   |
 +---+---+---+
 
-Example board:
+This is board on 1st image in ASCII format:
 +---+---+---+
-|   | | |   |
-|-+-| | |---|
+|   |   |   |
+| +-|-+-|---|
 | | | | |   |
 +---+---+---+
-| | |   |   |
-| |-|   |   |
-| | |   |   |
+| | | | |   |
+| | | +-|-+-|
+| | | | | | |
 +---+---+---+
-|   | | |   |
-|   |-+ |   |
+| | | | | | |
+|-+-|-+ | +-|
 |   |   |   |
 +---+---+---+
-
-Please keep this format, if lines connect in the center then put '+' there.
+ 
+Following above examples and rules, generate board in ASCII format for 2nd image.
 `;
+
+const getImageBase64 = async (image_url) => {
+  const response = await fetch(image_url);
+  const buffer = await response.arrayBuffer();
+  return Buffer.from(buffer).toString("base64");
+}
 
 const main = async () => {
   try {
-    const response = await fetch(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png`);
-    if (!response.ok) {
-      return {
-        isError: true,
-        message: `Failed to download image: ${response.status} ${response.statusText}`
-      }
-    }
-
-    const buffer = await response.arrayBuffer();
-    const imageBase64 = Buffer.from(buffer).toString("base64");
-
     const result = await vision({
-      imageBase64,
-      mimeType: "image/png",
+      images: [
+        { base64: await getImageBase64(`https://hub.ag3nts.org/i/solved_electricity.png`), mimeType: "image/png" },
+        { base64: await getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png`), mimeType: "image/png" },
+      ],
       question: QUERY
     });
 
