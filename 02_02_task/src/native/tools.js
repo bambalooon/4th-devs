@@ -105,7 +105,7 @@ export const nativeHandlers = {
       const mimeType = getMimeType(image_url);
 
       const answer = await vision({
-        images: [ { base64: imageBase64, mimeType } ],
+        images: [ { imageBase64, mimeType } ],
         question
       });
 

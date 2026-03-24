@@ -53,8 +53,8 @@ const main = async () => {
   try {
     const result = await vision({
       images: [
-        { base64: await getImageBase64(`https://hub.ag3nts.org/i/solved_electricity.png`), mimeType: "image/png" },
-        { base64: await getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png`), mimeType: "image/png" },
+        { imageBase64: await getImageBase64(`https://hub.ag3nts.org/i/solved_electricity.png`), mimeType: "image/png" },
+        { imageBase64: await getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png`), mimeType: "image/png" },
       ],
       question: QUERY
     });
