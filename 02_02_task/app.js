@@ -12,11 +12,9 @@ import {AI_DEVS_API_KEY} from "../config.js";
 const QUERY = `Jesteś autonomicznym agentem.
 
 # Cel
-Masz do rozwiązania puzzle elektryczne na planszy 3x3 - musisz doprowadzić prąd do wszystkich trzech elektrowni (PWR6132PL, PWR1593PL, PWR7264PL), łącząc je odpowiednio ze źródłem zasilania awaryjnego (po lewej na dole). 
+Masz do rozwiązania puzzle elektryczne na planszy 3x3. 
 Plansza przedstawia sieć kabli - każde pole zawiera element złącza elektrycznego. 
-Twoim celem jest doprowadzenie prądu do wszystkich elektrowni przez obrócenie odpowiednich pól planszy tak, aby układ kabli odpowiadał podanemu schematowi docelowemu. 
-Źródłową elektrownią jest ta w lewym-dolnym rogu mapy. O
-kablowanie musi stanowić obwód zamknięty.
+Twoim celem jest obrócenie odpowiednich pól planszy tak, aby układ kabli odpowiadał podanemu schematowi docelowemu. 
 
 # Dozwolone akcje
 Jedyna dozwolona operacja to obrót wybranego pola o 90 stopni w prawo. 
@@ -28,6 +26,8 @@ Gdy plansza osiągnie poprawną konfigurację, hub zwróci flagę {FLG:...}.
 # Aktualny stan
 Aktualny stan planszy pobierasz jako obrazek PNG:
 https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png
+Narzędzie understand_image podzieli ten obrazek na 9 części (po jednym na pole) i zwróci ich reprezentację ASCII, gdzie X to gruby kabel, a spacja to cienka kreska (reprezentująca granice pola) lub brak kabla.
+Zwrócone pola zostaną opisane w kolejności 1x1, 1x2, 1x3, 2x1, 2x2, ... 
 
 Pola adresujesz w formacie AxB, gdzie A to wiersz (1-3, od góry), a B to kolumna (1-3, od lewej):
 1x1 | 1x2 | 1x3
@@ -37,8 +37,20 @@ Pola adresujesz w formacie AxB, gdzie A to wiersz (1-3, od góry), a B to kolumn
 3x1 | 3x2 | 3x3
 
 # Rozwiązanie
-Docelowy stan planszy możesz zobaczyć na schemacie:
-https://hub.ag3nts.org/i/solved_electricity.png
+Docelowy stan planszy możesz zobaczyć na schemacie w postaci ASCII:
+------------
+   |   |   |
+ XX|XXX|XXX|  
+ X | X |   |
+------------
+ X | X |   |
+ X | XX|XXX|  
+ X | X | X |
+------------
+ X | X | X |
+XXX|XX | XX|  
+   |   |   |
+------------
 
 # Reset planszy
 Jeśli chcesz zacząć od początku, wywołaj narzędzie reset.

@@ -62,7 +62,6 @@ const main = async () => {
           width: cellSize.width,
           height: cellSize.height
         });
-        showImage(currentBoard[row][col], `current-${row+1}x${col+1}.png`);
       }
     }
 
