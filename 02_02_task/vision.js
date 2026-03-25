@@ -5,46 +5,19 @@
 import log from "./src/helpers/logger.js";
 import {AI_DEVS_API_KEY} from "../config.js";
 import sharp from "sharp";
-import {exec} from "child_process";
 import {writeFileSync} from "fs";
 import {vision} from "./src/native/vision.js";
 
 const MIME_TYPE = "image/png";
 
 const QUERY = `
-Analyze the 3x3 board on both images.
-
-This is empty board in ASCII format:
-+---+---+---+
-|   |   |   |
-|   |   |   |
-|   |   |   |
-+---+---+---+
-|   |   |   |
-|   |   |   |
-|   |   |   |
-+---+---+---+
-|   |   |   |
-|   |   |   |
-|   |   |   |
-+---+---+---+
-
-This is board on 1st image in ASCII format:
-+---+---+---+
-|   |   |   |
-| XX|XXX|XXX|
-| X | X |   |
-+---+---+---+
-| X | X |   |
-| X | XX|XXX|
-| X | X | X |
-+---+---+---+
-| X | X | X |
-|XXX|XX | XX|
-|   |   |   |
-+---+---+---+
- 
-Following above examples and rules, generate board in ASCII format for 2nd image.
+Analyze all 9 images and create ASCII representation of them.
+Thick line should be changed to X, empty field or thin line should be left as space.
+Below I've shown where X can occur - some of this fields will hold X and some will be empty (space):
+ X 
+XXX
+ X 
+You should return 3x3 string for each image.
 `;
 
 const getImageBase64 = async (image_url) => {
@@ -75,17 +48,28 @@ const showImage = (imageBase64, filename = "preview.png") => {
 
 const main = async () => {
   try {
-    const solvedState = await cropImage(await getImageBase64(`https://hub.ag3nts.org/i/solved_electricity.png`), { left: 140, top: 88, width: 290, height: 290 });
-    const currentState = await cropImage(await getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png`), { left: 236, top: 98, width: 290, height: 290 });
-    showImage(solvedState, 'solved.png');
-    showImage(currentState, 'current.png');
-    // showImage(await toBlackAndWhiteBase64(solvedOrig));
+    const size = { width: 290, height: 290 };
+    const solvedState = await getImageBase64(`https://hub.ag3nts.org/i/solved_electricity.png`).then(img => cropImage(img, { left: 140, top: 88, ...size })).then(img => toBlackAndWhiteBase64(img));
+    const currentState = await getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/electricity.png`).then(img => cropImage(img, { left: 236, top: 98, ...size })).then(img => toBlackAndWhiteBase64(img));
+    const currentBoard = [];
+    const cellSize = { width: Math.floor(size.width / 3) - 4, height: Math.floor(size.height / 3) - 4 };
+    for (let row = 0; row < 3; row++) {
+      currentBoard.push([]);
+      for (let col = 0; col < 3; col++) {
+        currentBoard[row][col] = await cropImage(currentState, {
+          left: col * cellSize.width + 6,
+          top: row * cellSize.height + 5,
+          width: cellSize.width,
+          height: cellSize.height
+        });
+        showImage(currentBoard[row][col], `current-${row+1}x${col+1}.png`);
+      }
+    }
 
+    const visionImages = [];
+    currentBoard.flatMap(row => row).forEach((cell) => visionImages.push({ imageBase64: cell, mimeType: MIME_TYPE }));
     const result = await vision({
-      images: [
-        { imageBase64: solvedState, mimeType: MIME_TYPE },
-        { imageBase64: currentState, mimeType: MIME_TYPE },
-      ],
+      images: visionImages,
       question: QUERY
     });
 
