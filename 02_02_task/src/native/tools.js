@@ -9,6 +9,7 @@ import {extname} from "path";
 import {vision} from "./vision.js";
 import log from "../helpers/logger.js";
 import {AI_DEVS_API_KEY} from "../../../config.js";
+import sharp from "sharp";
 
 const getMimeType = (filepath) => {
   const ext = extname(filepath).toLowerCase();
@@ -36,13 +37,9 @@ export const nativeTools = [
         image_url: {
           type: "string",
           description: "URL to the image to analyze"
-        },
-        question: {
-          type: "string",
-          description: "Question to ask about the image (e.g., 'Who is in this image?', 'Describe the person's appearance')"
         }
       },
-      required: ["image_url", "question"],
+      required: ["image_url"],
       additionalProperties: false
     },
     strict: true
@@ -81,15 +78,78 @@ export const nativeTools = [
       additionalProperties: false
     },
     strict: true
+  },
+  {
+    type: "function",
+    name: "wait_for",
+    description: "Wait for a specified number of seconds",
+    parameters: {
+      type: "object",
+      properties: {
+        seconds: {
+          type: "number",
+          description: 'Number of seconds to wait for'
+        }
+      },
+      required: ["seconds"],
+      additionalProperties: false
+    },
+    strict: true
   }
 ];
+
+const toBlackAndWhiteBase64 = async (imageBase64) => {
+  const buffer = Buffer.from(imageBase64, "base64");
+  const bwBuffer = await sharp(buffer).grayscale().threshold(128).toBuffer();
+  return bwBuffer.toString("base64");
+};
+
+const cropImage = async (imageBase64, { left, top, width, height }) => {
+  const buffer = Buffer.from(imageBase64, "base64");
+  const sliced = await sharp(buffer)
+      .extract({ left, top, width, height })
+      .toBuffer();
+  return sliced.toString("base64");
+};
+
+const transformImage = async (imageBase64, mimeType) => {
+  const size = { width: 290, height: 290 };
+  const croppedBWImage = await cropImage(imageBase64, { left: 236, top: 98, ...size }).then(img => toBlackAndWhiteBase64(img));
+  const currentBoard = [];
+  const cellSize = { width: Math.floor(size.width / 3) - 4, height: Math.floor(size.height / 3) - 4 };
+  for (let row = 0; row < 3; row++) {
+    currentBoard.push([]);
+    for (let col = 0; col < 3; col++) {
+      currentBoard[row][col] = await cropImage(croppedBWImage, {
+        left: col * cellSize.width + 6,
+        top: row * cellSize.height + 5,
+        width: cellSize.width,
+        height: cellSize.height
+      });
+    }
+  }
+
+  const visionImages = [];
+  currentBoard.flatMap(row => row).forEach((cell) => visionImages.push({ imageBase64: cell, mimeType: mimeType }));
+  return visionImages;
+}
+
+const VISION_QUERY = `
+Analyze all 9 images and create ASCII representation of them.
+Thick line should be changed to X, empty field or thin line should be left as space.
+Below I've shown where X can occur - some of this fields will hold X and some will be empty (space):
+ X 
+XXX
+ X 
+You should return 3x3 string for each image.
+`;
 
 /**
  * Native tool handlers.
  */
 export const nativeHandlers = {
-  async understand_image({ image_url, question }) {
-    log.vision(image_url, question);
+  async understand_image({ image_url }) {
+    log.vision(image_url, VISION_QUERY);
 
     try {
       const response = await fetch(image_url);
@@ -105,8 +165,8 @@ export const nativeHandlers = {
       const mimeType = getMimeType(image_url);
 
       const answer = await vision({
-        images: [ { imageBase64, mimeType } ],
-        question
+        images: await transformImage(imageBase64, mimeType),
+        question: VISION_QUERY
       });
 
       log.visionResult(answer);
@@ -148,6 +208,10 @@ export const nativeHandlers = {
       }
     }
   },
+  wait_for: async ({ seconds }) => {
+    await new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    return { message: `Waited for ${seconds} seconds` };
+  }
 };
 
 /**
