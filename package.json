@@ -113,6 +113,8 @@
     "lesson20:review:dev": "cd 04_05_review && bun run dev:server"
   },
   "dependencies": {
-    "csv-parse": "^6.1.0"
+    "better-sqlite3": "^12.8.0",
+    "csv-parse": "^6.1.0",
+    "sqlite-vec": "^0.1.7"
   }
 }
