@@ -6,5 +6,5 @@ export const api = {
   model: resolveModelForProvider("gpt-4.1-mini"),
   maxOutputTokens: 16384,
   reasoning: { effort: "medium", summary: "auto" },
-  instructions: readFileSync(resolve(import.meta.dirname, "agent", "prompt_sonnet.md"), "utf-8"),
+  instructions: readFileSync(resolve(import.meta.dirname, "agent", "prompt_opus.md"), "utf-8"),
 };
