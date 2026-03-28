@@ -87,7 +87,7 @@ export const searchVector = (db, queryEmbedding, limit = 10) => {
 
   const logs = db
     .prepare(
-      `SELECT id, content, level, timestamp,
+      `SELECT id, content, level, timestamp
        FROM logs
        WHERE id IN (${placeholders})`
     )
