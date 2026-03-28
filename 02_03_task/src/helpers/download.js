@@ -2,9 +2,9 @@ import {existsSync} from "fs";
 import https from "https";
 import {writeFile} from "fs/promises";
 
-export default async function downloadFile(url, outputDir = ".") {
+export default async function downloadFile(url, outputDir = ".", overwrite = false) {
     const outputPath = `${outputDir}/${url.split("/").slice(-1)[0]}`;
-    if (existsSync(outputPath)) {
+    if (!overwrite && existsSync(outputPath)) {
         console.log(`File already exists: ${outputPath}, skipping download.`);
         return;
     }
