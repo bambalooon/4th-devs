@@ -2,7 +2,7 @@
  * Hybrid search: FTS5 (BM25) + sqlite-vec (cosine distance), combined with Reciprocal Rank Fusion.
  */
 
-import { embed } from "./embeddings.js";
+import {embed} from "./embeddings.js";
 import log from "../helpers/logger.js";
 
 const RRF_K = 60; // Reciprocal Rank Fusion constant
@@ -156,4 +156,16 @@ export const hybridSearch = async (db, { keywords, semantic }, limit = 5) => {
   log.searchRrf(merged);
 
   return merged.map(({ rrf, fts_score, ...rest }) => rest);
+};
+
+export const search = (db, queryCondition, orderBy = "", limit = 5) => {
+  try {
+    return db
+        .prepare(
+            `SELECT id, timestamp, level, content FROM logs WHERE ${queryCondition} ${orderBy} LIMIT ?`
+        )
+        .all(limit);
+  } catch {
+    return [];
+  }
 };

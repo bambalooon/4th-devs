@@ -3,38 +3,81 @@
  * Provides a single hybrid search tool over the indexed document database.
  */
 
-import { hybridSearch } from "../db/search.js";
+import {hybridSearch, search} from "../db/search.js";
 import log from "../helpers/logger.js";
+import {hub} from "../hub/hub.js";
 
-const SEARCH_TOOL = {
-  type: "function",
-  name: "search",
-  description:
-    "Search the indexed knowledge base using hybrid search (full-text BM25 + semantic vector similarity). " +
-    "Returns the most relevant logs with content, timestamp and log level. " +
-    "Provide BOTH a keyword query for full-text search AND a natural language query for semantic search.",
-  parameters: {
-    type: "object",
-    properties: {
-      keywords: {
-        type: "string",
-        description:
-          "Keywords for full-text search (BM25) — specific terms, names, and phrases that should appear in the text",
+const TOOLS = [
+  {
+    type: "function",
+    name: "search",
+    description:
+        "Search the indexed knowledge base using hybrid search (full-text BM25 + semantic vector similarity). " +
+        "Returns the most relevant logs with content, timestamp and log level. " +
+        "Provide BOTH a keyword query for full-text search AND a natural language query for semantic search.",
+    parameters: {
+      type: "object",
+      properties: {
+        keywords: {
+          type: "string",
+          description:
+              "Keywords for full-text search (BM25) — specific terms, names, and phrases that should appear in the text",
+        },
+        semantic: {
+          type: "string",
+          description:
+              "Natural language query for semantic/vector search — a question or description of the concept you're looking for",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of results to return (default 5, max 20)",
+        },
       },
-      semantic: {
-        type: "string",
-        description:
-          "Natural language query for semantic/vector search — a question or description of the concept you're looking for",
-      },
-      limit: {
-        type: "number",
-        description: "Maximum number of results to return (default 5, max 20)",
-      },
+      required: ["keywords", "semantic"],
     },
-    required: ["keywords", "semantic"],
+    strict: false,
   },
-  strict: false,
-};
+  {
+    type: "function",
+    name: "select",
+    description: "SQLite select query parameters",
+    parameters: {
+      type: "object",
+      properties: {
+        query_condition: {
+          type: "string",
+          description: "WHERE clause conditions, e.g. level='ERROR' AND content MATCH 'timeout'",
+        },
+        order_by: {
+          type: "string",
+          description: "ORDER BY clause, e.g. timestamp DESC",
+        },
+        limit: {
+          type: "number",
+          description: "LIMIT clause, e.g. 10",
+        },
+      },
+      required: ["query_condition"],
+    },
+    strict: true,
+  },
+  {
+    type: "function",
+    name: "send_logs",
+    description: "Send compressed relevant logs to Hub for verification",
+    parameters: {
+      type: "object",
+      properties: {
+        logs: {
+          type: "string",
+          description: "logs with line breaks",
+        }
+      },
+      required: ["logs"],
+    },
+    strict: true,
+  },
+];
 
 /**
  * Creates the tool interface consumed by the agent.
@@ -53,10 +96,16 @@ export const createTools = (db) => {
         content: r.content,
       }));
     },
+    select: async ({ query_condition, order_by, limit }) => {
+      return search(db, query_condition, order_by, limit);
+    },
+    send_logs: async ({ logs }) => {
+      return hub.sendLogs(logs);
+    },
   };
 
   return {
-    definitions: [SEARCH_TOOL],
+    definitions: SEARCH_TOOLS,
 
     handle: async (name, args) => {
       const handler = handlers[name];
