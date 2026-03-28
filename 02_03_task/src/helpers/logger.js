@@ -112,11 +112,10 @@ const log = {
     }
     console.log(`${colors.dim}         ${label} ${results.length} hit(s)${colors.reset}`);
     for (const r of results.slice(0, 5)) {
-      const src = r.source;
-      const section = r.section ? ` → ${r.section}` : "";
+      const preview = r.content?.slice(0, 60) ?? "?";
       const score = r.fts_score?.toFixed(2) ?? "?";
       const terms = r.matched_terms?.length ? ` ${colors.yellow}[${r.matched_terms.join(", ")}]${colors.reset}${colors.dim}` : "";
-      console.log(`${colors.dim}           #${r.chunk_index} ${src}${section} (bm25: ${score})${terms}${colors.reset}`);
+      console.log(`${colors.dim}           #${r.id} [${r.level}] ${preview}… (bm25: ${score})${terms}${colors.reset}`);
     }
     if (results.length > 5) console.log(`${colors.dim}           ... +${results.length - 5} more${colors.reset}`);
   },
