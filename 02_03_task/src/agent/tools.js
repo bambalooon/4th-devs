@@ -105,7 +105,7 @@ export const createTools = (db) => {
   };
 
   return {
-    definitions: SEARCH_TOOLS,
+    definitions: TOOLS,
 
     handle: async (name, args) => {
       const handler = handlers[name];
