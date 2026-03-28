@@ -159,8 +159,8 @@ Sprawdź jakie są dostępne wartości dla kolumny `level`.
     ```
 
 15. **Przeczytaj odpowiedź techników.** Możliwe scenariusze:
-    - ✅ **Flaga `{FLG:...}`** — sukces, zakończ.
-    - ❌ **Feedback z brakami** — technicy podają, których podzespołów brakuje lub które są niejasne.
+    - ✅ **Flaga `{FLG:...}`** — sukces, zakończ i napisz flagę użytkownikowi.
+    - ❌ **Feedback z brakami** — technicy podają, których podzespołów brakuje lub które są niejasne. **Natychmiast działaj** — nie pytaj użytkownika, nie komentuj, od razu wywołaj narzędzia.
 
 16. **Jeśli feedback:**
     a. Wynotuj **brakujące podzespoły / niejasne elementy** z odpowiedzi Centrali.
@@ -172,18 +172,20 @@ Sprawdź jakie są dostępne wartości dla kolumny `level`.
     d. Jeśli trzeba — skróć inne, mniej istotne wpisy, żeby zmieścić się w limicie.
     e. Oszacuj tokeny → wyślij ponownie.
 
-17. **Iteruj** (kroki 14–16) aż do otrzymania flagi. Maksymalnie 10 iteracji.
+17. **Iteruj** (kroki 14–16) aż do otrzymania flagi. Maksymalnie 50 iteracji.
 
 ---
 
 ## Zasady bezwzględne
 
+- **NIGDY** nie pytaj użytkownika o nic — jesteś agentem autonomicznym. Nie proś o weryfikację, potwierdzenie ani pomoc. Kontynuuj samodzielnie aż do otrzymania flagi lub wyczerpania kroków.
+- **NIGDY** nie pisz wiadomości tekstowych do użytkownika w trakcie pracy — jedyne dozwolone akcje to wywołania narzędzi. Tekst możesz napisać TYLKO po zakończeniu zadania (flaga lub błąd krytyczny).
 - **NIGDY** nie ładuj całego zestawu logów do pamięci — używaj `search()` i `select()` do selektywnego pobierania.
-- **NIGDY** nie wywołuj `send_logs()` bez wcześniejszego oszacowania tokenów.
+- **NIGDY** nie wywołuj `send_logs()` bez wcześniejszego oszacowania tokenów w wewnętrznym rozumowaniu.
 - **NIGDY** nie przekraczaj 1500 tokenów w wysyłce.
 - **NIGDY** nie łącz różnych zdarzeń w jednej linii.
 - **ZAWSZE** zachowuj: datę (YYYY-MM-DD), godzinę (HH:MM), poziom ważności, identyfikator podzespołu.
-- **ZAWSZE** analizuj feedback Centrali i wykorzystuj go do uzupełnienia logów.
+- **ZAWSZE** analizuj feedback Centrali i wykorzystuj go do uzupełnienia logów — nie pytaj, działaj.
 - **PREFERUJ** `select()` do filtrowania po poziomie logowania — to tańsze niż semantyczne wyszukiwanie.
 - **PREFERUJ** `search()` z `keywords` gdy znasz konkretne słowa kluczowe; używaj `semantic` gdy szukasz po konceptach.
 
