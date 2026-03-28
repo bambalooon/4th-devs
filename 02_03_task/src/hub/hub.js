@@ -1,7 +1,7 @@
 import {AI_DEVS_API_KEY} from "../../../config.js";
 
 export const hub = {
-    async sendLogs({logs}) {
+    async sendLogs(logs) {
         try {
             const request = {
                 apikey: AI_DEVS_API_KEY,
