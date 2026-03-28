@@ -13,7 +13,7 @@ import {logStats} from "./src/helpers/stats.js";
 import log from "./src/helpers/logger.js";
 import {AI_DEVS_API_KEY} from "../config.js";
 import downloadFile from "./src/helpers/download.js";
-import {indexFile} from "./src/db/indexer.js";
+import {indexLogsFile} from "./src/db/indexer.js";
 
 const main = async () => {
   log.box("Hybrid RAG Agent");
@@ -28,7 +28,7 @@ const main = async () => {
 
   // 2. Index workspace
   log.start("Indexing workspace...");
-  await indexFile(db, './workspace/failure.log', 'failure.log');
+  await indexLogsFile(db, './workspace/failure.log', 'failure.log');
   log.success("Indexing complete");
 
   // 3. Agent tools
