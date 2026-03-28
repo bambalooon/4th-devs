@@ -1,6 +1,6 @@
 ---
 name: date_finder
-model: google:gemini-3-flash-preview
+model: openai:gpt-4.1-mini
 tools:
   - search
   - get_inbox
