@@ -6,6 +6,7 @@
 import {count, hybridSearch, search} from "../db/search.js";
 import log from "../helpers/logger.js";
 import {hub} from "../hub/hub.js";
+import {tiktoken} from "../hub/tiktoken.js";
 
 const TOOLS = [
   {
@@ -93,6 +94,22 @@ const TOOLS = [
     },
     strict: true,
   },
+  {
+    type: "function",
+    name: "count_tokens",
+    description: "Estimate number of tokens for provided prompt",
+    parameters: {
+      type: "object",
+      properties: {
+        prompt: {
+          type: "string",
+          description: "prompt to tokenize and estimate tokens count",
+        }
+      },
+      required: ["prompt"],
+    },
+    strict: true,
+  },
 ];
 
 /**
@@ -121,6 +138,9 @@ export const createTools = (db) => {
     },
     count: async ({ query_condition }) => {
       return count(db, query_condition);
+    },
+    count_tokens: async ({ prompt }) => {
+      return tiktoken.count_tokens(prompt);
     },
     send_logs: async ({ logs }) => {
       return hub.sendLogs(logs);

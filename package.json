@@ -137,6 +137,7 @@
   "dependencies": {
     "better-sqlite3": "^12.8.0",
     "csv-parse": "^6.1.0",
-    "sqlite-vec": "^0.1.7"
+    "sqlite-vec": "^0.1.7",
+    "tiktoken": "^1.0.22"
   }
 }
