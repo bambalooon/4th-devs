@@ -11,7 +11,7 @@ const SEARCH_TOOL = {
   name: "search",
   description:
     "Search the indexed knowledge base using hybrid search (full-text BM25 + semantic vector similarity). " +
-    "Returns the most relevant document chunks with content, source file, and section heading. " +
+    "Returns the most relevant logs with content, timestamp and log level. " +
     "Provide BOTH a keyword query for full-text search AND a natural language query for semantic search.",
   parameters: {
     type: "object",
