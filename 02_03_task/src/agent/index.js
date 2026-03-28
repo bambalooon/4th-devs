@@ -9,7 +9,7 @@
 import { chat, extractToolCalls, extractText, extractReasoning } from "../helpers/api.js";
 import log from "../helpers/logger.js";
 
-const MAX_STEPS = 30;
+const MAX_STEPS = 100;
 
 // ─────────────────────────────────────────────────────────────
 // Tool Execution
