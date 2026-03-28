@@ -107,8 +107,9 @@ export const createTools = (db) => {
       const results = await hybridSearch(db, { keywords, semantic }, Math.min(limit, 20));
 
       return results.map((r) => ({
-        source: r.source,
-        section: r.section,
+        id: r.id,
+        timestamp: r.timestamp,
+        level: r.level,
         content: r.content,
       }));
     },
