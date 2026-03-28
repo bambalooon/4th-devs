@@ -32,7 +32,11 @@ export const chat = async ({
   const data = await response.json();
 
   if (data.error) {
+    if (data.error.metadata) {
+      throw new Error(`API error: ${data.error.message}, details: ${JSON.stringify(data.error.metadata)}`);
+    } else {
     throw new Error(data.error.message);
+    }
   }
 
   recordUsage(data.usage);
