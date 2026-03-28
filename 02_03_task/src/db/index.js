@@ -4,16 +4,23 @@
 
 import Database from "better-sqlite3";
 import * as sqliteVec from "sqlite-vec";
-import { mkdirSync } from "fs";
+import {existsSync, mkdirSync, rmSync} from "fs";
 import { dirname } from "path";
 import log from "../helpers/logger.js";
 
 const EMBEDDING_DIM = 1536; // openai/text-embedding-3-small
+const DB_PATH = "data/hybrid.db";
 
-export const initDb = (dbPath = "data/hybrid.db") => {
-  mkdirSync(dirname(dbPath), { recursive: true });
+export const removeDb = () => {
+  if (existsSync(DB_PATH)) {
+    rmSync(DB_PATH);
+  }
+}
 
-  const db = new Database(dbPath);
+export const initDb = () => {
+  mkdirSync(dirname(DB_PATH), { recursive: true });
+
+  const db = new Database(DB_PATH);
   sqliteVec.load(db);
 
   db.pragma("journal_mode = WAL");

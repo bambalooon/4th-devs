@@ -5,9 +5,7 @@
  * then runs an interactive agent that searches via hybrid retrieval.
  */
 
-import {initDb} from "./src/db/index.js";
-import {createTools} from "./src/agent/tools.js";
-import {createReadline, runRepl} from "./src/repl.js";
+import {initDb, removeDb} from "./src/db/index.js";
 import {onShutdown} from "./src/helpers/shutdown.js";
 import {logStats} from "./src/helpers/stats.js";
 import log from "./src/helpers/logger.js";
@@ -18,32 +16,25 @@ import {indexLogsFile} from "./src/db/indexer.js";
 const main = async () => {
   log.box("Hybrid RAG Agent");
 
-  // 1. Database
+  // 1. Download failure.log
+  await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/failure.log`, './workspace', true);
+
+  // 2. Database
   log.start("Initializing database...");
+  removeDb();
   const db = initDb();
   log.success("Database ready");
 
-  // 2. Download failure.log
-  await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/failure.log`, './workspace');
-
-  // 2. Index workspace
+  // 3. Index workspace
   log.start("Indexing workspace...");
   await indexLogsFile(db, './workspace/failure.log', 'failure.log');
   log.success("Indexing complete");
 
-  // 3. Agent tools
-  const tools = createTools(db);
-
-  // 4. REPL
-  const rl = createReadline();
-
   const shutdown = onShutdown(async () => {
     logStats();
-    rl?.close();
     db.close();
   });
 
-  await runRepl({ tools, rl, db });
   await shutdown();
 };
 
