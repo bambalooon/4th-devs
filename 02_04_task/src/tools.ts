@@ -1,6 +1,6 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { join, resolve, relative } from 'node:path'
-import {zMailHandler} from "./task.js";
+import {mkdir, readFile, writeFile} from 'node:fs/promises'
+import {join, relative, resolve} from 'node:path'
+import {mailTools, verifyTools} from "./task.js";
 
 export interface ToolDefinition {
   type: 'function'
@@ -23,32 +23,8 @@ function isPathSafe(path: string): boolean {
   return !rel.startsWith('..') && rel !== '..'
 }
 const tools: Tool[] = [
-  {
-    definition: {
-      type: 'function',
-      name: 'get_mail_inbox',
-      description: 'Read all emails from the mail inbox. Returns JSON array of emails.',
-      parameters: {
-        type: 'object',
-        properties: {
-          page: { type: 'number', description: 'Page number of inbox' },
-        }
-      },
-    },
-    handler: async (args) => zMailHandler('getInbox', args),
-  },
-  {
-    definition: {
-      type: 'function',
-      name: 'get_mail_help',
-      description: 'Get mail inbox help',
-      parameters: {
-        type: 'object',
-        properties: {}
-      },
-    },
-    handler: async () => zMailHandler('help', {page: 1}),
-  },
+  ...mailTools,
+  ...verifyTools,
   {
     definition: {
       type: 'function',

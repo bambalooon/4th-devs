@@ -1,6 +1,5 @@
 import { createInterface } from 'node:readline/promises'
 import { runAgent } from './agent.js'
-import {zMailHandler} from "./task.js";
 
 const today = new Date().toISOString().split('T')[0]
 
@@ -17,7 +16,6 @@ async function main() {
   console.log(`\n========================================`)
   console.log(`  Result`)
   console.log(`========================================\n`)
-  console.log(await zMailHandler('help', {page: 1}))
 }
 
 main().catch((err) => {
