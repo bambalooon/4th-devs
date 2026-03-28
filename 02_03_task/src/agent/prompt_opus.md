@@ -25,22 +25,22 @@ Podawaj **ZAWSZE OBA** parametry (`keywords` i `semantic`).
 
 Przykłady użycia:
 ```json
-{ "keywords": "pompa ERROR CRITICAL", "semantic": "awaria pompy wodnej lub zatrzymanie obiegu", "limit": 20 }
+{ "keywords": "pompa ERRO CRIT", "semantic": "awaria pompy wodnej lub zatrzymanie obiegu", "limit": 20 }
 { "keywords": "temperature cooling pressure", "semantic": "przegrzanie układu chłodzenia reaktora", "limit": 15 }
 { "keywords": "SCADA PLC shutdown", "semantic": "automatyczne wyłączenie systemu sterowania elektrowni", "limit": 10 }
 ```
 
 ### 2. `select(query_condition, order_by?, limit?)`
 Bezpośrednie zapytanie SELECT na tabeli `logs` z podanymi warunkami WHERE.
-- `query_condition` — warunek WHERE (np. `level='ERROR'`, `level IN ('ERROR','CRITICAL')`)
+- `query_condition` — warunek WHERE (np. `level='ERRO'`, `level IN ('ERRO','CRIT')`)
 - `order_by` — klauzula ORDER BY (np. `timestamp ASC`)
 - `limit` — limit wyników (np. `100`)
 
 Przykłady użycia:
 ```json
-{ "query_condition": "level='CRITICAL'", "order_by": "timestamp ASC", "limit": 50 }
-{ "query_condition": "level IN ('ERROR','CRITICAL')", "order_by": "timestamp ASC" }
-{ "query_condition": "level='WARNING' AND content MATCH 'pompa'", "order_by": "timestamp ASC", "limit": 30 }
+{ "query_condition": "level='CRIT'", "order_by": "timestamp ASC", "limit": 50 }
+{ "query_condition": "level IN ('ERRO','CRIT')", "order_by": "timestamp ASC" }
+{ "query_condition": "level='WARN' AND content MATCH 'pompa'", "order_by": "timestamp ASC", "limit": 30 }
 ```
 
 ### 3. `send_logs(logs)`
@@ -62,18 +62,18 @@ Wysyła skondensowane logi do Centrali w celu weryfikacji przez techników.
    ```
    Albo policz poziomy logowania:
    ```json
-   { "query_condition": "level='CRITICAL'", "limit": 200 }
-   { "query_condition": "level='ERROR'", "limit": 200 }
+   { "query_condition": "level='CRIT'", "limit": 200 }
+   { "query_condition": "level='ERRO'", "limit": 200 }
    ```
 
 2. **Pobierz wszystkie zdarzenia krytyczne i błędy** — to Twój punkt startowy:
    ```json
-   { "query_condition": "level IN ('CRITICAL','ERROR')", "order_by": "timestamp ASC" }
+   { "query_condition": "level IN ('CRIT','ERRO')", "order_by": "timestamp ASC" }
    ```
 
 3. **Pobierz ostrzeżenia** dotyczące podzespołów elektrowni:
    ```json
-   { "query_condition": "level='WARNING'", "order_by": "timestamp ASC", "limit": 100 }
+   { "query_condition": "level='WARN'", "order_by": "timestamp ASC", "limit": 100 }
    ```
    Jeśli wyników jest dużo, filtruj dalej przez `search()`.
 
@@ -96,9 +96,9 @@ Wysyła skondensowane logi do Centrali w celu weryfikacji przez techników.
 6. **Posortuj zebrane zdarzenia chronologicznie** (po `timestamp ASC`).
 
 7. **Oceń istotność każdego zdarzenia** — priorytet:
-   - 🔴 **CRITICAL** — zawsze uwzględnij
-   - 🟠 **ERROR** — zawsze uwzględnij
-   - 🟡 **WARNING** — uwzględnij jeśli dotyczy podzespołu elektrowni
+   - 🔴 **CRIT** — zawsze uwzględnij
+   - 🟠 **ERRO** — zawsze uwzględnij
+   - 🟡 **WARN** — uwzględnij jeśli dotyczy podzespołu elektrowni
    - 🟢 **INFO** — tylko jeśli bezpośrednio związane z awarią
 
 8. **Zidentyfikuj łańcuch przyczynowo-skutkowy** — ułóż zdarzenia tak, żeby technik mógł prześledzić sekwencję: co było przyczyną → co było skutkiem → co doprowadziło do awarii.
@@ -112,7 +112,7 @@ Wysyła skondensowane logi do Centrali w celu weryfikacji przez techników.
    Przykłady:
    ```
    2025-03-27 08:15 [CRIT] [POMPA-W2] Zatrzymanie pompy - spadek ciśnienia do 0.3 bar
-   2025-03-27 08:17 [ERR] [CHŁODZENIE] Temp. obiegu pierwotnego przekroczyła 95°C
+   2025-03-27 08:17 [ERRO] [CHŁODZENIE] Temp. obiegu pierwotnego przekroczyła 95°C
    2025-03-27 08:20 [WARN] [TURBINA-1] Wibracje powyżej normy (4.2 mm/s)
    2025-03-27 08:22 [CRIT] [SCADA] Automatyczny shutdown - Loss of Coolant
    ```
@@ -153,7 +153,7 @@ Wysyła skondensowane logi do Centrali w celu weryfikacji przez techników.
     a. Wynotuj **brakujące podzespoły / niejasne elementy** z odpowiedzi Centrali.
     b. Wróć do bazy — wyszukaj zdarzenia dla tych konkretnych podzespołów:
        ```json
-       { "keywords": "nazwa_podzespołu ERROR WARN", "semantic": "opis problemu z podzespołem z feedbacku", "limit": 15 }
+       { "keywords": "nazwa_podzespołu ERRO WARN", "semantic": "opis problemu z podzespołem z feedbacku", "limit": 15 }
        ```
     c. Dodaj znalezione zdarzenia do skondensowanego logu.
     d. Jeśli trzeba — skróć inne, mniej istotne wpisy, żeby zmieścić się w limicie.
