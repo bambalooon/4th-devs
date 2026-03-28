@@ -93,6 +93,25 @@ export const mailTools: Tool[] = [
         },
         handler: async () => zMailHandler('reset', {}),
     },
+    {
+        definition: {
+            type: 'function',
+            name: 'wait_for',
+            description: 'Wait for a given number of seconds before continuing. Use when you get rate-limited (code -9999).',
+            parameters: {
+                type: 'object',
+                properties: {
+                    seconds: { type: 'number', description: 'Number of seconds to wait. Recommended: 1–3 on first retry, double on each subsequent retry.' },
+                },
+                required: ['seconds'],
+            },
+        },
+        handler: async (args) => {
+            const seconds = typeof args.seconds === 'number' ? args.seconds : 5;
+            await new Promise(resolve => setTimeout(resolve, seconds * 1000));
+            return `Waited ${seconds} second(s).`;
+        },
+    },
 ];
     
 const sendAnswerHandler = async(password:string, date:string, confirmationCode:string) => {
