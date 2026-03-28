@@ -1,21 +1,24 @@
-import { createInterface } from 'node:readline/promises'
 import { runAgent } from './agent.js'
 
-const today = new Date().toISOString().split('T')[0]
-
 async function main() {
-  // const task = [
-  //   `Prepare the Daily Ops note for ${today}.`,
-  //   `Start by reading the workflow instructions from workflows/daily-ops.md using the read_file tool.`,
-  //   `Then follow the steps described in the workflow precisely.`,
-  //   `Make sure to write the final output to output/${today}.md`,
-  // ].join(' ')
+  console.log(`\n========================================`)
+  console.log(`  Mailbox Intelligence Operation`)
+  console.log(`========================================\n`)
 
-  // const result = await runAgent('orchestrator', task)
+  const task = [
+    'Execute the mailbox intelligence operation.',
+    'Find three values from the mailbox: the attack date (YYYY-MM-DD), the employee system password, and the SEC- confirmation code.',
+    'Wiktor sent an email from the proton.me domain.',
+    'Coordinate the specialist agents, collect all three values, and submit them to the Hub.',
+    'Report the flag when the Hub confirms success.',
+  ].join(' ')
+
+  const result = await runAgent('mailbox_orchestrator', task)
 
   console.log(`\n========================================`)
   console.log(`  Result`)
   console.log(`========================================\n`)
+  console.log(result)
 }
 
 main().catch((err) => {
