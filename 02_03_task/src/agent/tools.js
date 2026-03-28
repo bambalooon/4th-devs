@@ -3,7 +3,7 @@
  * Provides a single hybrid search tool over the indexed document database.
  */
 
-import {hybridSearch, search} from "../db/search.js";
+import {count, hybridSearch, search} from "../db/search.js";
 import log from "../helpers/logger.js";
 import {hub} from "../hub/hub.js";
 
@@ -63,6 +63,22 @@ const TOOLS = [
   },
   {
     type: "function",
+    name: "count",
+    description: "SQLite select count query parameters, like: SELECT COUNT(1) FROM logs WHERE ${query_condition}",
+    parameters: {
+      type: "object",
+      properties: {
+        query_condition: {
+          type: "string",
+          description: "WHERE clause conditions, e.g. level='ERROR' AND content MATCH 'timeout'",
+        }
+      },
+      required: ["query_condition"],
+    },
+    strict: true,
+  },
+  {
+    type: "function",
     name: "send_logs",
     description: "Send compressed relevant logs to Hub for verification",
     parameters: {
@@ -101,6 +117,9 @@ export const createTools = (db) => {
         order_by = `ORDER BY ${order_by}`;
       }
       return search(db, query_condition, order_by, limit);
+    },
+    count: async ({ query_condition }) => {
+      return count(db, query_condition);
     },
     send_logs: async ({ logs }) => {
       return hub.sendLogs(logs);
