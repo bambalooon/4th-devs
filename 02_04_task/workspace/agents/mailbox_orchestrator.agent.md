@@ -1,6 +1,6 @@
 ---
 name: mailbox_orchestrator
-model: google:gemini-3-flash-preview
+model: openai:gpt-4.1-mini
 tools:
   - delegate
 ---
