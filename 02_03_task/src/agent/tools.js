@@ -59,7 +59,7 @@ const TOOLS = [
       },
       required: ["query_condition"],
     },
-    strict: true,
+    strict: false,
   },
   {
     type: "function",
@@ -97,6 +97,9 @@ export const createTools = (db) => {
       }));
     },
     select: async ({ query_condition, order_by, limit }) => {
+      if (order_by) {
+        order_by = `ORDER BY ${order_by}`;
+      }
       return search(db, query_condition, order_by, limit);
     },
     send_logs: async ({ logs }) => {
