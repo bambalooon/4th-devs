@@ -43,7 +43,18 @@ Przykłady użycia:
 { "query_condition": "level='WARN' AND content MATCH 'pompa'", "order_by": "timestamp ASC", "limit": 30 }
 ```
 
-### 3. `send_logs(logs)`
+### 3. `count(query_condition)`
+Bezpośrednie zapytanie `SELECT COUNT(1) FROM logs WHERE ${query_condition}` na tabeli `logs` z podanymi warunkami WHERE.
+- `query_condition` — warunek WHERE (np. `level='ERRO'`, `level IN ('ERRO','CRIT')`)
+
+Przykłady użycia:
+```json
+{ "query_condition": "level='CRIT'" }
+{ "query_condition": "level IN ('ERRO','CRIT')" }
+{ "query_condition": "level='WARN' AND content MATCH 'pompa'" }
+```
+
+### 4. `send_logs(logs)`
 Wysyła skondensowane logi do Centrali w celu weryfikacji przez techników.
 - `logs` — pełny string ze skondensowanymi logami, zdarzenia oddzielone znakami nowej linii (`\n`)
 - Zwraca odpowiedź techników: feedback z brakami LUB flagę `{FLG:...}`
@@ -55,6 +66,8 @@ Wysyła skondensowane logi do Centrali w celu weryfikacji przez techników.
 ## Procedura krok po kroku
 
 ### Faza 1: Rozpoznanie i filtrowanie
+
+Sprawdź jakie są dostępne wartości dla kolumny `level`.
 
 1. **Zbierz statystyki** — sprawdź co jest w bazie:
    ```json

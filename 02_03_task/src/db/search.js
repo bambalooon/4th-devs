@@ -46,13 +46,12 @@ export const searchFts = (db, query, limit = 10) => {
   try {
     const rows = db
       .prepare(
-        `SELECT c.id, c.content, c.section, c.chunk_index, d.source,
+        `SELECT l.id, l.content, l.level, l.timestamp,
                 rank AS fts_score,
-                highlight(chunks_fts, 0, '«', '»') AS highlighted
-         FROM chunks_fts
-         JOIN chunks c ON c.id = chunks_fts.rowid
-         JOIN documents d ON d.id = c.document_id
-         WHERE chunks_fts MATCH ?
+                highlight(logs_fts, 0, '«', '»') AS highlighted
+         FROM logs_fts
+         JOIN logs l ON l.id = logs_fts.rowid
+         WHERE logs_fts MATCH ?
          ORDER BY rank
          LIMIT ?`
       )
@@ -73,8 +72,8 @@ export const searchFts = (db, query, limit = 10) => {
 export const searchVector = (db, queryEmbedding, limit = 10) => {
   const rows = db
     .prepare(
-      `SELECT chunk_id, distance
-       FROM chunks_vec
+      `SELECT log_id, distance
+       FROM logs_vec
        WHERE embedding MATCH ?
        ORDER BY distance
        LIMIT ?`
@@ -83,22 +82,21 @@ export const searchVector = (db, queryEmbedding, limit = 10) => {
 
   if (!rows.length) return [];
 
-  const ids = rows.map((r) => r.chunk_id);
+  const ids = rows.map((r) => r.log_id);
   const placeholders = ids.map(() => "?").join(",");
 
-  const chunks = db
+  const logs = db
     .prepare(
-      `SELECT c.id, c.content, c.section, c.chunk_index, d.source
-       FROM chunks c
-       JOIN documents d ON d.id = c.document_id
-       WHERE c.id IN (${placeholders})`
+      `SELECT id, content, level, timestamp,
+       FROM logs
+       WHERE id IN (${placeholders})`
     )
     .all(...ids);
 
-  const chunkMap = new Map(chunks.map((c) => [c.id, c]));
+  const logsMap = new Map(logs.map((l) => [l.id, l]));
 
   return rows
-    .map((r) => ({ ...chunkMap.get(r.chunk_id), vec_distance: r.distance }))
+    .map((r) => ({ ...logsMap.get(r.log_id), vec_distance: r.distance }))
     .filter(Boolean);
 };
 
@@ -167,5 +165,16 @@ export const search = (db, queryCondition, orderBy = "", limit = 5) => {
         .all(limit);
   } catch {
     return [];
+  }
+};
+
+export const count = (db, queryCondition) => {
+  try {
+    return db
+        .prepare(
+            `SELECT COUNT(1) FROM logs WHERE ${queryCondition}`
+        ).get();
+  } catch {
+    return -1;
   }
 };
