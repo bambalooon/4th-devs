@@ -33,28 +33,28 @@ export const initDb = (dbPath = "data/hybrid.db") => {
     );
     
     -- FTS5 external-content table backed by logs
-    CREATE VIRTUAL TABLE IF NOT EXISTS log_fts USING fts5(
+    CREATE VIRTUAL TABLE IF NOT EXISTS logs_fts USING fts5(
       content,
-      content='log',
+      content='logs',
       content_rowid='id'
     );
 
     -- Triggers to keep FTS5 in sync with chunks table
     CREATE TRIGGER IF NOT EXISTS log_ai AFTER INSERT ON logs BEGIN
-      INSERT INTO log_fts(rowid, content) VALUES (new.id, new.content);
+      INSERT INTO logs_fts(rowid, content) VALUES (new.id, new.content);
     END;
 
     CREATE TRIGGER IF NOT EXISTS log_ad AFTER DELETE ON logs BEGIN
-      INSERT INTO log_fts(log_fts, rowid, content) VALUES ('delete', old.id, old.content);
+      INSERT INTO logs_fts(logs_fts, rowid, content) VALUES ('delete', old.id, old.content);
     END;
 
     CREATE TRIGGER IF NOT EXISTS log_au AFTER UPDATE ON logs BEGIN
-      INSERT INTO log_fts(log_fts, rowid, content) VALUES ('delete', old.id, old.content);
-      INSERT INTO log_fts(rowid, content) VALUES (new.id, new.content);
+      INSERT INTO logs_fts(logs_fts, rowid, content) VALUES ('delete', old.id, old.content);
+      INSERT INTO logs_fts(rowid, content) VALUES (new.id, new.content);
     END;
 
     -- sqlite-vec virtual table for vector similarity search
-    CREATE VIRTUAL TABLE IF NOT EXISTS log_vec USING vec0(
+    CREATE VIRTUAL TABLE IF NOT EXISTS logs_vec USING vec0(
       log_id INTEGER PRIMARY KEY,
       embedding float[${EMBEDDING_DIM}]
     );
