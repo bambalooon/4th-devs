@@ -16,7 +16,7 @@ const zMailHandler = async (action:string, args:any) => {
 
     const data = await response.json();
     console.log(JSON.stringify(data));
-    return data;
+    return JSON.stringify(data);
 };
 
 export const mailTools: Tool[] = [
@@ -117,9 +117,12 @@ export const mailTools: Tool[] = [
 const sendAnswerHandler = async(password:string, date:string, confirmationCode:string) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
-        password: password,
-        date: date,
-        confirmation_code: confirmationCode
+        task: "mailbox",
+        answer: {
+            password: password,
+            date: date,
+            confirmation_code: confirmationCode
+        }
     }
     console.log(request);
     const response = await fetch("https://hub.ag3nts.org/verify", {
@@ -130,7 +133,7 @@ const sendAnswerHandler = async(password:string, date:string, confirmationCode:s
 
     const data = await response.json();
     console.log(data);
-    return data;
+    return JSON.stringify(data);
 };
 
 export const verifyTools: Tool[] = [

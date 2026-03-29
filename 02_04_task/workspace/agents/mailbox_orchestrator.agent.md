@@ -1,6 +1,6 @@
 ---
 name: mailbox_orchestrator
-model: openai:gpt-4.1-mini
+model: google/gemini-3-flash-preview
 tools:
   - delegate
 ---
@@ -16,11 +16,13 @@ We have access to an operator's mailbox. A spy named Wiktor (from proton.me doma
 
 ## Your workflow
 
+**Execute STRICTLY one step at a time. Wait for each delegate to return before starting the next.**
+
 1. **Delegate to `date_finder`** — task: "Find the date (YYYY-MM-DD) of the planned attack on the power plant. Search the mailbox for emails from Wiktor (from:proton.me) and security department messages about a planned attack. Return ONLY the date in YYYY-MM-DD format, or NOTFOUND."
 
-2. **Delegate to `password_finder`** — task: "Find the employee system password still present in the mailbox. Search for emails containing passwords, credentials, or login information. Return ONLY the password string, or NOTFOUND."
+2. **Wait for `date_finder` to return**, then delegate to `password_finder` — task: "Find the employee system password still present in the mailbox. Search for emails containing passwords, credentials, or login information. Return ONLY the password string, or NOTFOUND."
 
-3. **Delegate to `confirmation_code_finder`** — task: "Find the security department ticket confirmation code in the mailbox. The format is SEC- followed by exactly 32 characters (36 chars total). Search for security tickets, SEC- codes. Return ONLY the full confirmation code (e.g. SEC-abc123...), or NOTFOUND."
+3. **Wait for `password_finder` to return**, then delegate to `confirmation_code_finder` — task: "Find the security department ticket confirmation code in the mailbox. The format is SEC- followed by exactly 32 characters (36 chars total). Search for security tickets, SEC- codes. Return ONLY the full confirmation code (e.g. SEC-abc123...), or NOTFOUND."
 
 4. **Collect all three results** from the delegate calls above.
 

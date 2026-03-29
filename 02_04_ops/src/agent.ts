@@ -131,6 +131,7 @@ export async function runAgent(
       }
     }
 
+    console.log('Agent exceeded maximum turns');
     return 'Agent exceeded maximum turns'
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
