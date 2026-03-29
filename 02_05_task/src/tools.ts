@@ -104,6 +104,7 @@ const tools: Tool[] = [
         properties: {
           agent: { type: 'string', description: 'Name of the agent to delegate to' },
           task: { type: 'string', description: 'Task description to delegate' },
+          image_url: { type: 'string', description: 'Optional image URL to analyze' },
         },
         required: ['agent', 'task'],
       },

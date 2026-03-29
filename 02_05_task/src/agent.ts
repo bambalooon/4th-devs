@@ -11,6 +11,15 @@ const WORKSPACE = join(process.cwd(), 'workspace')
 const truncate = (s: string, max = 100): string =>
   s.length > max ? s.slice(0, max) + '…' : s
 
+function buildUserContent(task: string, image_url?: string): string | OpenAI.ChatCompletionContentPart[] {
+  if (!image_url) return task
+
+  return [
+    { type: 'text', text: task },
+    { type: 'image_url', image_url: { url: image_url } },
+  ]
+}
+
 interface AgentTemplate {
   name: string
   model: string
@@ -33,6 +42,7 @@ async function loadAgent(name: string): Promise<AgentTemplate> {
 export async function runAgent(
   agentName: string,
   task: string,
+  image_url: string | undefined = undefined,
   depth: number = 0
 ): Promise<string> {
   try {
@@ -63,7 +73,7 @@ export async function runAgent(
 
     const messages: OpenAI.ChatCompletionMessageParam[] = [
       { role: 'system', content: template.systemPrompt },
-      { role: 'user', content: task },
+      { role: 'user', content: buildUserContent(task, image_url) },
     ]
 
     for (let turn = 0; turn < MAX_TURNS; turn++) {
@@ -112,8 +122,9 @@ export async function runAgent(
         if (name === 'delegate') {
           const agent = typeof args.agent === 'string' ? args.agent : ''
           const delegatedTask = typeof args.task === 'string' ? args.task : ''
-          console.log(`[${agentName}] Delegating to ${agent}: ${truncate(delegatedTask)}`)
-          result = await runAgent(agent, delegatedTask, depth + 1)
+          const delegatedImageUrl = typeof args.image_url === 'string' ? args.image_url : undefined;
+          console.log(`[${agentName}] Delegating to ${agent}: ${truncate(delegatedTask)}; image: ${delegatedImageUrl}`)
+          result = await runAgent(agent, delegatedTask, delegatedImageUrl, depth + 1)
         } else {
           const tool = findTool(name)
           if (tool) {

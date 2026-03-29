@@ -1,24 +1,18 @@
 import {AI_DEVS_API_KEY} from "../../config.js";
 import type {Tool} from "./tools.js";
 
-const getImageBase64 = async (image_url:string) => {
-    const response = await fetch(image_url);
-    const buffer = await response.arrayBuffer();
-    return Buffer.from(buffer).toString("base64");
-}
-
 export const imageTools: Tool[] = [
     {
         definition: {
             type: 'function',
             name: 'get_power_plant_map',
-            description: 'Return image with power plant map',
+            description: 'Return URL of the power plant map image (PNG). Pass this URL to a vision model for analysis.',
             parameters: {
                 type: 'object',
                 properties: {}
             },
         },
-        handler: async (args) => getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/drone.png`),
+        handler: async (args) => `https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/drone.png`,
     },
 ];
     
