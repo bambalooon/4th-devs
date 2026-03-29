@@ -1,43 +1,78 @@
+## Fabuła
+
+![https://vimeo.com/1171928484](https://vimeo.com/1171928484)
+
+## Transkrypcja filmu z Fabułą
+
+> Numerze piąty!
+>
+> Jeśli nie zaczniemy działać, to z naszej elektrowni zostanie tylko dziura w ziemi. Wiesz dobrze co planują operatorzy Systemu.
+>
+> Naszych ludzi możemy ewakuować - mamy na to jeszcze czas, ale po weekendzie nie będzie już do czego wracać. Elektrowni nie będzie, zasilania nie będzie, skoku w czasie nie będzie... i niczego nie będzie.
+>
+> Ale powiem Ci, że jeszcze nie wszystko stracone i może... hmmm... to dziwnie zabrzmi, ale może nawet dobrze się stało, że próbują nas zaatakować. Tylko ten atak musi odbyć się na naszych warunkach.
+>
+> Pamiętasz nasze problemy z systemem chłodzenia elektrowni? Jesteśmy pośrodku niczego. Gdy budowano tę elektrownię - jeszcze w latach 80 - wybrano to miejsce ze względu na pobliskie Jezioro Żarnowieckie. To ono miało być źródłem wody do chłodzenia reaktora.
+>
+> Tylko teraz zamiast jeziora mamy bardziej sadzawkę, bo poziom wody spadł o dobre 80%. To jednak nie jest główny problem. Realnym problemem jest tama, która odgradza nas od tych resztek wody. Musimy się jej pozbyć.
+>
+> Nie dysponujemy ładunkami wybuchowymi. Nie dysponujemy także dronami. Ale... czy ktoś aby nie planował nas zbombardować?
+>
+> Plan jest szalony - zupełnie jakby skok w czasie w celu ratowania świata nie brzmiał jak coś szalonego - ale nie mamy innego wyjścia jak tylko spróbować.
+>
+> Bombardowanie zaplanowane jest na poniedziałek. To jednak my wykonamy pierwszy ruch. Zdobyłem dla Ciebie dostęp do systemu sterowania dronami. Przejmiesz kontrolę nad jednym z nich. Twoim zadaniem jest... nas zbombardować. Tak, dobrze usłyszałeś - mówiłem, że to trochę szalone.
+>
+> Wyślesz uzbrojonego drona w naszym kierunku, ale nie zrzucisz ładunku wybuchowego na elektrownię - wycelujesz go wprost na pobliską tamę. W systemie zaznaczysz, że jest to lot, którego celem jest zniszczenie elektrowni.
+>
+> Będzie lot na mniej więcej poprawne koordynaty, będzie bomba, będzie wybuch, udokumentujemy to odpowiednio, a automatyczny system odznaczy zadanie jako wykonane. Budynek zostanie wymazany z map Systemu jako zniszczony i o to nam właśnie chodzi.
+>
+> To nie sprawi, że będziemy już bezpieczni, ale da nam wystarczająco dużo czasu, aby zająć się innymi problemami.
+
 ## Zadanie
 
-Zdobyliśmy dostęp do skrzynki mailowej jednego z operatorów systemu. Wiemy, że na tę skrzynkę wpadł mail od Wiktora - nie znamy jego nazwiska, ale wiemy, że doniósł na nas. Musimy przeszukać skrzynkę przez API i wyciągnąć trzy informacje:
+Wiemy już co planuje zrobić Dział Bezpieczeństwa Systemu. Chcą zrównać z ziemią elektrownię w Żarnowcu. Mamy jednak sposób, aby pokrzyżować im te plany. Bombardowanie naszej tymczasowej bazy, zaplanowane jest na nadchodzący tydzień, jednak my wykonamy ruch wyprzedzający. Pamiętasz, że ostatnio mieliśmy problemy z chłodzeniem rdzeni? No to załatwmy sobie chłodzenie z pobliskiego jeziora.
 
-- **date** - kiedy (format `YYYY-MM-DD`) dział bezpieczeństwa planuje atak na naszą elektrownię
-- **password** - hasło do systemu pracowniczego, które prawdopodobnie nadal znajduje się na tej skrzynce
-- **confirmation\_code** - kod potwierdzenia z ticketa wysłanego przez dział bezpieczeństwa (format: SEC- + 32 znaki = 36 znaków łącznie)
+Przejęliśmy kontrolę nad uzbrojonym dronem wyposażonym w ładunek wybuchowy. Twoim zadaniem jest zaprogramować go tak, aby wyruszył z misją zbombardowania wymaganego obiektu, ale faktycznie bomba ma spaść nie na elektrownię, a na pobliską tamę. Jeśli wszystko pójdzie zgodnie z planem, powinniśmy skutecznie doprowadzić wodę do systemu chłodniczego. Jeśli się pomylisz, to przynajmniej problem z brakiem wody zastąpimy problemem z powodzią - nazwijmy to "zrównoważonym rozwojem" ;)
 
-Skrzynka jest cały czas w użyciu - w trakcie pracy mogą na nią wpływać nowe wiadomości. Musisz to uwzględnić.
+Kod identyfikacyjny elektrowni w Żarnowcu: **PWR6132PL**
 
-Co wiemy na start:
+**Nazwa zadania: `drone`**
 
-- Wiktor wysłał maila z domeny `proton.me`
-- API działa jak wyszukiwarka Gmail - obsługuje operatory `from:`, `to:`, `subject:`, `OR`, `AND`
+#### Skąd wziąć dane?
 
-**Nazwa zadania: `mailbox`**
+Narzędzie get_drone_documentation zwróci zawartość dokumentacji API drona.
 
-#### Jak komunikować się z API?
 
-Narzędzia są dostępne w task.ts
+Mapę poglądową elektrowni w formacie PNG można pobrać za pomocą narzędzia get_power_plant_map.
 
-#### Jak wysłać odpowiedź?
+Mapa jest podzielona siatką na sektory. Przy tamie celowo podbito intensywność koloru wody, żeby ułatwić jej lokalizację.
 
-Narzędzie jest dostępne w task.ts
+#### Jak komunikować się z hubem?
 
-Gdy wszystkie trzy wartości będą poprawne, hub zwróci flagę `{FLG:...}`.
+Instrukcje dla drona wysyłasz za pomocą narzędzia execute_drone_instructions. 
+Przyjmuje ono sekwencję instrukcji zgodnie z dokumentacją API drona (przekaż tylko wartość pola instructions).
+
+```json
+{
+  ["instrukcja1", "instrukcja2", "..."]
+}
+```
+
+API zwraca komunikaty błędów jeśli coś jest nie tak - czytaj je uważnie i dostosowuj instrukcje. Gdy odpowiedź zawiera `{FLG:...}`, zadanie jest ukończone.
 
 ### Co należy zrobić w zadaniu?
 
-1. **Spraw aby agent korzystał z wyszukiwarki maili** - na podstawie opisu zadania może zbudować odpowiednie zapytania.
-2. **Pobierz pełną treść** znalezionych wiadomości, żeby przeczytać ich zawartość.
-3. **Szukaj informacji po kolei** - nie musisz znaleźć wszystkich na raz.
-4. **Korzystaj z feedbacku huba**, żeby wiedzieć, których wartości jeszcze brakuje lub które są błędne.
-5. **Kontynuuj przeszukiwanie skrzynki**, aż zbierzesz wszystkie trzy wartości i hub zwróci flagę.
-6. **Pamiętaj, że skrzynka jest aktywna** - jeśli szukasz czegoś i nie możesz znaleźć, spróbuj ponownie, bo nowe wiadomości mogły dopiero wpłynąć.
+1. **Przeanalizuj mapę wizualnie** - pobierz mapę elektrowni i wyślij ją do modelu - policz kolumny i wiersze siatki, zlokalizuj sektor z tamą.
+2. **Zanotuj numer kolumny i wiersza** sektora z tamą w siatce (indeksowanie od 1).
+3. **Przeczytaj dokumentację API drona** zwróconą przez narzędzie get_drone_documentation.
+4. **Na podstawie dokumentacji** zidentyfikuj wymagane instrukcje.
+5. **Wyślij sekwencję instrukcji** za pomocą narzędzia execute_drone_instructions, uwzględniając zlokalizowany sektor tamy i kod elektrowni. Pamiętaj, że instrukcje muszą być zgodne z dokumentacją API drona.
+6. **Przeczytaj odpowiedź** - jeśli API zwróci błąd, dostosuj instrukcje i wyślij ponownie.
+7. Gdy w odpowiedzi pojawi się `{FLG:...}`, zadanie jest ukończone.
 
 ### Wskazówki
 
-- **Podejście agentowe z Function Calling** - to zadanie doskonale nadaje się do pętli agentowej z narzędziami. Agent może mieć do dyspozycji: wyszukiwanie maili, pobieranie treści wiadomości po ID, wysyłanie odpowiedzi do huba i narzędzie do zakończenia pracy. Pętla powinna działać iteracyjnie - szukaj, czytaj, wyciągaj wnioski, szukaj dalej. Można też podejść bardziej ogólnie i pozwolić agentowi po prostu na wywołania API z parametrami które sam ustali na podstawie pomocy.
-- **Dwuetapowe pobieranie danych** - API zmail działa w dwóch krokach: najpierw wyszukujesz i dostajesz listę maili z metadanymi (bez treści), a dopiero potem pobierasz pełną treść wybranych wiadomości po ich identyfikatorach. Nie próbuj odgadywać treści na podstawie samego tematu - zawsze pobieraj pełną wiadomość przed wyciąganiem wniosków.
-- **Aktywna skrzynka** - skrzynka jest cały czas w użyciu i nowe wiadomości mogą wpływać w trakcie Twojej pracy. Jeśli przeszukałeś całą skrzynkę i nie możesz czegoś znaleźć, warto spróbować ponownie - szukana informacja mogła właśnie dotrzeć. Nie zakładaj od razu, że informacja nie istnieje.
-- **Wybór modelu** - do tego zadania wystarczy tańszy model jak `google/gemini-3-flash-preview`. Zadanie polega na przeszukiwaniu i ekstrakcji faktów, nie na złożonym rozumowaniu. Droższy model (`anthropic/claude-sonnet-4-6`) nie da tutaj istotnej przewagi, a pętla agentowa może wykonać kilkanaście zapytań do LLM.
-- **Operatory wyszukiwania** - API obsługuje składnię podobną do Gmail. Możesz łączyć operatory. Możesz zacząć od szerokich zapytań, żeby nie przegapić istotnych maili, a potem zawęzić wyszukiwanie.
+- **Analiza obrazu** - Do zlokalizowania tamy na mapie potrzebny jest model obsługujący obraz (vision). Zaplanuj dwuetapowe podejście: najpierw przeanalizuj mapę modelem vision, żeby zidentyfikować sektor tamy, potem użyj tej informacji w pętli agentowej z modelem tekstowym. `openai/gpt-4o` dobrze radzi sobie z dokładnym zliczaniem kolumn i wierszy siatki, natomiast niedawno wypuszczony model `openai/gpt-5.4` jest w tym jeszcze lepszy. Warto go wypróbować. Właściwe zlokalizowanie sektora mapy jest kluczowe.
+- **Dokumentacja pełna pułapek** - Dokumentacja drona celowo zawiera wiele kolidujących ze sobą nazw funkcji, które zachowują się różnie w zależności od podanych parametrów. Nie musisz używać wszystkich - skup się na tym, co faktycznie potrzebne do wykonania misji. Oszczędzaj tokeny i konfiguruj tylko to, co konieczne.
+- **Podejście reaktywne** - Nie musisz rozgryźć całej dokumentacji przed pierwszą próbą. API zwraca precyzyjne komunikaty błędów - możesz wysłać swoją najlepszą próbę i korygować na podstawie feedbacku. Iteracyjne dopasowywanie jest tu naturalną strategią.
+- **Reset** - Jeśli mocno namieszasz w konfiguracji drona, dokumentacja zawiera funkcję `hardReset`. Przydatna gdy kolejne błędy wynikają z nawarstwionych wcześniejszych pomyłek.
