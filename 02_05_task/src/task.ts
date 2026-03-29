@@ -1,97 +1,82 @@
 import {AI_DEVS_API_KEY} from "../../config.js";
 import type {Tool} from "./tools.js";
 
-const zMailHandler = async (action:string, args:any) => {
+const getImageBase64 = async (image_url:string) => {
+    const response = await fetch(image_url);
+    const buffer = await response.arrayBuffer();
+    return Buffer.from(buffer).toString("base64");
+}
+
+export const imageTools: Tool[] = [
+    {
+        definition: {
+            type: 'function',
+            name: 'get_power_plant_map',
+            description: 'Return image with power plant map',
+            parameters: {
+                type: 'object',
+                properties: {}
+            },
+        },
+        handler: async (args) => getImageBase64(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/drone.png`),
+    },
+];
+    
+const getDroneDocumentation = async() => {
+    const response = await fetch("https://hub.ag3nts.org/dane/drone.html");
+    const data = await response.text();
+    console.log(`Drone docs: ${data}`);
+    return JSON.stringify(data);
+};
+
+const executeDroneInstructions = async(instructions:string[]) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
-        action: action,
-        ...args
+        task: "drone",
+        answer: {
+            instructions: instructions,
+        }
     }
     console.log(request);
-    const response = await fetch("https://hub.ag3nts.org/api/zmail", {
+    const response = await fetch("https://hub.ag3nts.org/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request)
     });
 
     const data = await response.json();
-    console.log(JSON.stringify(data));
+    console.log(data);
     return JSON.stringify(data);
 };
 
-export const mailTools: Tool[] = [
+export const droneTools: Tool[] = [
     {
         definition: {
             type: 'function',
-            name: 'get_inbox',
-            description: 'Return list of threads in your mailbox.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    page: { type: 'number', description: 'Page number (optional). Integer >= 1. Default: 1.' },
-                    perPage: { type: 'number', description: 'Number of results per page (optional) Integer between 5 and 20. Default: 5.' }
-                }
-            },
+            name: 'get_drone_documentation',
+            description: 'Returns drone API documentation in HTML format',
+            parameters: {},
         },
-        handler: async (args) => zMailHandler('getInbox', args),
+        handler: async () => getDroneDocumentation(),
     },
     {
         definition: {
             type: 'function',
-            name: 'get_thread',
-            description: 'Return rowID and messageID list for a selected thread. No message body.',
+            name: 'execute_drone_instructions',
+            description: 'Executes array of drone instructions using drone API.',
             parameters: {
                 type: 'object',
                 properties: {
-                    threadID: { type: 'number', description: 'Required. Numeric thread identifier.' },
-            }
-            },
-        },
-        handler: async (args) => zMailHandler('getThread', args),
-    },
-    {
-        definition: {
-            type: 'function',
-            name: 'get_messages',
-            description: 'Return one or more messages by rowID/messageID (hash).',
-            parameters: {
-                type: 'object',
-                properties: {
-                    ids: { description: 'Required. Numeric rowID, 32-char messageID, or an array of them.' },
+                    instructions: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        minItems: 1,
+                    },
                 },
-                required: ['ids'],
+                required: ['instructions'],
             },
         },
-        handler: async (args) => zMailHandler('getMessages', args),
-    },
-    {
-        definition: {
-            type: 'function',
-            name: 'search',
-            description: 'Search messages with full-text style query and Gmail-like operators. Supports words, "phrase", -exclude, from:, to:, subject:, OR, AND.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    query: { type: 'string', description: 'Required. Supports words, "phrase", -exclude, from:, to:, subject:, subject:"phrase", subject:(phrase), OR, AND. Missing operator means AND.' },
-                    page: { type: 'number', description: 'Optional. Integer >= 1. Default: 1.' },
-                    perPage: { type: 'number', description: 'Optional. Integer between 5 and 20. Default: 5.' },
-                },
-                required: ['query'],
-            },
-        },
-        handler: async (args) => zMailHandler('search', args),
-    },
-    {
-        definition: {
-            type: 'function',
-            name: 'reset',
-            description: 'Reset request counter for this apikey in memcache (in case of fuckup).',
-            parameters: {
-                type: 'object',
-                properties: {},
-            },
-        },
-        handler: async () => zMailHandler('reset', {}),
+        handler: async (args) => executeDroneInstructions(args.instructions),
     },
     {
         definition: {
@@ -112,46 +97,4 @@ export const mailTools: Tool[] = [
             return `Waited ${seconds} second(s).`;
         },
     },
-];
-    
-const sendAnswerHandler = async(password:string, date:string, confirmationCode:string) => {
-    const request = {
-        apikey: AI_DEVS_API_KEY,
-        task: "mailbox",
-        answer: {
-            password: password,
-            date: date,
-            confirmation_code: confirmationCode
-        }
-    }
-    console.log(request);
-    const response = await fetch("https://hub.ag3nts.org/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request)
-    });
-
-    const data = await response.json();
-    console.log(data);
-    return JSON.stringify(data);
-};
-
-export const verifyTools: Tool[] = [
-    {
-        definition: {
-            type: 'function',
-            name: 'send_answer',
-            description: 'Send answer to Hub (Centrala) for verification',
-            parameters: {
-                type: 'object',
-                properties: {
-                    password: { type: 'string', description: 'hasło do systemu pracowniczego, które prawdopodobnie nadal znajduje się na tej skrzynce' },
-                    date: { type: 'string', description: 'kiedy (format YYYY-MM-DD) dział bezpieczeństwa planuje atak na naszą elektrownię' },
-                    confirmationCode: { type: 'string', description: 'kod potwierdzenia z ticketa wysłanego przez dział bezpieczeństwa (format: SEC- + 32 znaki = 36 znaków łącznie)' }
-                },
-                required: ['password', 'date', 'confirmationCode'],
-            },
-        },
-        handler: async (args) => sendAnswerHandler(args.password, args.date, args.confirmationCode),
-    }
 ];
