@@ -1,6 +1,6 @@
 ---
 name: confirmation_code_finder
-model: openai:gpt-4.1-mini
+model: google/gemini-3-flash-preview
 tools:
   - search
   - get_inbox

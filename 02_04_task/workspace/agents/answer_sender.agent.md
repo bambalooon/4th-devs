@@ -1,6 +1,6 @@
 ---
 name: answer_sender
-model: openai:gpt-4.1-mini
+model: google/gemini-3-flash-preview
 tools:
   - send_answer
 ---
