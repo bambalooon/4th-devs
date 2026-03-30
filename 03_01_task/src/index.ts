@@ -20,9 +20,16 @@ async function main() {
   console.log(`\n========================================`)
   console.log(`  Result`)
   console.log(`========================================\n`)
-  const result = await readFile('./workspace/data/sensors/0001.json', 'utf8')
-      .then(data => SensorDataSchema.parse(data));
-  console.log(result)
+  for (let i = 1; i < 1000; i++) {
+    const fileName = String(i).padStart(4, '0') + '.json';
+    let fileContent;
+    try {
+      fileContent = await readFile(`./workspace/data/sensors/${fileName}`, 'utf8');
+      const result = SensorDataSchema.parse(fileContent);
+    } catch (err) {
+      console.error(`Error processing file ${fileName}`);
+    }
+  }
 }
 
 main().catch((err) => {
