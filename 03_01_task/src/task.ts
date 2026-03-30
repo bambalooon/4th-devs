@@ -6,8 +6,6 @@ export const SensorType = z.enum(['humidity', 'pressure', 'temperature', 'voltag
 export type SensorType = z.infer<typeof SensorType>;
 
 const notSet = z.literal(0).transform(() => null);
-const optionalInt = (min: number, max: number) =>
-    z.union([notSet, z.number().int().min(min).max(max)]);
 const optionalFloat = (min: number, max: number) =>
     z.union([notSet, z.number().min(min).max(max)]);
 
@@ -24,8 +22,8 @@ const SensorDataObject = z.object({
         val.split('/').map((v) => SensorType.parse(v.trim()))
     ).refine((arr) => arr.length >= 1, { message: 'sensor_type must contain at least 1 type' }),
     timestamp: z.number().int().transform((val) => new Date(val * 1000)),
-    temperature_K: optionalInt(553, 873),
-    pressure_bar: optionalInt(60, 160),
+    temperature_K: optionalFloat(553, 873),
+    pressure_bar: optionalFloat(60, 160),
     water_level_meters: optionalFloat(5.0, 15.0),
     voltage_supply_v: optionalFloat(229.0, 231.0),
     humidity_percent: optionalFloat(40.0, 80.0),
