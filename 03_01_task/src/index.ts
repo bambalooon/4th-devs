@@ -34,7 +34,7 @@ async function main() {
   ].join('\n')
 
   const result = await runAgent('standard', task);
-  writeFileSync(`./workspace/result`, result);
+  writeFileSync(`./workspace/result.out`, result); //TODO: JSON schema for expected result?
   // operatorNotes -> to LLM with some ID - LLM says if note says there is anomaly or no
   // add all fileIDs with anomalies to array and send
 }
