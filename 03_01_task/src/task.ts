@@ -8,14 +8,14 @@ export type SensorType = z.infer<typeof SensorType>;
 const SensorDataObject = z.object({
     sensor_type: z.string().transform((val) =>
         val.split('/').map((v) => SensorType.parse(v.trim()))
-    ),
-    timestamp: z.number().transform((val) => new Date(val * 1000)),
-    temperature_K: z.number(),
-    pressure_bar: z.number(),
-    water_level_meters: z.number(),
-    voltage_supply_v: z.number(),
-    humidity_percent: z.number(),
-    operator_notes: z.string(),
+    ).refine((arr) => arr.length >= 1, { message: 'sensor_type must contain at least 1 type' }),
+    timestamp: z.number().int().transform((val) => new Date(val * 1000)),
+    temperature_K: z.number().int().min(553).max(873),
+    pressure_bar: z.number().int().min(60).max(160),
+    water_level_meters: z.number().min(5.0).max(15.0),
+    voltage_supply_v: z.number().min(229.0).max(231.0),
+    humidity_percent: z.number().min(40.0).max(80.0),
+    operator_notes: z.string().min(1),
 });
 
 export const SensorDataSchema = z
