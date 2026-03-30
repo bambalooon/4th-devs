@@ -1,78 +1,80 @@
-## Fabuła
-
-![https://vimeo.com/1171928484](https://vimeo.com/1171928484)
-
-## Transkrypcja filmu z Fabułą
-
-> Numerze piąty!
->
-> Jeśli nie zaczniemy działać, to z naszej elektrowni zostanie tylko dziura w ziemi. Wiesz dobrze co planują operatorzy Systemu.
->
-> Naszych ludzi możemy ewakuować - mamy na to jeszcze czas, ale po weekendzie nie będzie już do czego wracać. Elektrowni nie będzie, zasilania nie będzie, skoku w czasie nie będzie... i niczego nie będzie.
->
-> Ale powiem Ci, że jeszcze nie wszystko stracone i może... hmmm... to dziwnie zabrzmi, ale może nawet dobrze się stało, że próbują nas zaatakować. Tylko ten atak musi odbyć się na naszych warunkach.
->
-> Pamiętasz nasze problemy z systemem chłodzenia elektrowni? Jesteśmy pośrodku niczego. Gdy budowano tę elektrownię - jeszcze w latach 80 - wybrano to miejsce ze względu na pobliskie Jezioro Żarnowieckie. To ono miało być źródłem wody do chłodzenia reaktora.
->
-> Tylko teraz zamiast jeziora mamy bardziej sadzawkę, bo poziom wody spadł o dobre 80%. To jednak nie jest główny problem. Realnym problemem jest tama, która odgradza nas od tych resztek wody. Musimy się jej pozbyć.
->
-> Nie dysponujemy ładunkami wybuchowymi. Nie dysponujemy także dronami. Ale... czy ktoś aby nie planował nas zbombardować?
->
-> Plan jest szalony - zupełnie jakby skok w czasie w celu ratowania świata nie brzmiał jak coś szalonego - ale nie mamy innego wyjścia jak tylko spróbować.
->
-> Bombardowanie zaplanowane jest na poniedziałek. To jednak my wykonamy pierwszy ruch. Zdobyłem dla Ciebie dostęp do systemu sterowania dronami. Przejmiesz kontrolę nad jednym z nich. Twoim zadaniem jest... nas zbombardować. Tak, dobrze usłyszałeś - mówiłem, że to trochę szalone.
->
-> Wyślesz uzbrojonego drona w naszym kierunku, ale nie zrzucisz ładunku wybuchowego na elektrownię - wycelujesz go wprost na pobliską tamę. W systemie zaznaczysz, że jest to lot, którego celem jest zniszczenie elektrowni.
->
-> Będzie lot na mniej więcej poprawne koordynaty, będzie bomba, będzie wybuch, udokumentujemy to odpowiednio, a automatyczny system odznaczy zadanie jako wykonane. Budynek zostanie wymazany z map Systemu jako zniszczony i o to nam właśnie chodzi.
->
-> To nie sprawi, że będziemy już bezpieczni, ale da nam wystarczająco dużo czasu, aby zająć się innymi problemami.
-
 ## Zadanie
 
-Wiemy już co planuje zrobić Dział Bezpieczeństwa Systemu. Chcą zrównać z ziemią elektrownię w Żarnowcu. Mamy jednak sposób, aby pokrzyżować im te plany. Bombardowanie naszej tymczasowej bazy, zaplanowane jest na nadchodzący tydzień, jednak my wykonamy ruch wyprzedzający. Pamiętasz, że ostatnio mieliśmy problemy z chłodzeniem rdzeni? No to załatwmy sobie chłodzenie z pobliskiego jeziora.
+Twoim zadaniem jest znalezienie anomalii w odczytach sensorów.
 
-Przejęliśmy kontrolę nad uzbrojonym dronem wyposażonym w ładunek wybuchowy. Twoim zadaniem jest zaprogramować go tak, aby wyruszył z misją zbombardowania wymaganego obiektu, ale faktycznie bomba ma spaść nie na elektrownię, a na pobliską tamę. Jeśli wszystko pójdzie zgodnie z planem, powinniśmy skutecznie doprowadzić wodę do systemu chłodniczego. Jeśli się pomylisz, to przynajmniej problem z brakiem wody zastąpimy problemem z powodzią - nazwijmy to "zrównoważonym rozwojem" ;)
+Czujniki w naszej elektrowni potrafią mierzyć różne wartości. Czasami są to odczyty temperatury, ciśnienia, napięcia i kilka innych. Czujniki bywają jedno- albo wielozadaniowe. Wszystkie jednak zwracają dane w dokładnie takim samym formacie, co oznacza, że jeśli sprawdzasz dane z czujnika temperatury, to znajdziesz tam poza temperaturą także np. zapis napięcia, ale będzie on równy zero, ponieważ nie jest to wartość, którą ten czujnik powinien zwracać. Przy czujnikach zintegrowanych (2-3 zadaniowe), sensor może zwracać wszystkie pola definiowane przez sensory składowe.
 
-Kod identyfikacyjny elektrowni w Żarnowcu: **PWR6132PL**
+Każdy odczyt czujnika jest też skomentowany przez operatora — czasami jednym słowem, a czasami jakąś dłuższą wypowiedzią. Niestety nie zawsze te notatki są poprawnie wpisywane. Pojawia się niekiedy błąd ludzki, a czasami to nierzetelność operatora.
 
-**Nazwa zadania: `drone`**
+Musisz zgłosić nam wszelkie anomalie. **Prześlij nam identyfikatory plików**, które zawierają przekłamane dane z czujników lub niepoprawną notatkę operatora.
 
-#### Skąd wziąć dane?
+Odpowiedź wysyłasz do Centrali (Hub) za pomocą narzędzia send_answer.
 
-Narzędzie get_drone_documentation zwróci zawartość dokumentacji API drona.
+Dane z sensorów znajdują się w katalogu ./workspace/data/sensors. Każdy plik JSON zawiera dane z jednego odczytu czujnika lub czujników. Nazwa każdego pliku to 4-cyfrowy identyfikator + rozszerzenie 'json', np. `0001.json`, `0002.json`, ..., `9999.json`.
 
+Dane wysyłasz do centrali jako tablicę JSON zawierającą identyfikatory:
 
-Mapę poglądową elektrowni w formacie PNG można pobrać za pomocą narzędzia get_power_plant_map.
+```json
+["0001", "0002", "4321"]
+```
 
-Mapa jest podzielona siatką na sektory. Przy tamie celowo podbito intensywność koloru wody, żeby ułatwić jej lokalizację.
+Akceptujemy poniższe formaty danych:
 
-#### Jak komunikować się z hubem?
+- stringi z identyfikatorem liczbowym — \["0001", "0002","4321"]
+- liczby bez zera wiodącego — \[1, 2, 987]
+- nazwy plików z błędami (pełne z zerami) — \["0001.json","0002.json","4321.json"]
+- dane mieszane — \["0001.json",2,"4321"]
 
-Instrukcje dla drona wysyłasz za pomocą narzędzia execute_drone_instructions. 
-Przyjmuje ono sekwencję instrukcji zgodnie z dokumentacją API drona (przekaż tylko wartość pola instructions).
+Każdy czujnik zwraca dane w poniższym formacie:
 
 ```json
 {
-  ["instrukcja1", "instrukcja2", "..."]
+  "sensor_type": "temperature/voltage",
+  "timestamp": 1774064280,
+  "temperature_K": 612,
+  "pressure_bar": 0,
+  "water_level_meters": 0,
+  "voltage_supply_v": 230.4,
+  "humidity_percent": 0,
+  "operator_notes": "Readings look stable and within expected range."
 }
 ```
 
-API zwraca komunikaty błędów jeśli coś jest nie tak - czytaj je uważnie i dostosowuj instrukcje. Gdy odpowiedź zawiera `{FLG:...}`, zadanie jest ukończone.
+Format danych w pojedynczym pliku JSON:
 
-### Co należy zrobić w zadaniu?
+- **sensor\_type** — nazwa aktywnego sensora lub zestawu sensorów rozdzielonych znakiem `/`, np. `temperature`, `water`, `voltage/temperature`
+- **timestamp** — unixowy znacznik czasu
+- **temperature\_K** — odczyt temperatury w Kelwinach
+- **pressure\_bar** — odczyt ciśnienia w barach
+- **water\_level\_meters** — odczyt poziomu wody w metrach
+- **voltage\_supply\_v** — odczyt napięcia zasilania w V
+- **humidity\_percent** — odczyt wilgotności w procentach
+- **operator\_notes** — notatka operatora po angielsku
 
-1. **Przeanalizuj mapę wizualnie** - pobierz mapę elektrowni i wyślij ją do modelu - policz kolumny i wiersze siatki, zlokalizuj sektor z tamą.
-2. **Zanotuj numer kolumny i wiersza** sektora z tamą w siatce (indeksowanie od 1).
-3. **Przeczytaj dokumentację API drona** zwróconą przez narzędzie get_drone_documentation.
-4. **Na podstawie dokumentacji** zidentyfikuj wymagane instrukcje.
-5. **Wyślij sekwencję instrukcji** za pomocą narzędzia execute_drone_instructions, uwzględniając zlokalizowany sektor tamy i kod elektrowni. Pamiętaj, że instrukcje muszą być zgodne z dokumentacją API drona.
-6. **Przeczytaj odpowiedź** - jeśli API zwróci błąd, dostosuj instrukcje i wyślij ponownie.
-7. Gdy w odpowiedzi pojawi się `{FLG:...}`, zadanie jest ukończone.
+W każdym pliku obecne są wszystkie pola pomiarowe. Dla sensorów nieaktywnych wartość powinna być ustawiona na **0**.
+
+Zakres poprawnych wartości dla aktywnych sensorów:
+
+- **temperature\_K**: od 553 do 873
+- **pressure\_bar**: od 60 do 160
+- **water\_level\_meters**: od 5.0 do 15.0
+- **voltage\_supply\_v**: od 229.0 do 231.0
+- **humidity\_percent**: od 40.0 do 80.0
+
+Zadanie zostaje zaliczone, gdy prześlesz w jednym zapytaniu **identyfikatory wszystkich plików zawierających anomalie**.
+
+Jako anomalie definiujemy:
+
+- dane pomiarowe nie mieszczą się w normach
+- operator twierdzi, że wszystko jest OK, ale dane są niepoprawne
+- operator twierdzi, że znalazł błędy, ale dane są OK
+- czujnik zwraca dane, których nie powinien zwracać (np. czujnik poziomu wody zwraca napięcie prądu)
 
 ### Wskazówki
 
-- **Analiza obrazu** - Do zlokalizowania tamy na mapie potrzebny jest model obsługujący obraz (vision). Zaplanuj dwuetapowe podejście: najpierw przeanalizuj mapę modelem vision, żeby zidentyfikować sektor tamy, potem użyj tej informacji w pętli agentowej z modelem tekstowym. `openai/gpt-4o` dobrze radzi sobie z dokładnym zliczaniem kolumn i wierszy siatki, natomiast niedawno wypuszczony model `openai/gpt-5.4` jest w tym jeszcze lepszy. Warto go wypróbować. Właściwe zlokalizowanie sektora mapy jest kluczowe.
-- **Dokumentacja pełna pułapek** - Dokumentacja drona celowo zawiera wiele kolidujących ze sobą nazw funkcji, które zachowują się różnie w zależności od podanych parametrów. Nie musisz używać wszystkich - skup się na tym, co faktycznie potrzebne do wykonania misji. Oszczędzaj tokeny i konfiguruj tylko to, co konieczne.
-- **Podejście reaktywne** - Nie musisz rozgryźć całej dokumentacji przed pierwszą próbą. API zwraca precyzyjne komunikaty błędów - możesz wysłać swoją najlepszą próbę i korygować na podstawie feedbacku. Iteracyjne dopasowywanie jest tu naturalną strategią.
-- **Reset** - Jeśli mocno namieszasz w konfiguracji drona, dokumentacja zawiera funkcję `hardReset`. Przydatna gdy kolejne błędy wynikają z nawarstwionych wcześniejszych pomyłek.
+Tam jest 10 000 plików JSON do analizy. Próba wrzucenia tego do LLM-a będzie DROGA. W tych danych mnóstwo informacji się powtarza.
+
+- Zastanów się, którą część zadania powinien wykonać model językowy, aby nie przepalać zbytecznie tokenów i jak możesz taką weryfikację zoptymalizować pod względem kosztów. Które rodzaje anomalii powinny być wykrywane przez model językowy, a które przez programistyczne podejście?
+- Kiedy dojdziesz do anomalii, które wymagają analizy przez LLM: czy musisz wysyłać do analizy każdy plik osobno? Przypomnij sobie też cenniki modeli — płaci się więcej za output niż za input. W jaki sposób możesz zminimalizować to, co zwraca model, mimo że wysyłasz do niego dużo danych?
+- Przyjrzyj się plikom z danymi — technicy czasem są leniwi, i niektóre notatki są bardzo podobne do siebie. Możesz wykorzystać to do zoptymalizowania kosztów.
+- Weryfikacja formatu danych została już zaimplementowana programistycznie za pomocą Zod.
