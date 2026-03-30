@@ -7,3 +7,5 @@ vault/
 
 *.csv
 *_task/*.json
+
+/03_01_task/workspace/data/sensors/
