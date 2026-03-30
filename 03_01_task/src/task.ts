@@ -30,7 +30,7 @@ const SensorDataObject = z.object({
     voltage_supply_v: optionalFloat(229.0, 231.0),
     humidity_percent: optionalFloat(40.0, 80.0),
     operator_notes: z.string().min(1),
-}).superRefine((data, ctx) => {
+}).strict().superRefine((data, ctx) => {
     const types = new Set(data.sensor_type);
     for (const [type, field] of Object.entries(sensorFieldMap)) {
         const value = data[field as keyof typeof data];
