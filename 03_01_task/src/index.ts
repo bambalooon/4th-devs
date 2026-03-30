@@ -1,26 +1,9 @@
-import { runAgent } from './agent.js'
+import {runAgent} from './agent.js'
 import {readFile} from "node:fs/promises";
 import {SensorDataSchema} from "./task.js";
+import {writeFileSync} from "node:fs";
 
 async function main() {
-  console.log(`\n========================================`)
-  console.log(`  Drone Navigation Challenge`)
-  console.log(`========================================\n`)
-
-  const task = [
-    'Execute the drone navigation challenge for power plant PWR6132PL (task name: drone).',
-    'Step 1: Delegate to analyze_photo to retrieve the power plant map and locate the dam (tama) sector — get the grid column and row number (1-based).',
-    'Step 2: Delegate to drone_pilot with the dam sector coordinates. The drone must register the mission destination as the power plant, but deliver its payload to the dam sector.',
-    'The drone_pilot should read the API documentation first, then send the required instructions via execute_drone_instructions.',
-    'Report the flag {FLG:...} when it appears in the API response.',
-  ].join(' ')
-
-  // const result = await runAgent('orchestrator', task)
-
-  console.log(`\n========================================`)
-  console.log(`  Result`)
-  console.log(`========================================\n`)
-
   const invalidFileIds:string[] = [];
   const operatorNotesToFileIdMap:Map<string, string[]> = new Map();
   for (let i = 1; i < 1000; i++) {
@@ -40,8 +23,20 @@ async function main() {
       console.error(`Error processing file ${fileID}`);
     }
   }
-  console.log(operatorNotesToFileIdMap.keys());
-  console.log(invalidFileIds);
+  const uniqueOperatorNotes:string[] = operatorNotesToFileIdMap.keys().toArray();
+  // console.log(operatorNotesToFileIdMap.keys());
+  // console.log(invalidFileIds);
+
+  const task = [
+    'Please classify each operator note as "ok" or "problem" based on whether it indicates an anomaly in the sensor data.',
+    'As result return line separated list of {id}:{result} where result is "ok" or "problem".',
+    `${uniqueOperatorNotes.map((i, note) => `Note ${i}:"${note}"`).join('\n')}`,
+  ].join('\n')
+
+  const result = await runAgent('standard', task);
+  writeFileSync(`./workspace/result`, result);
+  // operatorNotes -> to LLM with some ID - LLM says if note says there is anomaly or no
+  // add all fileIDs with anomalies to array and send
 }
 
 main().catch((err) => {
