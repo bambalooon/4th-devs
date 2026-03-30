@@ -1,4 +1,6 @@
 import { runAgent } from './agent.js'
+import {readFile} from "node:fs/promises";
+import {SensorDataSchema} from "./task.js";
 
 async function main() {
   console.log(`\n========================================`)
@@ -13,11 +15,13 @@ async function main() {
     'Report the flag {FLG:...} when it appears in the API response.',
   ].join(' ')
 
-  const result = await runAgent('orchestrator', task)
+  // const result = await runAgent('orchestrator', task)
 
   console.log(`\n========================================`)
   console.log(`  Result`)
   console.log(`========================================\n`)
+  const result = await readFile('./workspace/data/sensors/0001.json', 'utf8')
+      .then(data => SensorDataSchema.parse(data));
   console.log(result)
 }
 

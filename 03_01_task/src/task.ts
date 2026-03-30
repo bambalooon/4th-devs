@@ -1,5 +1,27 @@
 import {AI_DEVS_API_KEY} from "../../config.js";
 import type {Tool} from "./tools.js";
+import {z} from "zod";
+
+export const SensorType = z.enum(['humidity', 'pressure', 'temperature', 'voltage', 'water']);
+export type SensorType = z.infer<typeof SensorType>;
+
+const SensorDataObject = z.object({
+    sensor_type: z.string().transform((val) =>
+        val.split('/').map((v) => SensorType.parse(v.trim()))
+    ),
+    timestamp: z.number(),
+    temperature_K: z.number(),
+    pressure_bar: z.number(),
+    water_level_meters: z.number(),
+    voltage_supply_v: z.number(),
+    humidity_percent: z.number(),
+    operator_notes: z.string(),
+});
+
+export const SensorDataSchema = z
+    .union([SensorDataObject, z.string().transform((val) => JSON.parse(val)).pipe(SensorDataObject)]);
+
+export type SensorData = z.output<typeof SensorDataSchema>;
 
 export const imageTools: Tool[] = [
     {
