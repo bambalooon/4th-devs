@@ -5,16 +5,22 @@ import {z} from "zod";
 export const SensorType = z.enum(['humidity', 'pressure', 'temperature', 'voltage', 'water']);
 export type SensorType = z.infer<typeof SensorType>;
 
+const notSet = z.literal(0).transform(() => null);
+const optionalInt = (min: number, max: number) =>
+    z.union([notSet, z.number().int().min(min).max(max)]);
+const optionalFloat = (min: number, max: number) =>
+    z.union([notSet, z.number().min(min).max(max)]);
+
 const SensorDataObject = z.object({
     sensor_type: z.string().transform((val) =>
         val.split('/').map((v) => SensorType.parse(v.trim()))
     ).refine((arr) => arr.length >= 1, { message: 'sensor_type must contain at least 1 type' }),
     timestamp: z.number().int().transform((val) => new Date(val * 1000)),
-    temperature_K: z.number().int().min(553).max(873),
-    pressure_bar: z.number().int().min(60).max(160),
-    water_level_meters: z.number().min(5.0).max(15.0),
-    voltage_supply_v: z.number().min(229.0).max(231.0),
-    humidity_percent: z.number().min(40.0).max(80.0),
+    temperature_K: optionalInt(553, 873),
+    pressure_bar: optionalInt(60, 160),
+    water_level_meters: optionalFloat(5.0, 15.0),
+    voltage_supply_v: optionalFloat(229.0, 231.0),
+    humidity_percent: optionalFloat(40.0, 80.0),
     operator_notes: z.string().min(1),
 });
 
