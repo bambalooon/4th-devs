@@ -9,7 +9,7 @@ const SensorDataObject = z.object({
     sensor_type: z.string().transform((val) =>
         val.split('/').map((v) => SensorType.parse(v.trim()))
     ),
-    timestamp: z.number(),
+    timestamp: z.number().transform((val) => new Date(val * 1000)),
     temperature_K: z.number(),
     pressure_bar: z.number(),
     water_level_meters: z.number(),
