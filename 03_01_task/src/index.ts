@@ -20,16 +20,28 @@ async function main() {
   console.log(`\n========================================`)
   console.log(`  Result`)
   console.log(`========================================\n`)
+
+  const invalidFileIds:string[] = [];
+  const operatorNotesToFileIdMap:Map<string, string[]> = new Map();
   for (let i = 1; i < 1000; i++) {
     const fileID = String(i).padStart(4, '0');
     let fileContent;
     try {
       fileContent = await readFile(`./workspace/data/sensors/${fileID}.json`, 'utf8');
       const result = SensorDataSchema.parse(fileContent);
+      const operatorNotes = result.operator_notes.toLowerCase();
+      if (operatorNotesToFileIdMap.has(operatorNotes)) {
+        operatorNotesToFileIdMap.get(operatorNotes)!.push(fileID);
+      } else {
+        operatorNotesToFileIdMap.set(operatorNotes, [fileID]);
+      }
     } catch (err) {
+      invalidFileIds.push(fileID);
       console.error(`Error processing file ${fileID}`);
     }
   }
+  console.log(operatorNotesToFileIdMap.keys());
+  console.log(invalidFileIds);
 }
 
 main().catch((err) => {
