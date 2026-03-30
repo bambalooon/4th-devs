@@ -21,13 +21,13 @@ async function main() {
   console.log(`  Result`)
   console.log(`========================================\n`)
   for (let i = 1; i < 1000; i++) {
-    const fileName = String(i).padStart(4, '0') + '.json';
+    const fileID = String(i).padStart(4, '0');
     let fileContent;
     try {
-      fileContent = await readFile(`./workspace/data/sensors/${fileName}`, 'utf8');
+      fileContent = await readFile(`./workspace/data/sensors/${fileID}.json`, 'utf8');
       const result = SensorDataSchema.parse(fileContent);
     } catch (err) {
-      console.error(`Error processing file ${fileName}`);
+      console.error(`Error processing file ${fileID}`);
     }
   }
 }
