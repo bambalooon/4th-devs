@@ -11,6 +11,14 @@ const optionalInt = (min: number, max: number) =>
 const optionalFloat = (min: number, max: number) =>
     z.union([notSet, z.number().min(min).max(max)]);
 
+const sensorFieldMap: Record<SensorType, string> = {
+    temperature: 'temperature_K',
+    pressure: 'pressure_bar',
+    water: 'water_level_meters',
+    voltage: 'voltage_supply_v',
+    humidity: 'humidity_percent',
+};
+
 const SensorDataObject = z.object({
     sensor_type: z.string().transform((val) =>
         val.split('/').map((v) => SensorType.parse(v.trim()))
@@ -22,6 +30,25 @@ const SensorDataObject = z.object({
     voltage_supply_v: optionalFloat(229.0, 231.0),
     humidity_percent: optionalFloat(40.0, 80.0),
     operator_notes: z.string().min(1),
+}).superRefine((data, ctx) => {
+    const types = new Set(data.sensor_type);
+    for (const [type, field] of Object.entries(sensorFieldMap)) {
+        const value = data[field as keyof typeof data];
+        if (types.has(type as SensorType) && value === null) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [field],
+                message: `${field} must have a value when sensor_type includes '${type}'`,
+            });
+        }
+        if (!types.has(type as SensorType) && value !== null) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [field],
+                message: `${field} must be 0 when sensor_type does not include '${type}'`,
+            });
+        }
+    }
 });
 
 export const SensorDataSchema = z
