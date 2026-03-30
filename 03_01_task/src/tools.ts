@@ -1,6 +1,6 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises'
 import {join, relative, resolve} from 'node:path'
-import {droneTools, imageTools} from "./task.js";
+import {evaluationTools, imageTools} from "./task.js";
 
 export interface ToolDefinition {
   type: 'function'
@@ -24,7 +24,7 @@ function isPathSafe(path: string): boolean {
 }
 const tools: Tool[] = [
   ...imageTools,
-  ...droneTools,
+  ...evaluationTools,
   {
     definition: {
       type: 'function',

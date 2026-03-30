@@ -16,19 +16,12 @@ export const imageTools: Tool[] = [
     },
 ];
     
-const getDroneDocumentation = async() => {
-    const response = await fetch("https://hub.ag3nts.org/dane/drone.html");
-    const data = await response.text();
-    console.log(`Drone docs: ${data}`);
-    return JSON.stringify(data);
-};
-
-const executeDroneInstructions = async(instructions:string[]) => {
+const sendAnswer = async(recheck_ids:string[]) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
-        task: "drone",
+        task: "evaluation",
         answer: {
-            instructions: instructions,
+            recheck: recheck_ids,
         }
     }
     console.log(request);
@@ -43,34 +36,25 @@ const executeDroneInstructions = async(instructions:string[]) => {
     return JSON.stringify(data);
 };
 
-export const droneTools: Tool[] = [
+export const evaluationTools: Tool[] = [
     {
         definition: {
             type: 'function',
-            name: 'get_drone_documentation',
-            description: 'Returns drone API documentation in HTML format',
-            parameters: {},
-        },
-        handler: async () => getDroneDocumentation(),
-    },
-    {
-        definition: {
-            type: 'function',
-            name: 'execute_drone_instructions',
-            description: 'Executes array of drone instructions using drone API.',
+            name: 'send_answer',
+            description: '',
             parameters: {
                 type: 'object',
                 properties: {
-                    instructions: {
+                    recheck_ids: {
                         type: 'array',
                         items: { type: 'string' },
                         minItems: 1,
                     },
                 },
-                required: ['instructions'],
+                required: ['recheck_ids'],
             },
         },
-        handler: async (args) => executeDroneInstructions(args.instructions),
+        handler: async (args) => sendAnswer(args.recheck_ids),
     },
     {
         definition: {
