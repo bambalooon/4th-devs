@@ -6,7 +6,7 @@ import {writeFileSync} from "node:fs";
 async function main() {
   const parseFailFileIds:string[] = [];
   const operatorNotesToFileIdMap:Map<string, string[]> = new Map();
-  for (let i = 1; i < 1000; i++) {
+  for (let i = 1; i < 10000; i++) {
     const fileID = String(i).padStart(4, '0');
     let fileContent, operatorNotes;
     try {
@@ -25,12 +25,15 @@ async function main() {
     }
   }
   const uniqueOperatorNotes:string[] = operatorNotesToFileIdMap.keys().toArray();
+  console.log(uniqueOperatorNotes.length);
 
   const task = [
-    'Please classify each operator note as "ok" or "problem" based on whether it indicates an anomaly in the sensor data.',
+    'Please classify each operator note as "ok" or "problem". If it indicates an error, anomaly or warning then mark it as "problem". If its positive or neutral then mark as "ok".',
     'As result return line separated list of {id}:{result} where result is "ok" or "problem".',
-    `${uniqueOperatorNotes.map((i, note) => `Note ${i}:"${note}"`).join('\n')}`,
-  ].join('\n')
+    `Below start notes for classification in format {id}:"{operator_note}". Please classify all ${uniqueOperatorNotes.length} of them.`,
+    `${uniqueOperatorNotes.map((note, i) => `${i}:"${note}"`).join('\n')}`,
+  ].join('\n');
+  writeFileSync(`./workspace/prompt.out`, task); //TODO: JSON schema for expected result?
   const classificationResult = await runAgent('standard', task);
   writeFileSync(`./workspace/result.out`, classificationResult); //TODO: JSON schema for expected result?
 
@@ -54,6 +57,7 @@ async function main() {
         }
     }
   }
+  // parseFailFileIds.forEach(fileId => invalidFileIds.push(fileId));
 
   await sendAnswer([...invalidFileIds]);
 }
