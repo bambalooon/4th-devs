@@ -69,7 +69,7 @@ export const imageTools: Tool[] = [
     },
 ];
     
-const sendAnswer = async(recheck_ids:string[]) => {
+export const sendAnswer = async(recheck_ids:string[]) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
         task: "evaluation",
