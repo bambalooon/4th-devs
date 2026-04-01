@@ -94,34 +94,46 @@ async function main() {
   const uniqueOperatorNotes:string[] = operatorNotesToFileIdMap.keys().toArray();
   console.log(uniqueOperatorNotes.length);
 
-  const task = [
-    'Please found all operator notes that indicate an error, anomaly or warning.',
-    'As a result return a list of IDs for these notes separated by ",".',
-    `Below start operator notes for classification in format {id}:"{operator_note}". Please classify all ${uniqueOperatorNotes.length} of them.`,
-    `${uniqueOperatorNotes.map((note, i) => `${i}:"${note}"`).join('\n')}`,
-  ].join('\n');
+  const task = `
+Task: From the provided operator notes, return the IDs of all notes that indicate an error, anomaly, or warning. 
+"Indicate" means the note explicitly or implicitly reports a problem that may require corrective action (examples of problem keywords: error, failure, anomaly, warning, alert, concerning drift, corrective steps needed, issue, degraded). 
+Respect negation: if a note says "No ...", it does NOT indicate a problem.
+
+Input format: each line is {id}:"{note}".
+
+Output format: single line only. If there are matching notes, return their IDs separated by commas with no spaces (e.g. 123,456). 
+If none match, return exactly: No IDs
+
+Few-shot examples:
+  1001:"System error detected; requires restart." -> 1001
+  1002:"All systems nominal, no issues." -> No IDs
+  1003:"No concerning drift is present, consistency maintained." -> No IDs    
+  
+Below start operator notes. Please classify all ${uniqueOperatorNotes.length} of them.
+${uniqueOperatorNotes.map((note, i) => `${i}:"${note}"`).join('\n')}
+`;
   writeFileSync(`./workspace/prompt.out`, task);
-  const reCheckFileIds = await findFileIdsForReCheck('standard', task, uniqueOperatorNotes, operatorNotesToFileIdMap, parseFailFileIds);
+  // const reCheckFileIds = await findFileIdsForReCheck('standard', task, uniqueOperatorNotes, operatorNotesToFileIdMap, parseFailFileIds);
   const reCheckFileIds2 = await findFileIdsForReCheck('another', task, uniqueOperatorNotes, operatorNotesToFileIdMap, parseFailFileIds);
 
-  const set1 = new Set(reCheckFileIds);
-  const set2 = new Set(reCheckFileIds2);
+  // const set1 = new Set(reCheckFileIds);
+  // const set2 = new Set(reCheckFileIds2);
+  //
+  // const inBoth = reCheckFileIds.filter(id => set2.has(id));
+  // const onlyInFirst = reCheckFileIds.filter(id => !set2.has(id));
+  // const onlyInSecond = reCheckFileIds2.filter(id => !set1.has(id));
+  // const onlyInOne = new Set(onlyInSecond);
+  // onlyInFirst.forEach(id => onlyInOne.add(id));
+  // console.log([...onlyInOne].map(id => ({
+  //   fileID: id,
+  //   note: JSON.parse(readFileSync(`./workspace/data/sensors/${id}.json`, 'utf8')).operator_notes
+  // })));
 
-  const inBoth = reCheckFileIds.filter(id => set2.has(id));
-  const onlyInFirst = reCheckFileIds.filter(id => !set2.has(id));
-  const onlyInSecond = reCheckFileIds2.filter(id => !set1.has(id));
-  const onlyInOne = new Set(onlyInSecond);
-  onlyInFirst.forEach(id => onlyInOne.add(id));
-  console.log([...onlyInOne].map(id => ({
-    fileID: id,
-    note: operatorNotesToFileIdMap.get(id)
-  })));
-
-  await sendAnswer([...reCheckFileIds.sort()]);
-  await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+  // await sendAnswer([...reCheckFileIds.sort()]);
+  // await new Promise(resolve => setTimeout(resolve, 10 * 1000));
   await sendAnswer([...reCheckFileIds2.sort()]);
-  await new Promise(resolve => setTimeout(resolve, 10 * 1000));
-  await sendAnswer([...inBoth.sort()]);
+  // await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+  // await sendAnswer([...inBoth.sort()]);
 }
 
 main().catch((err) => {
