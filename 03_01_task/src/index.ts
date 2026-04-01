@@ -2,11 +2,36 @@ import {runAgent} from './agent.js'
 import {readFile} from "node:fs/promises";
 import {sendAnswer, SensorDataSchema} from "./task.js";
 import {writeFileSync} from "node:fs";
+import {readFileSync} from "fs";
+
+const operatorNotesIdsSchema = {
+  type: "json_schema",
+  json_schema: {
+    name: "operator_notes_ids",
+    strict: true,
+    schema: {
+      type: "object",
+      description: "IDs of operator notes that were classified as anomaly, error or warning.",
+      properties: {
+        items: {
+          type: "array",
+          description: "Array of operator note IDs.",
+          items: {
+            type: "number",
+            description: "ID of operator note that was classified as anomaly, error or warning.",
+          }
+        }
+      },
+      required: ["items"],
+      additionalProperties: false
+    }
+  }
+};
 
 async function main() {
   const parseFailFileIds:string[] = [];
   const operatorNotesToFileIdMap:Map<string, string[]> = new Map();
-  for (let i = 1; i < 10000; i++) {
+  for (let i = 1; i < 10_000; i++) {
     const fileID = String(i).padStart(4, '0');
     let fileContent, operatorNotes;
     try {
@@ -15,7 +40,7 @@ async function main() {
       operatorNotes = result.operator_notes.toLowerCase();
     } catch (err) {
       parseFailFileIds.push(fileID);
-      operatorNotes = JSON.parse(fileContent!).operator_notes;
+      operatorNotes = JSON.parse(fileContent!).operator_notes.toLowerCase();
       console.error(`Error processing file ${fileID}`);
     }
     if (operatorNotesToFileIdMap.has(operatorNotes)) {
@@ -28,38 +53,52 @@ async function main() {
   console.log(uniqueOperatorNotes.length);
 
   const task = [
-    'Please classify each operator note as "ok" or "problem". If it indicates an error, anomaly or warning then mark it as "problem". If its positive or neutral then mark as "ok".',
-    'As result return line separated list of {id}:{result} where result is "ok" or "problem".',
-    `Below start notes for classification in format {id}:"{operator_note}". Please classify all ${uniqueOperatorNotes.length} of them.`,
+    'Please found all operator notes that indicate an error, anomaly or warning.',
+    'As a result return a list of IDs for these notes separated by ",".',
+    `Below start operator notes for classification in format {id}:"{operator_note}". Please classify all ${uniqueOperatorNotes.length} of them.`,
     `${uniqueOperatorNotes.map((note, i) => `${i}:"${note}"`).join('\n')}`,
   ].join('\n');
-  writeFileSync(`./workspace/prompt.out`, task); //TODO: JSON schema for expected result?
-  const classificationResult = await runAgent('standard', task);
-  writeFileSync(`./workspace/result.out`, classificationResult); //TODO: JSON schema for expected result?
+  writeFileSync(`./workspace/prompt.out`, task);
+  const result = await runAgent('standard', task, undefined, operatorNotesIdsSchema);
+  writeFileSync(`./workspace/result.out`, result);
+  const operatorNotesIdsWithProblem:number[] = JSON.parse(result).items;
+  const operatorNotesWithProblem = operatorNotesIdsWithProblem
+      .map(id => uniqueOperatorNotes[id])
+      .map(note => {
+        return { note, fileIDs: operatorNotesToFileIdMap.get(note)};
+      });
 
-  const invalidFileIds:string[] = [];
-  type ClassificationResult = 'ok' | 'problem';
-  for (const line of classificationResult.trim().split('\n')) {
-    const [id, result] = line.split(':') as [number, ClassificationResult];
-    switch (result) {
-      case 'ok':
-        for (const fileId of operatorNotesToFileIdMap.get(uniqueOperatorNotes[id])!) {
-          if (parseFailFileIds.some(invalidFileId => invalidFileId === fileId)) {
-            invalidFileIds.push(fileId);
-          }
-        }
-        break;
-      case 'problem':
-        for (const fileId of operatorNotesToFileIdMap.get(uniqueOperatorNotes[id])!) {
-          if (!parseFailFileIds.some(invalidFileId => invalidFileId === fileId)) {
-            invalidFileIds.push(fileId);
-          }
-        }
+  const operatorNotesWithoutProblem = uniqueOperatorNotes
+      .filter((_, i) => !operatorNotesIdsWithProblem.includes(i))
+      .map(note => ({ note, fileIDs: operatorNotesToFileIdMap.get(note) }));
+
+  const reCheckFileIds:string[] = [];
+  for (const {note, fileIDs} of operatorNotesWithProblem) {
+    for (const fileId of fileIDs!) {
+      if (!parseFailFileIds.some(invalidFileId => invalidFileId === fileId)) {
+        reCheckFileIds.push(fileId);
+      }
     }
   }
-  // parseFailFileIds.forEach(fileId => invalidFileIds.push(fileId));
+  for (const {note, fileIDs} of operatorNotesWithoutProblem) {
+    for (const fileId of fileIDs!) {
+      if (parseFailFileIds.some(invalidFileId => invalidFileId === fileId)) {
+        reCheckFileIds.push(fileId);
+      }
+    }
+  }
 
-  await sendAnswer([...invalidFileIds]);
+  const reCheckOperatorNotes = reCheckFileIds.sort().map(fileID => {
+    return {
+      fileID: fileID,
+      note: JSON.parse(readFileSync(`./workspace/data/sensors/${fileID}.json`, 'utf8')).operator_notes
+    };
+  });
+  writeFileSync(`./workspace/recheck.out.${Date.now()}`, reCheckOperatorNotes
+      .map(({ fileID, note }) => `${fileID}:${note}`)
+      .join('\n'));
+
+  await sendAnswer([...reCheckFileIds.sort()]);
 }
 
 main().catch((err) => {

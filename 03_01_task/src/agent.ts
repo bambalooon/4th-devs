@@ -1,9 +1,10 @@
 import type OpenAI from 'openai'
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import {readFile} from 'node:fs/promises'
+import {join} from 'node:path'
 import matter from 'gray-matter'
-import { findTool, tools } from './tools.js'
-import { openai, resolveModelForProvider } from './config.js'
+import {findTool, tools} from './tools.js'
+import {openai, resolveModelForProvider} from './config.js'
+
 const MAX_DEPTH = 3
 const MAX_TURNS = 15
 const WORKSPACE = join(process.cwd(), 'workspace')
@@ -42,7 +43,8 @@ async function loadAgent(name: string): Promise<AgentTemplate> {
 export async function runAgent(
   agentName: string,
   task: string,
-  image_url: string | undefined = undefined,
+  image_url?: string,
+  response_format?,
   depth: number = 0
 ): Promise<string> {
   try {
@@ -80,6 +82,7 @@ export async function runAgent(
       const response = await openai.chat.completions.create({
         model,
         messages,
+        response_format,
         tools: openaiTools.length > 0 ? openaiTools : undefined,
       })
 
