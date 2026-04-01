@@ -44,6 +44,7 @@ export async function runAgent(
   agentName: string,
   task: string,
   image_url?: string,
+  temperature?: number,
   response_format?,
   depth: number = 0
 ): Promise<string> {
@@ -83,6 +84,7 @@ export async function runAgent(
         model,
         messages,
         response_format,
+        temperature,
         tools: openaiTools.length > 0 ? openaiTools : undefined,
       })
 
