@@ -94,22 +94,23 @@ async function main() {
   const uniqueOperatorNotes:string[] = operatorNotesToFileIdMap.keys().toArray();
   console.log(uniqueOperatorNotes.length);
 
-  const task = `
-Task: From the provided operator notes, return the IDs of all notes that indicate an error, anomaly, or warning. 
-"Indicate" means the note explicitly or implicitly reports a problem that may require corrective action (examples of problem keywords: error, failure, anomaly, warning, alert, concerning drift, corrective steps needed, issue, degraded). 
-Respect negation: if a note says "No ...", it does NOT indicate a problem.
+  const task = `Classify each operator note below as PROBLEM or OK using the rules from your instructions. Return ONLY the IDs of PROBLEM notes.
 
-Input format: each line is {id}:"{note}".
+Few-shot examples (do NOT include these in output):
+  9901:"System error detected; requires restart." -> PROBLEM
+  9902:"All systems nominal, no issues." -> OK
+  9903:"No concerning drift is present, consistency maintained." -> OK
+  9904:"This state looks unstable, since this report cannot be treated as normal, and I submitted it for root-cause analysis." -> PROBLEM
+  9905:"Tracking data remains coherent, everything remains inside expected limits, therefore the case is cleared for the present monitoring cycle." -> OK
+  9906:"The situation requires attention, because the data flow appears compromised." -> PROBLEM
+  9907:"System behavior is fully stable, we are still in a safe operating zone, and I closed this check without action for this routine audit." -> OK
+  9908:"Operational state is consistent, the latest sample fits reference behavior, therefore no corrective steps were needed for this operational pass." -> OK
+  9909:"I can see a clear irregularity, since this report cannot be treated as normal, so I opened a deeper diagnostic task." -> PROBLEM
+  9910:"Daily monitoring confirms stability, the report matches previous healthy cycles, so I signed off this inspection." -> OK
 
-Output format: single line only. If there are matching notes, return their IDs separated by commas with no spaces (e.g. 123,456). 
-If none match, return exactly: No IDs
+Output format: return the IDs of PROBLEM notes in the "items" array. If none are problems, return an empty array.
 
-Few-shot examples:
-  1001:"System error detected; requires restart." -> 1001
-  1002:"All systems nominal, no issues." -> No IDs
-  1003:"No concerning drift is present, consistency maintained." -> No IDs    
-  
-Below start operator notes. Please classify all ${uniqueOperatorNotes.length} of them.
+Below are ${uniqueOperatorNotes.length} operator notes to classify.
 ${uniqueOperatorNotes.map((note, i) => `${i}:"${note}"`).join('\n')}
 `;
   writeFileSync(`./workspace/prompt.out`, task);
