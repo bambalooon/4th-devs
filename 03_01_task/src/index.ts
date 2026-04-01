@@ -29,7 +29,7 @@ const operatorNotesIdsSchema = {
 };
 
 async function findFileIdsForReCheck(agentName: string, task: string, uniqueOperatorNotes: string[], operatorNotesToFileIdMap: Map<string, string[]>, parseFailFileIds: string[]) {
-  const result = await runAgent(agentName, task, undefined, operatorNotesIdsSchema);
+  const result = await runAgent(agentName, task, undefined, 0, operatorNotesIdsSchema);
   writeFileSync(`./workspace/result.out`, result);
   const operatorNotesIdsWithProblem: number[] = JSON.parse(result).items;
   const operatorNotesWithProblem = operatorNotesIdsWithProblem
@@ -61,11 +61,12 @@ async function findFileIdsForReCheck(agentName: string, task: string, uniqueOper
   const reCheckOperatorNotes = reCheckFileIds.sort().map(fileID => {
     return {
       fileID: fileID,
+      classification: parseFailFileIds.some(invalidFileId => invalidFileId === fileID) ? 'parse_fail' : 'ok',
       note: JSON.parse(readFileSync(`./workspace/data/sensors/${fileID}.json`, 'utf8')).operator_notes
     };
   });
   writeFileSync(`./workspace/recheck.out.${Date.now()}`, reCheckOperatorNotes
-      .map(({fileID, note}) => `${fileID}:${note}`)
+      .map(({fileID, classification, note}) => `${fileID}:${classification}:${note}`)
       .join('\n'));
   return reCheckFileIds;
 }
@@ -94,23 +95,34 @@ async function main() {
   const uniqueOperatorNotes:string[] = operatorNotesToFileIdMap.keys().toArray();
   console.log(uniqueOperatorNotes.length);
 
-  const task = `Classify each operator note below as PROBLEM or OK using the rules from your instructions. Return ONLY the IDs of PROBLEM notes.
+  const task = `From the provided operator notes, return the IDs of all notes where the operator reports a problem, error, anomaly, or warning.
 
-Few-shot examples (do NOT include these in output):
-  9901:"System error detected; requires restart." -> PROBLEM
-  9902:"All systems nominal, no issues." -> OK
-  9903:"No concerning drift is present, consistency maintained." -> OK
-  9904:"This state looks unstable, since this report cannot be treated as normal, and I submitted it for root-cause analysis." -> PROBLEM
-  9905:"Tracking data remains coherent, everything remains inside expected limits, therefore the case is cleared for the present monitoring cycle." -> OK
-  9906:"The situation requires attention, because the data flow appears compromised." -> PROBLEM
-  9907:"System behavior is fully stable, we are still in a safe operating zone, and I closed this check without action for this routine audit." -> OK
-  9908:"Operational state is consistent, the latest sample fits reference behavior, therefore no corrective steps were needed for this operational pass." -> OK
-  9909:"I can see a clear irregularity, since this report cannot be treated as normal, so I opened a deeper diagnostic task." -> PROBLEM
-  9910:"Daily monitoring confirms stability, the report matches previous healthy cycles, so I signed off this inspection." -> OK
+A note reports a problem ONLY when the operator's overall message describes something NEGATIVE: unstable, concerning, suspicious, unreliable, inconsistent, irregular, doubtful, compromised, unusual, unexpected, not healthy, clearly off, does not match expectations.
 
-Output format: return the IDs of PROBLEM notes in the "items" array. If none are problems, return an empty array.
+A note does NOT report a problem when the operator's overall message describes NORMALCY: stable, coherent, consistent, nominal, healthy, clean, reliable, normal, approved, checks out, within limits. Phrases like "no corrective steps were needed", "the case is cleared", "closed this check without action", "no escalation was triggered", "signed off" all mean EVERYTHING IS FINE.
 
-Below are ${uniqueOperatorNotes.length} operator notes to classify.
+When uncertain, do NOT flag the note.
+
+Input format: each line is {id}:"{note}".
+
+Examples (do NOT include in output):
+  A:"System error detected; requires restart." -> flag (error)
+  B:"All systems nominal, no issues." -> skip (nominal)
+  C:"No concerning drift is present, consistency maintained." -> skip (no drift)
+  D:"This state looks unstable, since this report cannot be treated as normal." -> flag (unstable)
+  E:"Tracking data remains coherent, everything remains inside expected limits, therefore the case is cleared." -> skip (coherent, within limits)
+  F:"The numbers feel inconsistent, I documented it as a probable fault." -> flag (inconsistent, fault)
+  G:"The situation requires attention, because the data flow appears compromised." -> flag (requires attention, compromised)
+  H:"System behavior is fully stable, we are still in a safe operating zone, and I closed this check without action." -> skip (fully stable)
+  I:"Operational state is consistent, the latest sample fits reference behavior, therefore no corrective steps were needed." -> skip (consistent, no correction needed)
+  J:"I can see a clear irregularity, so I opened a deeper diagnostic task." -> flag (irregularity)
+  K:"Everything checks out, all control checks passed cleanly, and I recorded a standard pass." -> skip (checks out)
+  L:"The current result seems unreliable, so I escalated this for engineering analysis." -> flag (unreliable)
+  M:"Current status remains healthy, the platform behaves exactly as intended, and I approved the report as normal." -> skip (healthy, as intended)
+  N:"The report does not look healthy, and I ordered an immediate quality audit." -> flag (not healthy)
+  O:"Daily monitoring confirms stability, the report matches previous healthy cycles, so I signed off this inspection." -> skip (stability confirmed)
+
+Below are ${uniqueOperatorNotes.length} operator notes. Return the IDs of flagged notes only.
 ${uniqueOperatorNotes.map((note, i) => `${i}:"${note}"`).join('\n')}
 `;
   writeFileSync(`./workspace/prompt.out`, task);
