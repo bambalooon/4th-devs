@@ -4,7 +4,7 @@ import {sendAnswer, SensorDataSchema} from "./task.js";
 import {writeFileSync} from "node:fs";
 import {readFileSync} from "fs";
 
-const BATCH_SIZE = 300;
+const BATCH_SIZE = 100;
 
 const operatorNotesIdsSchema = {
   type: "json_schema",
