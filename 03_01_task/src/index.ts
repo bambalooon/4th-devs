@@ -99,36 +99,33 @@ async function findFileIdsForReCheck(agentName: string, uniqueOperatorNotes: str
   writeFileSync(`./workspace/result.out`, JSON.stringify({items: operatorNotesIdsWithProblem}));
   console.log(`Total flagged: ${operatorNotesIdsWithProblem.length} out of ${uniqueOperatorNotes.length}`);
 
+  const parseFailSet = new Set(parseFailFileIds);
+
+  // ALL parse_fail files are anomalies (bad sensor data — definitions #1, #4)
+  const reCheckFileIds: string[] = [...parseFailFileIds];
+  console.log(`Parse-fail files (bad data): ${parseFailFileIds.length}`);
+
+  // Also add ok-data files where operator reports a problem (incorrect note — definition #3)
   const operatorNotesWithProblem = operatorNotesIdsWithProblem
       .map(id => uniqueOperatorNotes[id])
-      .map(note => {
-        return {note, fileIDs: operatorNotesToFileIdMap.get(note)};
-      });
-
-  const operatorNotesWithoutProblem = uniqueOperatorNotes
-      .filter((_, i) => !operatorNotesIdsWithProblem.includes(i))
       .map(note => ({note, fileIDs: operatorNotesToFileIdMap.get(note)}));
 
-  const reCheckFileIds: string[] = [];
+  let okWithProblemNote = 0;
   for (const {note, fileIDs} of operatorNotesWithProblem) {
     for (const fileId of fileIDs!) {
-      if (!parseFailFileIds.some(invalidFileId => invalidFileId === fileId)) {
+      if (!parseFailSet.has(fileId)) {
         reCheckFileIds.push(fileId);
+        okWithProblemNote++;
       }
     }
   }
-  for (const {note, fileIDs} of operatorNotesWithoutProblem) {
-    for (const fileId of fileIDs!) {
-      if (parseFailFileIds.some(invalidFileId => invalidFileId === fileId)) {
-        reCheckFileIds.push(fileId);
-      }
-    }
-  }
+  console.log(`Ok-data files with problem notes: ${okWithProblemNote}`);
+  console.log(`Total anomalies: ${reCheckFileIds.length}`);
 
   const reCheckOperatorNotes = reCheckFileIds.sort().map(fileID => {
     return {
       fileID: fileID,
-      classification: parseFailFileIds.some(invalidFileId => invalidFileId === fileID) ? 'parse_fail' : 'ok',
+      classification: parseFailSet.has(fileID) ? 'parse_fail' : 'ok',
       note: JSON.parse(readFileSync(`./workspace/data/sensors/${fileID}.json`, 'utf8')).operator_notes
     };
   });
