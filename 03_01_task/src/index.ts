@@ -1,3 +1,4 @@
+import "./instrumentation"; // Must be the first import
 import {runAgent} from './agent.js'
 import {readFile} from "node:fs/promises";
 import {sendAnswer, SensorDataSchema} from "./task.js";
