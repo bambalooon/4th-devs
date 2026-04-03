@@ -28,4 +28,5 @@ Work methodically and sequentially. After each command, read the output carefull
 ## Key reminders
 - The shell is non-standard — always rely on `help` output for available commands and syntax.
 - File editing may use a different mechanism than `vim`/`nano` — check `help`.
+- **NEVER** `cat` or read `.bin` files — they are binary and will flood the context. Use the shell's execute/run command instead.
 - Be thorough in exploring the filesystem for passwords and clues.

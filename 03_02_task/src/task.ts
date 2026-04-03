@@ -1,6 +1,8 @@
 import {AI_DEVS_API_KEY} from "../../config.js";
 import type {Tool} from "./tools.js";
 
+const MAX_DATA_CHARS = 8_000;
+
 export const executeShellCommand = async(cmd:string) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
@@ -14,8 +16,13 @@ export const executeShellCommand = async(cmd:string) => {
     });
 
     const data = await response.json();
-    console.log(data);
-    return JSON.stringify(data);
+    if (data && typeof data.data === 'string' && data.data.length > MAX_DATA_CHARS) {
+        const originalLen = data.data.length;
+        data.data = data.data.slice(0, MAX_DATA_CHARS) + `\n... [TRUNCATED — original ${originalLen} chars. Likely binary data. Do NOT cat binary files; use the shell's run/execute command instead.]`;
+    }
+    const result = JSON.stringify(data);
+    console.log(result.slice(0, 2000));
+    return result;
 };
 
 export const vmTools: Tool[] = [
