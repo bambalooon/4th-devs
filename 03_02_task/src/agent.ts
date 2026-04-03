@@ -6,7 +6,7 @@ import {findTool, tools} from './tools.js'
 import {openai, resolveModelForProvider} from './config.js'
 
 const MAX_DEPTH = 3
-const MAX_TURNS = 30
+const MAX_TURNS = 100
 const WORKSPACE = join(process.cwd(), 'workspace')
 
 const truncate = (s: string, max = 100): string =>
