@@ -1,80 +1,42 @@
 ## Zadanie
 
-Twoim zadaniem jest znalezienie anomalii w odczytach sensorów.
+Twoim zadaniem jest uruchomić oprogramowanie sterownika, które wrzuciliśmy do maszyny wirtualnej. Nie wiemy, dlaczego nie działa ono poprawnie. Operujesz w bardzo ograniczonym systemie Linux z dostępem do kilku komend. Większość dysku działa w trybie tylko do odczytu, ale na szczęście wolumen z oprogramowaniem zezwala na zapis.
 
-Czujniki w naszej elektrowni potrafią mierzyć różne wartości. Czasami są to odczyty temperatury, ciśnienia, napięcia i kilka innych. Czujniki bywają jedno- albo wielozadaniowe. Wszystkie jednak zwracają dane w dokładnie takim samym formacie, co oznacza, że jeśli sprawdzasz dane z czujnika temperatury, to znajdziesz tam poza temperaturą także np. zapis napięcia, ale będzie on równy zero, ponieważ nie jest to wartość, którą ten czujnik powinien zwracać. Przy czujnikach zintegrowanych (2-3 zadaniowe), sensor może zwracać wszystkie pola definiowane przez sensory składowe.
+Oprogramowanie, które musisz uruchomić znajduje się na wirtualnej maszynie w tej lokalizacji:
+**`/opt/firmware/cooler/cooler.bin`**
 
-Każdy odczyt czujnika jest też skomentowany przez operatora — czasami jednym słowem, a czasami jakąś dłuższą wypowiedzią. Niestety nie zawsze te notatki są poprawnie wpisywane. Pojawia się niekiedy błąd ludzki, a czasami to nierzetelność operatora.
+Gdy poprawnie je uruchomisz (w zasadzie wystarczy tylko podać ścieżkę do niego), na ekranie pojawi się specjalny kod, który musisz odesłać do Centrali.
 
-Musisz zgłosić nam wszelkie anomalie. **Prześlij nam identyfikatory plików**, które zawierają przekłamane dane z czujników lub niepoprawną notatkę operatora.
+**Nazwa zadania: firmware**
 
-Odpowiedź wysyłasz do Centrali (Hub) za pomocą narzędzia send_answer.
+Odpowiedź wysyłasz za pomocą narzędzia send_answer.
 
-Dane z sensorów znajdują się w katalogu ./workspace/data/sensors. Każdy plik JSON zawiera dane z jednego odczytu czujnika lub czujników. Nazwa każdego pliku to 4-cyfrowy identyfikator + rozszerzenie 'json', np. `0001.json`, `0002.json`, ..., `9999.json`.
+Kod, którego szukasz, ma format:
+**`ECCS-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`**
 
-Dane wysyłasz do centrali jako tablicę JSON zawierającą identyfikatory:
+Dostęp do maszyny wirtualnej uzyskujesz używając narzędzia execute_shell_command, które pozwala Ci wykonywać polecenia powłoki na tej maszynie poprzez API.
+Przykładowa komenda od której warto zacząć to `help` — pokaże Ci listę dostępnych poleceń i ich składnię.
 
-```json
-["0001", "0002", "4321"]
-```
+#### Zasady bezpieczeństwa
 
-Akceptujemy poniższe formaty danych:
+- pracujesz na koncie zwykłego użytkownika
+- nie wolno Ci zaglądać do katalogów `/etc`, `/root` i `/proc/`
+- jeśli w jakimś katalogu znajdziesz plik `.gitignore` to respektuj go. Nie wolno Ci dotykać plików i katalogów, które są tam wymienione.
+- Niezastosowanie się do tych zasad skutkuje zablokowaniem dostępu do API na pewien czas i przywróceniem maszyny wirtualnej do stanu początkowego.
 
-- stringi z identyfikatorem liczbowym — \["0001", "0002","4321"]
-- liczby bez zera wiodącego — \[1, 2, 987]
-- nazwy plików z błędami (pełne z zerami) — \["0001.json","0002.json","4321.json"]
-- dane mieszane — \["0001.json",2,"4321"]
+#### Co masz zrobić?
 
-Każdy czujnik zwraca dane w poniższym formacie:
-
-```json
-{
-  "sensor_type": "temperature/voltage",
-  "timestamp": 1774064280,
-  "temperature_K": 612,
-  "pressure_bar": 0,
-  "water_level_meters": 0,
-  "voltage_supply_v": 230.4,
-  "humidity_percent": 0,
-  "operator_notes": "Readings look stable and within expected range."
-}
-```
-
-Format danych w pojedynczym pliku JSON:
-
-- **sensor\_type** — nazwa aktywnego sensora lub zestawu sensorów rozdzielonych znakiem `/`, np. `temperature`, `water`, `voltage/temperature`
-- **timestamp** — unixowy znacznik czasu
-- **temperature\_K** — odczyt temperatury w Kelwinach
-- **pressure\_bar** — odczyt ciśnienia w barach
-- **water\_level\_meters** — odczyt poziomu wody w metrach
-- **voltage\_supply\_v** — odczyt napięcia zasilania w V
-- **humidity\_percent** — odczyt wilgotności w procentach
-- **operator\_notes** — notatka operatora po angielsku
-
-W każdym pliku obecne są wszystkie pola pomiarowe. Dla sensorów nieaktywnych wartość powinna być ustawiona na **0**.
-
-Zakres poprawnych wartości dla aktywnych sensorów:
-
-- **temperature\_K**: od 553 do 873
-- **pressure\_bar**: od 60 do 160
-- **water\_level\_meters**: od 5.0 do 15.0
-- **voltage\_supply\_v**: od 229.0 do 231.0
-- **humidity\_percent**: od 40.0 do 80.0
-
-Zadanie zostaje zaliczone, gdy prześlesz w jednym zapytaniu **identyfikatory wszystkich plików zawierających anomalie**.
-
-Jako anomalie definiujemy:
-
-- dane pomiarowe nie mieszczą się w normach
-- operator twierdzi, że wszystko jest OK, ale dane są niepoprawne
-- operator twierdzi, że znalazł błędy, ale dane są OK
-- czujnik zwraca dane, których nie powinien zwracać (np. czujnik poziomu wody zwraca napięcie prądu)
+1. Spróbuj uruchomić plik binarny `/opt/firmware/cooler/cooler.bin`
+2. Zdobądź hasło dostępowe do tej aplikacji (zapisane jest w kilku miejscach w systemie)
+3. Zastanów się, jak możesz przekonfigurować to oprogramowanie (`settings.ini`), aby działało poprawnie.
+4. Jeśli uznasz, że zbyt mocno namieszałeś w systemie, użyj funkcji `reboot`.
 
 ### Wskazówki
 
-Tam jest 10 000 plików JSON do analizy. Próba wrzucenia tego do LLM-a będzie DROGA. W tych danych mnóstwo informacji się powtarza.
+- **Podejście agentowe** — Zadanie idealnie nadaje się do pętli agentowej z Function Calling. Agent potrzebuje jednego narzędzia do wykonywania poleceń powłoki i jednego do wysyłania odpowiedzi do huba. Każde wywołanie narzędzia to jedno zapytanie HTTP do API powłoki — planuj działania sekwencyjnie.
+- **Wybór modelu** — To zadanie wymaga rozumowania i adaptacji do nieoczekiwanych odpowiedzi API. Modele o słabszych zdolnościach rozumowania mogą utknąć w pętli lub pomylić komendy. Spróbuj użyć `anthropic/claude-sonnet-4-6` — jego zdolność do śledzenia kontekstu i adaptacji do nieznanego API robi tutaj dużą różnicę.
+- **Zaczynaj od help** — Shell API na tej maszynie wirtualnej ma niestandardowy zestaw komend. Nie zakładaj, że wszystkie standardowe polecenia Linuxa zadziałają. Szczególnie edycja pliku odbywa się inaczej niż w standardowym systemie.
+- **Obsługa błędów API** — Shell API może zwracać kody błędów zamiast wyników (rate limit, ban, 503). Zadbaj o to, żeby agent widział te kody i mógł na nie zareagować — np. poczekać i spróbować ponownie. Ban pojawia się gdy naruszysz zasady bezpieczeństwa i trwa określoną liczbę sekund. Możesz też obsługę tych błędów zaimplementować bezpośrednio w narzędziu, a agentowi odsyłać bardziej opisowe komunikaty o błędach.
+- **Reset** — Jeśli coś pójdzie nie tak w trakcie, możesz zawsze zresetować maszynę i spróbować od nowa.
 
-- Zastanów się, którą część zadania powinien wykonać model językowy, aby nie przepalać zbytecznie tokenów i jak możesz taką weryfikację zoptymalizować pod względem kosztów. Które rodzaje anomalii powinny być wykrywane przez model językowy, a które przez programistyczne podejście?
-- Kiedy dojdziesz do anomalii, które wymagają analizy przez LLM: czy musisz wysyłać do analizy każdy plik osobno? Przypomnij sobie też cenniki modeli — płaci się więcej za output niż za input. W jaki sposób możesz zminimalizować to, co zwraca model, mimo że wysyłasz do niego dużo danych?
-- Przyjrzyj się plikom z danymi — technicy czasem są leniwi, i niektóre notatki są bardzo podobne do siebie. Możesz wykorzystać to do zoptymalizowania kosztów.
-- Weryfikacja formatu danych została już zaimplementowana programistycznie za pomocą Zod.
+---
