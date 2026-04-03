@@ -1,6 +1,8 @@
 ---
 name: standard
-model: openai/gpt-4o-mini
-tools: []
+model: anthropic/claude-sonnet-4-6
+tools: 
+  - execute_shell_command
+  - send_answer
 ---
 
