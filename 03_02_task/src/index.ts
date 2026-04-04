@@ -1,6 +1,6 @@
 import "./instrumentation"; // Must be the first import
 import {runAgent} from './agent.js'
-import {langfuse} from "./instrumentation.js";
+import {langfuse, shutdownTracing} from "./instrumentation.js";
 
 async function main() {
   console.log("Starting firmware agent...");
@@ -12,7 +12,10 @@ async function main() {
   console.log("Agent finished. Result:", result);
 }
 
-main().catch((err) => {
-  console.error('Fatal error:', err)
-  process.exit(1)
-})
+main()
+  .catch((err) => {
+    console.error('Fatal error:', err)
+  })
+  .finally(async () => {
+    await shutdownTracing();
+  })
