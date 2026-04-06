@@ -5,7 +5,7 @@ import {langfuse, shutdownTracing} from "./instrumentation.js";
 async function main() {
   console.log("Starting firmware agent...");
 
-  const prompt = await langfuse.prompt.get("firmware-task");
+  const prompt = await langfuse.prompt.get("robot-reactor");
   const userPrompt = prompt.compile();
 
   const result = await runAgent('standard', userPrompt);
