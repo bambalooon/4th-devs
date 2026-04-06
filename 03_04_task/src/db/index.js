@@ -32,37 +32,46 @@ export const initDb = () => {
   log.info(`sqlite-vec ${version.v}`);
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timestamp TEXT NOT NULL,
-      level TEXT NOT NULL CHECK (level IN ('INFO', 'WARN', 'ERRO', 'CRIT')),
-      content TEXT NOT NULL
+    CREATE TABLE IF NOT EXISTS city (
+      code TEXT PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS item (
+      code TEXT PRIMARY KEY,
+      name TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS connection (
+      item TEXT NOT NULL REFERENCES item(code),
+      city TEXT NOT NULL REFERENCES city(code),
+      PRIMARY KEY (item, city)
     );
     
-    -- FTS5 external-content table backed by logs
-    CREATE VIRTUAL TABLE IF NOT EXISTS logs_fts USING fts5(
-      content,
-      content='logs',
-      content_rowid='id'
+    -- FTS5 external-content table backed by item
+    CREATE VIRTUAL TABLE IF NOT EXISTS item_fts USING fts5(
+      name,
+      content='item',
+      content_rowid='rowid'
     );
 
-    -- Triggers to keep FTS5 in sync with chunks table
-    CREATE TRIGGER IF NOT EXISTS log_ai AFTER INSERT ON logs BEGIN
-      INSERT INTO logs_fts(rowid, content) VALUES (new.id, new.content);
+    -- Triggers to keep FTS5 in sync with item table
+    CREATE TRIGGER IF NOT EXISTS item_ai AFTER INSERT ON item BEGIN
+      INSERT INTO item_fts(rowid, name) VALUES (new.rowid, new.name);
     END;
 
-    CREATE TRIGGER IF NOT EXISTS log_ad AFTER DELETE ON logs BEGIN
-      INSERT INTO logs_fts(logs_fts, rowid, content) VALUES ('delete', old.id, old.content);
+    CREATE TRIGGER IF NOT EXISTS item_ad AFTER DELETE ON item BEGIN
+      INSERT INTO item_fts(item_fts, rowid, name) VALUES ('delete', old.rowid, old.name);
     END;
 
-    CREATE TRIGGER IF NOT EXISTS log_au AFTER UPDATE ON logs BEGIN
-      INSERT INTO logs_fts(logs_fts, rowid, content) VALUES ('delete', old.id, old.content);
-      INSERT INTO logs_fts(rowid, content) VALUES (new.id, new.content);
+    CREATE TRIGGER IF NOT EXISTS item_au AFTER UPDATE ON item BEGIN
+      INSERT INTO item_fts(item_fts, rowid, name) VALUES ('delete', old.rowid, old.name);
+      INSERT INTO item_fts(rowid, name) VALUES (new.rowid, new.name);
     END;
 
     -- sqlite-vec virtual table for vector similarity search
-    CREATE VIRTUAL TABLE IF NOT EXISTS logs_vec USING vec0(
-      log_id INTEGER PRIMARY KEY,
+    CREATE VIRTUAL TABLE IF NOT EXISTS item_vec USING vec0(
+      item_code TEXT PRIMARY KEY,
       embedding float[${EMBEDDING_DIM}]
     );
   `);
