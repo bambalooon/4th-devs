@@ -16,10 +16,6 @@ import {indexLogsFile} from "./src/db/indexer.js";
 const main = async () => {
   log.box("Hybrid RAG Agent");
 
-  // 1. Download failure.log
-  await downloadFile(`https://hub.ag3nts.org/data/${AI_DEVS_API_KEY}/failure.log`, './workspace', true);
-
-  // 2. Database
   log.start("Initializing database...");
   removeDb();
   const db = initDb();
