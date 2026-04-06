@@ -1,48 +1,25 @@
 import {AI_DEVS_API_KEY} from "../../config.js";
 import type {Tool} from "./tools.js";
 
-const MAX_DATA_CHARS = 8_000;
-
-export const executeShellCommand = async(cmd:string) => {
-    const request = {
-        apikey: AI_DEVS_API_KEY,
-        cmd: cmd
-    }
-    console.log(request);
-    const response = await fetch("https://hub.ag3nts.org/api/shell", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request)
-    });
-
-    const data = await response.json();
-    if (data && typeof data.data === 'string' && data.data.length > MAX_DATA_CHARS) {
-        const originalLen = data.data.length;
-        data.data = data.data.slice(0, MAX_DATA_CHARS) + `\n... [TRUNCATED — original ${originalLen} chars. Likely binary data. Do NOT cat binary files; use the shell's run/execute command instead.]`;
-    }
-    const result = JSON.stringify(data);
-    console.log(result.slice(0, 2000));
-    return result;
-};
-
-export const vmTools: Tool[] = [
+export const robotTools: Tool[] = [
     {
         definition: {
             type: 'function',
-            name: 'execute_shell_command',
-            description: 'Execute shell command on VM',
+            name: 'execute_robot_command',
+            description: 'Execute one of robot commands: start, reset, left, wait or right',
             parameters: {
                 type: 'object',
                 properties: {
                     cmd: {
                         type: 'string',
-                        description: 'Shell command, e.g. help, reboot',
+                        enum: ['start', 'reset', 'left', 'wait', 'right'],
+                        description: 'Robot command',
                     },
                 },
                 required: ['cmd'],
             },
         },
-        handler: async (args) => executeShellCommand(args.cmd),
+        handler: async (args) => sendAnswer(args.cmd),
     },
     {
         definition: {
@@ -65,12 +42,12 @@ export const vmTools: Tool[] = [
     },
 ];
 
-export const sendAnswer = async(confirmation_code:string) => {
+export const sendAnswer = async(cmd:string) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
-        task: "firmware",
+        task: "reactor",
         answer: {
-            confirmation: confirmation_code,
+            command: cmd,
         }
     }
     console.log(request);
@@ -86,22 +63,4 @@ export const sendAnswer = async(confirmation_code:string) => {
 };
 
 export const taskTools: Tool[] = [
-    {
-        definition: {
-            type: 'function',
-            name: 'send_answer',
-            description: 'Send answer after successfully starting cooler unit',
-            parameters: {
-                type: 'object',
-                properties: {
-                    confirmation_code: {
-                        type: 'string',
-                        description: 'Confirmation code in format: ECCS-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                    },
-                },
-                required: ['confirmation_code'],
-            },
-        },
-        handler: async (args) => sendAnswer(args.confirmation_code),
-    }
 ];
