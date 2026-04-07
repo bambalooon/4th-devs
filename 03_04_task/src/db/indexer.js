@@ -9,6 +9,23 @@ import {embed} from "./embeddings.js";
 import log from "../helpers/logger.js";
 
 const BATCH_SIZE = 20;
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const embedWithRetry = async (batch, attempts = RETRY_ATTEMPTS) => {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await embed(batch);
+    } catch (err) {
+      if (attempt === attempts) throw err;
+      log.warn(`Embedding attempt ${attempt}/${attempts} failed: ${err.message}. Retrying in ${RETRY_DELAY_MS * attempt}ms...`);
+      if (attempt === 1) log.warn(`  Failing batch sample: ${JSON.stringify(batch.slice(0, 5))}`);
+      await sleep(RETRY_DELAY_MS * attempt);
+    }
+  }
+};
 
 const toVecBuffer = (arr) => {
   const f32 = new Float32Array(arr);
@@ -27,7 +44,7 @@ const TABLE_COLUMNS = {
 export const indexCsv = async (db, filePath, tableName) => {
   const lines = await readFile(filePath, "utf-8")
       .then(content => content.split('\n'))
-      .then(lines => lines.map(line => line.trim()));
+      .then(lines => lines.map(line => line.trim()).filter(line => line.length > 0));
 
   // 2. Insert into table (if item triggers populate FTS5 automatically)
   const insertTable = db
@@ -46,7 +63,7 @@ export const indexCsv = async (db, filePath, tableName) => {
 
     for (let i = 0; i < names.length; i += BATCH_SIZE) {
       const batch = names.slice(i, i + BATCH_SIZE);
-      const batchEmbeddings = await embed(batch);
+      const batchEmbeddings = await embedWithRetry(batch);
       embeddings.push(...batchEmbeddings);
       process.stdout.write(`  embeddings: ${embeddings.length}/${names.length}\r`);
     }
