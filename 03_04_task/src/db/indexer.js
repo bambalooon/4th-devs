@@ -44,7 +44,8 @@ const TABLE_COLUMNS = {
 export const indexCsv = async (db, filePath, tableName) => {
   const lines = await readFile(filePath, "utf-8")
       .then(content => content.split('\n'))
-      .then(lines => lines.map(line => line.trim()).filter(line => line.length > 0));
+      .then(lines => lines.map(line => line.trim()).filter(line => line.length > 0))
+      .then(lines => lines.slice(1)); // skip header row
 
   // 2. Insert into table (if item triggers populate FTS5 automatically)
   const insertTable = db
