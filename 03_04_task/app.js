@@ -24,7 +24,7 @@ const main = async () => {
   });
 
   try {
-    console.log(hybridSearch(db, {keywords: "tranzystor TO-92", semantic: "tranzystor TO-92"}));
+    console.log(await hybridSearch(db, {keywords: "tranzystor TO-92", semantic: "tranzystor TO-92"}));
   } catch (err) {
     log.error("Error", err.message);
     console.log("");
