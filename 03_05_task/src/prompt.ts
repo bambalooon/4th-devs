@@ -1,8 +1,8 @@
 import { LangfuseClient } from "@langfuse/client";
 
-const USER_PROMPT = `Navigate the transport robot from its start position (column 1, row 5) to the goal (column 7, row 5).
+const USER_PROMPT = `Your task is to find the optimal route for our messenger who needs to reach the city of Skolwin.
 
-Begin now by sending the "start" command, then guide the robot step by step to the goal.`;
+Start by using call_tool with url_suffix="/api/toolsearch" to discover all available tools (map, vehicles, movement rules). Then gather all necessary data, plan the shortest route that fits within the resource budget (10 food portions, 10 fuel units), and submit the answer using send_answer.`;
 
 // Load .env when running without --env-file flag (e.g. npx tsx src/index.ts)
 try { process.loadEnvFile(".env"); } catch { /* already loaded or file missing */ }
@@ -12,10 +12,10 @@ const langfuse = new LangfuseClient();
 
 // Create a text prompt
 await langfuse.prompt.create({
-    name: "robot-reactor",
+    name: "savethem",
     type: "text",
     prompt: USER_PROMPT,
-    labels: ["production"] // optionally, directly promote to production
+    labels: ["production"]
 });
 
-console.log("Prompt 'robot-reactor' uploaded to Langfuse.");
+console.log("Prompt 'savethem' uploaded to Langfuse.");
