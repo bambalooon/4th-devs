@@ -72,8 +72,8 @@ export const searchFts = (db, query, limit = 10) => {
 export const searchVector = (db, queryEmbedding, limit = 10) => {
   const rows = db
     .prepare(
-      `SELECT log_id, distance
-       FROM logs_vec
+      `SELECT item_code, distance
+       FROM item_vec
        WHERE embedding MATCH ?
        ORDER BY distance
        LIMIT ?`
@@ -82,21 +82,21 @@ export const searchVector = (db, queryEmbedding, limit = 10) => {
 
   if (!rows.length) return [];
 
-  const ids = rows.map((r) => r.log_id);
-  const placeholders = ids.map(() => "?").join(",");
+  const codes = rows.map((r) => r.item_code);
+  const placeholders = codes.map(() => "?").join(",");
 
-  const logs = db
+  const items = db
     .prepare(
-      `SELECT id, content, level, timestamp
-       FROM logs
-       WHERE id IN (${placeholders})`
+      `SELECT code, name
+       FROM item
+       WHERE code IN (${placeholders})`
     )
-    .all(...ids);
+    .all(...codes);
 
-  const logsMap = new Map(logs.map((l) => [l.id, l]));
+  const itemsMap = new Map(items.map((l) => [l.code, l]));
 
   return rows
-    .map((r) => ({ ...logsMap.get(r.log_id), vec_distance: r.distance }))
+    .map((r) => ({ ...itemsMap.get(r.item_code), vec_distance: r.distance }))
     .filter(Boolean);
 };
 
@@ -160,7 +160,7 @@ export const search = (db, queryCondition, orderBy = "", limit = 5) => {
   try {
     return db
         .prepare(
-            `SELECT id, timestamp, level, content FROM logs WHERE ${queryCondition} ${orderBy} LIMIT ?`
+            `SELECT id, timestamp, level, content FROM item WHERE ${queryCondition} ${orderBy} LIMIT ?`
         )
         .all(limit);
   } catch {
