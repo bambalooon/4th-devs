@@ -6,26 +6,17 @@
  */
 
 import {initDb} from "./src/db/index.js";
-import {createTools} from "./src/agent/tools.js";
 import {onShutdown} from "./src/helpers/shutdown.js";
 import {logStats} from "./src/helpers/stats.js";
 import log from "./src/helpers/logger.js";
-import {run} from "./src/agent/index.js";
-import {readFileSync} from "fs";
-import {resolve} from "path";
-
-const QUERY = readFileSync(resolve(import.meta.dirname, "src", "agent", "prompt_opus.md"), "utf-8");
+import {hybridSearch} from "./src/db/search.js";
 
 const main = async () => {
   log.box("Hybrid RAG Agent");
 
-  // 1. Database
   log.start("Initializing database...");
   const db = initDb();
   log.success("Database ready");
-
-  // 2. Agent tools
-  const tools = createTools(db);
 
   const shutdown = onShutdown(async () => {
     logStats();
@@ -33,8 +24,7 @@ const main = async () => {
   });
 
   try {
-    const result = await run(QUERY, { tools });
-    console.log(`\nAssistant: ${result.response}\n`);
+    console.log(hybridSearch(db, {keywords: "tranzystor TO-92", semantic: "tranzystor TO-92"}));
   } catch (err) {
     log.error("Error", err.message);
     console.log("");
