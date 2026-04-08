@@ -18,6 +18,24 @@ export const callTool = async(url_suffix:string, query:string) => {
     return data;
 };
 
+export const sendAnswer = async(answer:string[]) => {
+    const request = {
+        apikey: AI_DEVS_API_KEY,
+        task: "savethem",
+        answer: answer
+    }
+    console.log(request);
+    const response = await fetch("https://hub.ag3nts.org/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request)
+    });
+
+    const data = JSON.stringify(await response.json());
+    console.log(data);
+    return data;
+};
+
 export const taskTools: Tool[] = [
     {
         definition: {
@@ -40,6 +58,27 @@ export const taskTools: Tool[] = [
             },
         },
         handler: async (args) => callTool(args.url_suffix as string, args.query as string),
+    },
+    {
+        definition: {
+            type: 'function',
+            name: 'send_answer',
+            description: 'Send optimal route as an answer, e.g. "wehicle_name", "right", "right", "up", "down", "up","..."',
+            parameters: {
+                type: 'object',
+                properties: {
+                    answer: {
+                        type: 'array',
+                        items: {
+                            type: 'string'
+                        },
+                        minItems: 1,
+                    },
+                },
+                required: ['answer'],
+            },
+        },
+        handler: async (args) => sendAnswer(args.answer),
     },
     {
         definition: {

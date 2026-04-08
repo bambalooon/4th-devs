@@ -4,33 +4,15 @@ Twoim zadaniem jest zbudowanie agenta, który wytyczy optymalną trasę dla nasz
 
 Tym razem nie dajemy Ci dostępu do konkretnych narzędzi, a jedynie do wyszukiwarki narzędzi, która pomoże Ci zdobyć informację o pozostałych narzędziach. Używasz jej jak poniżej:
 
-Endpoint: https://hub.ag3nts.org/api/toolsearch
-
-```json
-{
-  "apikey": "tutaj-twoj-klucz",
-  "query": "I need notes about movement rules and terrain"
-}
-```
+Narzędzie: call_tool(url_suffix="/api/toolsearch", query="query for toolsearch"), e.g.: call_tool(url_suffix="/api/toolsearch", query="I need notes about movement rules and terrain")
 
 Uwaga: wszystkie narzędzia porozumiewają się tylko w języku angielskim!
 
-Wszystkie znalezione narzędzia obsługuje się identycznie jak toolsearch, czyli wysyła się do nich parametr 'query' oraz własny apikey.
+Wszystkie znalezione narzędzia obsługuje się identycznie jak toolsearch, czyli wysyła się do nich parametr 'url_suffix' (e.g. /api/toolsearch, /api/maps, /api/books - wartość można znaleźć w odpowiedzi do toolsearch w polu 'url') oraz 'query' odpowiednie dla wywoływanego narzędzia.
 
 Twoim zadaniem jest wysłać do centrali optymalną trasę podróży dla naszego wysłannika.
 
-**Zadanie nazywa się savethem**, a dane wysyłasz do /verify
-
-```json
-{
-  "apikey": "tutaj-twoj-klucz",
-  "task": "savethem",
-  "answer": ["wehicle_name", "right", "right", "up", "down", "up","..."]
-}
-```
-
-Tutaj znajdziesz podgląd trasy, którą pokonuje nasz człowiek:
-https://hub.ag3nts.org/savethem\_preview.html
+Gotową trasę wysyłasz za pomocą narzędzia send_answer podając jako wartość pola 'answer' listę kolejnych ruchów (np. ["vehicle_name", "right", "right", "up", "down", "up","..."]).
 
 ## Wskazówki
 
