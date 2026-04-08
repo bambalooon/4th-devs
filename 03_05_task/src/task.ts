@@ -1,25 +1,45 @@
-import {AI_DEVS_API_KEY} from "../../config.js";
 import type {Tool} from "./tools.js";
+import {AI_DEVS_API_KEY} from "../../config.js";
 
-export const robotTools: Tool[] = [
+export const callTool = async(url_suffix:string, query:string) => {
+    const request = {
+        apikey: AI_DEVS_API_KEY,
+        query
+    }
+    console.log(request);
+    const response = await fetch(`https://hub.ag3nts.org${url_suffix}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request)
+    });
+
+    const data = JSON.stringify(await response.json());
+    console.log(data);
+    return data;
+};
+
+export const taskTools: Tool[] = [
     {
         definition: {
             type: 'function',
-            name: 'execute_robot_command',
-            description: 'Execute one of robot commands: start, reset, left, wait or right',
+            name: 'call_tool',
+            description: '',
             parameters: {
                 type: 'object',
                 properties: {
-                    cmd: {
+                    url_suffix: {
                         type: 'string',
-                        enum: ['start', 'reset', 'left', 'wait', 'right'],
-                        description: 'Robot command',
+                        description: 'API endpoint suffix to call (e.g. "/api/toolsearch").',
+                    },
+                    query: {
+                        type: 'string',
+                        description: 'API endpoint query to send in the request body.',
                     },
                 },
-                required: ['cmd'],
+                required: ['url_suffix', 'query'],
             },
         },
-        handler: async (args) => sendAnswer(args.cmd),
+        handler: async (args) => callTool(args.url_suffix as string, args.query as string),
     },
     {
         definition: {
@@ -40,27 +60,4 @@ export const robotTools: Tool[] = [
             return `Waited ${seconds} second(s).`;
         },
     },
-];
-
-export const sendAnswer = async(cmd:string) => {
-    const request = {
-        apikey: AI_DEVS_API_KEY,
-        task: "reactor",
-        answer: {
-            command: cmd,
-        }
-    }
-    console.log(request);
-    const response = await fetch("https://hub.ag3nts.org/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request)
-    });
-
-    const data = await response.json();
-    console.log(data);
-    return JSON.stringify(data);
-};
-
-export const taskTools: Tool[] = [
 ];
