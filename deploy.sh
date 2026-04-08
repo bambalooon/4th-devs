@@ -1,10 +1,11 @@
 #!/bin/bash
 
-dir="${1%/}" # removes trailing slash if present
+CURRENT_DIR=$(dirname "$(realpath "$0")")
+PROJECT_DIR="${CURRENT_DIR}/${1%/}" # removes trailing slash if present
 
-if [[ -z "$dir" || ! -d "$dir" ]]; then
+if [[ -z "$PROJECT_DIR" || ! -d "$PROJECT_DIR" ]]; then
   echo "Usage: $0 <directory>"
   exit 1
 fi
 
-rsync -avz $dir azyl:deploy/
+rsync -avz $PROJECT_DIR azyl:deploy/
