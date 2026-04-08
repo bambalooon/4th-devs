@@ -156,13 +156,13 @@ export const hybridSearch = async (db, { keywords, semantic }, limit = 5) => {
   return merged.map(({ rrf, fts_score, ...rest }) => rest);
 };
 
-export const search = (db, queryCondition, orderBy = "", limit = 5) => {
+export const search = (db, itemCode) => {
   try {
     return db
         .prepare(
-            `SELECT id, timestamp, level, content FROM item WHERE ${queryCondition} ${orderBy} LIMIT ?`
+            `SELECT city.name FROM city JOIN connection ON city.code=connection.city WHERE connection.item=?`
         )
-        .all(limit);
+        .all(itemCode);
   } catch {
     return [];
   }
