@@ -128,9 +128,8 @@ const log = {
     }
     console.log(`${colors.dim}         ${label} ${results.length} hit(s)${colors.reset}`);
     for (const r of results.slice(0, 5)) {
-      const preview = r.content?.slice(0, 60) ?? "?";
       const dist = r.vec_distance?.toFixed(3) ?? "?";
-      console.log(`${colors.dim}           [${r.level}] ${preview}… (dist: ${dist})${colors.reset}`);
+      console.log(`${colors.dim}           [${r.name} (dist: ${dist})${colors.reset}`);
     }
     if (results.length > 5) console.log(`${colors.dim}           ... +${results.length - 5} more${colors.reset}`);
   },
@@ -139,11 +138,10 @@ const log = {
     const label = `${colors.green}RRF${colors.reset}`;
     console.log(`${colors.dim}         ${label} ${results.length} merged result(s)${colors.reset}`);
     for (const r of results) {
-      const preview = r.content?.slice(0, 60) ?? "?";
       const fts = r.fts_rank ? `fts:#${r.fts_rank}` : "—";
       const vec = r.vec_rank ? `vec:#${r.vec_rank}` : "—";
       const rrf = r.rrf?.toFixed(4) ?? "?";
-      console.log(`${colors.dim}           [${r.level}] ${preview}… [${fts} ${vec}] rrf=${rrf}${colors.reset}`);
+      console.log(`${colors.dim}           ${r.name} [${fts} ${vec}] rrf=${rrf}${colors.reset}`);
     }
   }
 };
