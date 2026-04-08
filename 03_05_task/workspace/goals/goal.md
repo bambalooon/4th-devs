@@ -1,34 +1,47 @@
-## Zadanie
+## Zadanie praktyczne
 
-Twoim zadaniem jest doprowadzenie robota transportującego urządzenie chłodzące w pobliże reaktora.
+Twoim zadaniem jest zbudowanie agenta, który wytyczy optymalną trasę dla naszego posłańca, który podejmie negocjacje w mieście Skolwin. Niewiele wiemy na temat tego, jak wygląda teren, więc z pewnością na początku będziemy musieli zdobyć mapę. Musimy też zdecydować się na konkretny pojazd, którym wyruszymy z bazy. Jest ich do wyboru kilka. Myślę, że bez problemu znajdziesz informacje na ich temat. Każdy pojazd spala paliwo. Im szybciej się porusza, tym więcej paliwa zużywa. Jednocześnie nasz wysłannik potrzebuje prowiantu. Im dłużej trwa podróż, tym więcej będzie wymagał jedzenia. Trzeba więc odpowiednio rozplanować tę drogę w taki sposób, by poruszać się możliwie szybko, ale jednocześnie tak, aby wystarczyło nam jedzenia i paliwa na dotarcie do celu.
 
-Do sterowania robotem służy specjalnie przygotowane API, które przyjmuje polecenia: `start`, `reset`, `left`, `wait` oraz `right`. Możesz wysłać tylko jedno polecenie jednocześnie.
+Tym razem nie dajemy Ci dostępu do konkretnych narzędzi, a jedynie do wyszukiwarki narzędzi, która pomoże Ci zdobyć informację o pozostałych narzędziach. Używasz jej jak poniżej:
 
-Zadanie uznajemy za zaliczone, jeśli robot przejdzie przez całą mapę, nie będąc przy tym zgniecionym przez elementy reaktora. Bloczki reaktora poruszają się w górę i w dół, a status ich aktualnego kierunku, podobnie jak ich pozycja są zwracane przez API.
+Endpoint: https://hub.ag3nts.org/api/toolsearch
 
-Napisz aplikację, która na podstawie aktualnej sytuacji na planszy będzie decydowała, jakie kroki powinien podjąć robot. 
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "query": "I need notes about movement rules and terrain"
+}
+```
 
-Komendy dla robota wysyłasz za pomocą narzędzia `execute_robot_command` podając komendę.
+Uwaga: wszystkie narzędzia porozumiewają się tylko w języku angielskim!
 
-### Mechanika zadania
+Wszystkie znalezione narzędzia obsługuje się identycznie jak toolsearch, czyli wysyła się do nich parametr 'query' oraz własny apikey.
 
-- Plansza ma wymiary 7 na 5 pól.
-- Robot porusza się zawsze po najniższej kondygnacji, czyli jego pozycja startowa to pierwsza kolumna i 5 wiersz.
-- Miejsce instalacji modułu chłodzenia (Twój punkt docelowy) to 7 kolumna i 5 wiersz (dobrze widać to na podglądzie graficznym podlinkowanym wyżej).
-- Każdy blok reaktora zajmuje dokładnie 2 pola i porusza się cyklicznie góra/dół. Gdy dojdzie do pozycji skrajnie wysokiej, zaczyna wracać na dół, a gdy osiągnie pozycję najniższą, wraca do góry.
-- Bloki poruszają się tylko, gdy wydajesz polecenia. Oznacza to, że odczekanie np. 10 sekund nie zmieni niczego na planszy. Jeśli chcesz, aby stan planszy zmienił się bez poruszania robotem, wyślij komendę `wait`.
+Twoim zadaniem jest wysłać do centrali optymalną trasę podróży dla naszego wysłannika.
 
-### Oznaczenia na mapie
+**Zadanie nazywa się savethem**, a dane wysyłasz do /verify
 
-- P — to pozycja startowa
-- G — to pozycja do której masz doprowadzić robota
-- B — to bloki reaktora
-- . — to puste pola. Nic się na nich nie znajduje (to kropka)
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "savethem",
+  "answer": ["wehicle_name", "right", "right", "up", "down", "up","..."]
+}
+```
 
-### Jak powinna wyglądać implementacja Twojego algorytmu?
+Tutaj znajdziesz podgląd trasy, którą pokonuje nasz człowiek:
+https://hub.ag3nts.org/savethem\_preview.html
 
-- Na początek zawsze wysyłasz polecenie `start`
-- Rozglądasz się, jak wygląda plansza i podejmujesz decyzję, czy możesz wykonać krok do przodu
-- Jeśli nie możesz wykonać kroku lub jest to zbyt niebezpieczne (np. zbliża się bloczek), to czekasz
-- Jeśli czekanie nie wchodzi w grę (bo w kolumnie, w której stoisz, też zbliża się bloczek), to uciekasz w lewo
-- Wykonujesz odpowiednie kroki za każdym razem podglądając mapę, tak długo, aż osiągniesz punkt docelowy
+## Wskazówki
+
+Co wiemy?
+
+- wysłannik musi dotrzeć do miasta Skolwin
+- pozyskane mapy zawsze mają wymiary 10x10 pól i zawierają rzeki, drzewa, kamienie itp.
+- masz do dyspozycji 10 porcji jedzenia i 10 jednostek paliwa
+- każdy ruch spala paliwo (no, chyba że idziesz pieszo) oraz jedzenie. Każdy pojazd ma własne parametry spalania zasobów.
+- im szybciej się poruszasz, tym więcej spalasz paliwa, ale im wolniej idziesz, tym więcej konsumujesz prowiantu. Trzeba to dobrze rozplanować.
+- w każdej chwili możesz wyjść z wybranego pojazdu i kontynuować podróż pieszo.
+- narzędzie toolsearch może przyjąć zarówno zapytanie w języku naturalnym, jak i słowa kluczowe
+- wszystkie narzędzia zwracane przez toolsearch przyjmują parametr "query" i odpowiadają w formacie JSON, zwracając zawsze 3 najlepiej dopasowane do zapytania wyniki (nie zwracają wszystkich wpisów!)
+- jeśli dotrzesz do pola końcowego, zdobędziesz flagę i zaliczysz zadanie (flaga pojawi się zarówno na podglądzie, w API jak i w debugu do zadań)
