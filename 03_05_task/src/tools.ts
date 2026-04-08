@@ -1,6 +1,7 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises'
 import {join, relative, resolve} from 'node:path'
 import {taskTools} from "./task.js";
+import {executeCode} from "./sandbox.js";
 
 export interface ToolDefinition {
   type: 'function'
@@ -110,6 +111,44 @@ const tools: Tool[] = [
     },
     handler: async (args) => {
       return JSON.stringify(args)
+    },
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'execute_code',
+      description:
+        'Execute TypeScript code in an isolated Deno sandbox. ' +
+        'Top-level await is supported. Use console.log() to produce output. ' +
+        'Has read/write access to the workspace directory.',
+      parameters: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', description: 'TypeScript code to execute in Deno' },
+        },
+        required: ['code'],
+        additionalProperties: false,
+      },
+    },
+    handler: async (args) => {
+      const code = typeof args.code === 'string' ? args.code : '';
+      if (!code) return 'Error: Missing "code" string field.';
+
+      console.log('  ─────────────────────────────────');
+      for (const line of code.split('\n')) console.log(`  │ ${line}`);
+      console.log('  ─────────────────────────────────');
+
+      const result = await executeCode(code, { permissionLevel: 'standard' });
+
+      if (result.timedOut) return 'Error: Execution timed out (30s limit)';
+      if (result.exitCode !== 0) {
+        let output = `Error (exit ${result.exitCode}):\n${result.stderr}`;
+        if (result.stdout) output += `\n\nPartial output:\n${result.stdout}`;
+        return output;
+      }
+      let output = result.stdout || '(executed successfully, no output)';
+      if (result.stderr) output += `\n\n[stderr]: ${result.stderr}`;
+      return output;
     },
   },
 ]

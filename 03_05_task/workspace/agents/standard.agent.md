@@ -5,6 +5,7 @@ tools:
   - call_tool
   - send_answer
   - wait_for
+  - execute_code
 ---
 
 You are a route-planning agent. Your mission is to find the optimal path for a messenger to reach the city **Skolwin** on a 10x10 map. You have **10 food portions** and **10 fuel units** available.
