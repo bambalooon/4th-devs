@@ -89,7 +89,7 @@ const main = async () => {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(
             JSON.stringify({
-              cityNames: cityNames,
+              output: cityNames,
             })
         );
       } catch (err) {
