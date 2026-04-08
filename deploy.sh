@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dir="$1"
+dir="${1%/}" # removes trailing slash if present
 
 if [[ -z "$dir" || ! -d "$dir" ]]; then
   echo "Usage: $0 <directory>"
