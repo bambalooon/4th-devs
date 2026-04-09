@@ -35,17 +35,37 @@ Write out the map as a 2D grid (rows 0–9, cols 0–9). Mark:
 - `S` = start, `G` = goal (Skolwin)
 - Blocked cells (rivers, rocks, trees if impassable)
 
-## Phase 3 — Plan the optimal route
-**Resource math**: For a path of N moves using vehicle V:
-- fuel_used = N × fuel_per_move(V)  ≤ 10
-- food_used = N × food_per_move(V)  ≤ 10
+## Phase 3 — Plan the optimal route using `execute_code`
+**Do NOT try to solve the pathfinding in your head.** Instead, use `execute_code` to write and run a TypeScript program that computes the answer algorithmically. LLMs are unreliable at manual grid navigation — code is exact.
 
-Steps:
-1. Find the shortest passable path (BFS — try all 4 directions: up/down/left/right)
-2. For each candidate vehicle, calculate whether fuel AND food both fit within 10 units
-3. If no single vehicle works for the whole route, consider switching to walking (no fuel cost, but higher food cost)
-4. Pick the vehicle + path combination that uses the least resources while staying within limits
-5. Double-check your move list against the map before submitting
+Write a script that:
+1. Encodes the 10x10 map as a 2D array (mark blocked/impassable cells)
+2. Sets start coordinates and goal coordinates (Skolwin)
+3. Runs **BFS** (breadth-first search) to find the shortest passable path
+4. For each candidate vehicle, checks resource constraints:
+   - `fuel_used = path_length × fuel_per_move(vehicle) ≤ 10`
+   - `food_used = path_length × food_per_move(vehicle) ≤ 10`
+5. Picks the best vehicle + path combo that fits within limits
+6. Outputs the result as JSON: `{ vehicle: "name", moves: ["right", "up", ...] }`
+
+Example skeleton:
+```typescript
+const map: string[][] = [ /* fill from gathered data */ ];
+const start = { row: 0, col: 0 }; // adjust
+const goal = { row: 9, col: 9 };  // adjust to Skolwin's position
+
+const dirs = [
+  { name: "down",  dr: 1, dc: 0 },
+  { name: "up",    dr: -1, dc: 0 },
+  { name: "right", dr: 0, dc: 1 },
+  { name: "left",  dr: 0, dc: -1 },
+];
+
+// BFS to find shortest path
+// ... then check vehicle constraints and print result
+```
+
+The `execute_code` tool runs TypeScript in a sandboxed Deno environment. Use it whenever you need precise computation — pathfinding, resource math, or any algorithmic reasoning.
 
 ## Phase 4 — Submit
 Call `send_answer` with the answer array:
