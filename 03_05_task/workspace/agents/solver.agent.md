@@ -1,6 +1,7 @@
 ---
 name: solver
 model: gpt-4.1
+max_turns: 20
 tools: 
   - read_file
   - write_file
