@@ -1,6 +1,7 @@
 ---
 name: standard
 model: google/gemini-2.0-flash-001
+max_turns: 50
 tools: 
   - call_tool
   - wait_for

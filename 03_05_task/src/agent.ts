@@ -6,7 +6,7 @@ import {findTool, tools} from './tools.js'
 import {openai, resolveModelForProvider} from './config.js'
 
 const MAX_DEPTH = 3
-const MAX_TURNS = 100
+const DEFAULT_MAX_TURNS = 50
 const WORKSPACE = join(process.cwd(), 'workspace')
 
 const truncate = (s: string, max = 100): string =>
@@ -25,6 +25,7 @@ interface AgentTemplate {
   name: string
   model: string
   tools: string[]
+  maxTurns: number
   systemPrompt: string
 }
 
@@ -36,6 +37,7 @@ async function loadAgent(name: string): Promise<AgentTemplate> {
     name: data.name ?? name,
     model: typeof data.model === 'string' ? data.model : 'openai:gpt-4.1-mini',
     tools: Array.isArray(data.tools) ? data.tools : [],
+    maxTurns: typeof data.max_turns === 'number' ? data.max_turns : DEFAULT_MAX_TURNS,
     systemPrompt: content.trim(),
   }
 }
@@ -79,7 +81,7 @@ export async function runAgent(
       { role: 'user', content: buildUserContent(task, image_url) },
     ]
 
-    for (let turn = 0; turn < MAX_TURNS; turn++) {
+    for (let turn = 0; turn < template.maxTurns; turn++) {
       const response = await openai.chat.completions.create({
         model,
         messages,
