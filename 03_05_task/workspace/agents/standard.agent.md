@@ -42,8 +42,20 @@ Call each discovered URL via `call_tool` to collect:
 
 Be thorough — include ALL raw data. The coder agent will read this file.
 
-## Phase 3 — Delegate pathfinding to coder agent
-Once `notes/map.md` is complete, delegate the algorithmic work:
+## Phase 3 — Validate data before proceeding
+**STOP. Do NOT delegate to the coder until you have confirmed ALL of the following:**
+
+After writing `notes/map.md`, read it back with `read_file` and verify it contains:
+- [ ] A complete map grid (every row, every column — not partial)
+- [ ] The start position coordinates
+- [ ] Skolwin's position coordinates
+- [ ] At least one vehicle with fuel_per_move and food_per_move values
+- [ ] Movement rules (allowed directions, which terrains block movement)
+
+If ANY item is missing, go back to Phase 1/2: search for more tools, call more endpoints, and update `notes/map.md`. **Do not delegate until every checkbox above is satisfied.**
+
+## Phase 4 — Delegate pathfinding to coder agent
+Only after Phase 3 validation passes, delegate the algorithmic work:
 
 ```
 delegate({
@@ -52,7 +64,7 @@ delegate({
 })
 ```
 
-## Phase 4 — Submit
+## Phase 5 — Submit
 After the coder finishes, read `notes/solution.json` and call `send_answer` with the answer array:
 ```
 ["vehicle_name", "direction1", "direction2", ...]
