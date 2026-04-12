@@ -5,7 +5,6 @@ import {AI_DEVS_API_KEY} from "../../config.js";
 // ── Schemas ────────────────────────────────────────────────────────
 
 const UpdateAnswerSchema = z.object({
-    action: z.literal('update'),
     page: z.enum(['incydenty', 'notatki', 'zadania']),
     id: z.string().regex(/^[0-9a-f]{32}$/, 'id must be a 32-char hex string'),
     content: z.string().optional(),
@@ -18,8 +17,6 @@ const UpdateAnswerSchema = z.object({
     (d) => d.done === undefined || d.page === 'zadania',
     { message: '"done" is only allowed for page "zadania"' }
 );
-
-// ── API caller ─────────────────────────────────────────────────────
 
 export const sendAnswer = async(answer) => {
     const request = {
@@ -70,11 +67,11 @@ export const taskTools: Tool[] = [
             },
         },
         handler: async (args) => {
-            const parsed = UpdateAnswerSchema.safeParse({ action: 'update', ...args });
+            const parsed = UpdateAnswerSchema.safeParse(args);
             if (!parsed.success) {
                 return `Validation error: ${parsed.error.issues.map(i => i.message).join('; ')}`;
             }
-            return sendAnswer(parsed.data);
+            return sendAnswer({ action: 'update', ...parsed.data });
         },
     },
     {
