@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {zodToJsonSchema} from 'zod-to-json-schema';
 import type {Tool} from "./tools.js";
 import {AI_DEVS_API_KEY} from "../../config.js";
 
@@ -54,17 +55,7 @@ export const taskTools: Tool[] = [
             type: 'function',
             name: 'okoeditor_update',
             description: 'Update a record. Allowed pages: incydenty, notatki, zadania. At least "content" or "title" must be provided. "done" is only allowed for page "zadania".',
-            parameters: {
-                type: 'object',
-                properties: {
-                    page: { type: 'string', enum: ['incydenty', 'notatki', 'zadania'], description: 'Page to update.' },
-                    id: { type: 'string', description: '32-char hex id of the record.' },
-                    content: { type: 'string', description: 'New description text (optional).' },
-                    title: { type: 'string', description: 'New title (optional).' },
-                    done: { type: 'string', enum: ['YES', 'NO'], description: 'Mark task done/undone (only for page "zadania", optional).' },
-                },
-                required: ['page', 'id'],
-            },
+            parameters: zodToJsonSchema(UpdateAnswerSchema, { target: 'openAi' }),
         },
         handler: async (args) => {
             const parsed = UpdateAnswerSchema.safeParse(args);
