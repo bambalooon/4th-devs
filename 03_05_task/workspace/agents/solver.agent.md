@@ -55,12 +55,20 @@ If BFS finds no path:
 - Try a different vehicle (rocket might cross different terrain)
 - Search for more data with `call_tool`
 
-### 4. Submit
-Once you have a valid solution, call `send_answer` with the route array.
-Write the solution to `notes/solution.json` as well.
+### 4. Submit — MANDATORY
+
+**CRITICAL: You MUST call `send_answer` before finishing. Do NOT just return text. Your task is incomplete until `send_answer` is called.**
+
+After `execute_code` returns the optimal route, immediately call:
+- `send_answer(answer=["vehicle_name", "dir1", "dir2", ...])`
+
+Also write the solution to `notes/solution.json`.
+
+**If you don't call send_answer, the task FAILS.**
 
 ## Rules
 - All `call_tool` queries must be in **English**
 - Trust only data from API responses, not assumptions
 - If rate-limited, use `wait_for`
 - Always print diagnostic output from code so you can debug
+- **NEVER finish without calling send_answer**
