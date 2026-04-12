@@ -175,6 +175,7 @@ const tools: Tool[] = [
       }
       let output = result.stdout || '(executed successfully, no output)';
       if (result.stderr) output += `\n\n[stderr]: ${result.stderr}`;
+      console.log(`Execute code ended with success, result: ${output}`);
       return output;
     },
   },
