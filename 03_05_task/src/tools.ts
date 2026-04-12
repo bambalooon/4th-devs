@@ -1,4 +1,4 @@
-import {mkdir, readFile, writeFile} from 'node:fs/promises'
+import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises'
 import {join, relative, resolve} from 'node:path'
 import {taskTools} from "./task.js";
 import {executeCode} from "./sandbox.js";
@@ -25,6 +25,33 @@ function isPathSafe(path: string): boolean {
 }
 const tools: Tool[] = [
   ...taskTools,
+  {
+    definition: {
+      type: 'function',
+      name: 'list_files',
+      description: 'List files in a workspace directory. Path is relative to workspace root.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Directory path relative to workspace (e.g. "notes")' },
+        },
+        required: ['path'],
+      },
+    },
+    handler: async (args) => {
+      try {
+        const path = args.path
+        if (typeof path !== 'string') return 'Error: path must be a string'
+        if (!isPathSafe(path)) return 'Error: Path escapes workspace'
+        const fullPath = join(WORKSPACE, path)
+        const entries = await readdir(fullPath)
+        return JSON.stringify(entries)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        return `Error: ${msg}`
+      }
+    },
+  },
   {
     definition: {
       type: 'function',
