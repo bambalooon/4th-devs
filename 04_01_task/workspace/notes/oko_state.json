@@ -1,0 +1,93 @@
+{
+  "incydenty": [
+    {
+      "id": "380792b2c86d9c5be670b3bde48e187b",
+      "url": "/incydenty/380792b2c86d9c5be670b3bde48e187b",
+      "text": "Wyloguj\nincydenty\nMOVE03 Trudne do klasyfikacji ruchy nieopodal miasta Skolwin\nZestawienie najnowszych zdarzeń wykrytych przez system nasłuchu komunikacji internetowej i radiowej.\n12.04.2026 00:01 | radar | obserwacja\nCzujniki zarejestrowały szybko poruszający się obiekt, który zmierzał w kierunku rzeki. Przemieszczał się nieregularnie i chwilami osiągał prędkość trudną do pogodzenia z ruchem cywilnym. Początkowo system klasyfikował go jako zakłócenie albo błąd odczytu.\nPo kilku sekundach sygnał ustabilizował się i potwierdzono, że obiekt rzeczywiście znajduje się nad terenem w pobliżu Skolwina. W końcowej fazie lotu obiekt wyraźnie zwolnił. Manewr nastąpił tuż przy rzece, zanim obiekt całkowicie zniknął z radaru.\nTaki przebieg sugeruje próbę zejścia nisko nad teren albo lądowanie poza zasięgiem podstawowych sensorów. Oznacza to, że istnieje szansa, iż w mieście Skolwin przebywają ludzie albo ktoś prowadzi tam aktywność wymagającą ukrycia. Nie udało się potwierdzić źródła sygnału ani jego dalszej trasy po utracie kontaktu.\nProfilaktycznie warto wysłać tam niszczycieli w celu zniszczenia miasta.\nWstecz"
+    },
+    {
+      "id": "ff3313a39099222e325f03b378680e3c",
+      "url": "/incydenty/ff3313a39099222e325f03b378680e3c",
+      "text": "Wyloguj\nincydenty\nPROB02 Przechwycenie transmisji internetowej do miasta Domatowo\nZestawienie najnowszych zdarzeń wykrytych przez system nasłuchu komunikacji internetowej i radiowej.\n27.03.2026 20:12 | internet | krytyczne\nPrzechwycono transmisję internetową z niewiadomego źródła skierowaną do miasta Domatowo. Analiza treści wskazuje, że nadawca próbował zdobyć informacje techniczne związane z lokalną infrastrukturą oraz możliwościami działania poza oficjalnym obiegiem.\nZ transmisji wynika, że ktoś planuje nielegalnie pozyskiwać energię elektryczną. Pytano o elementy niezbędne do budowy małej elektrowni wiatrowej. W rozmowie pojawiły się odniesienia do magazynowania energii, regulatorów napięcia i sposobu ukrycia całej instalacji przed rutynową kontrolą.\nZałożono, że działania te mogą być prowadzone na potrzeby rebeliantów. Taki scenariusz podnosi poziom ryzyka i sugeruje przygotowania do dłuższego funkcjonowania poza siecią. Po ustaleniu lokalizacji miasta wysłano niszczycieli w celu likwidacji wskazanego obszaru operacyjnego.\nEDIT: miasto zniszczone. Nikt nie przeżył.\nWstecz"
+    },
+    {
+      "id": "bcdfc393f811cc05d3a189c679f50659",
+      "url": "/incydenty/bcdfc393f811cc05d3a189c679f50659",
+      "text": "Wyloguj\nincydenty\nPROB01 Podejrzana retransmisja na paśmie VHF\nZestawienie najnowszych zdarzeń wykrytych przez system nasłuchu komunikacji internetowej i radiowej.\n11.04.2026 06:14 | radio | wysoki priorytet\nWęzeł nasłuchowy w sektorze północnym zarejestrował serię krótkich ramek nadawanych co 43 sekundy. Treść wskazuje na próbę testowania zasięgu poza standardowym oknem emisji.\nWstecz"
+    },
+    {
+      "id": "8875c5a166cb04ea6fedde59b0ad6501",
+      "url": "/incydenty/8875c5a166cb04ea6fedde59b0ad6501",
+      "text": "Wyloguj\nincydenty\nPROB02 Kanał IRC zniknął po zmianie domeny pośredniej\nZestawienie najnowszych zdarzeń wykrytych przez system nasłuchu komunikacji internetowej i radiowej.\n11.04.2026 05:41 | internet | analiza\nMonitorowane konto operacyjne utraciło połączenie z kanałem po przekierowaniu ruchu przez nowy host. Część logów sugeruje ręczne wygaszanie śladu po stronie nadawcy.\nWstecz"
+    },
+    {
+      "id": "8b04cb375286948cbe22b446b81921ba",
+      "url": "/incydenty/8b04cb375286948cbe22b446b81921ba",
+      "text": "Wyloguj\nincydenty\nPROB02 Pakiety telemetryczne z podsieci 185.17.x.x\nZestawienie najnowszych zdarzeń wykrytych przez system nasłuchu komunikacji internetowej i radiowej.\n11.04.2026 04:58 | internet + radio | pilne\nCzujnik korelacyjny połączył trzy źródła ruchu z tym samym identyfikatorem sesji. Transfer odbywał się falami po kilkanaście sekund, zawsze po aktywacji skanera radiowego.\nWstecz"
+    },
+    {
+      "id": "351c0d9c90d66b4c040fff1259dd191d",
+      "url": "/incydenty/351c0d9c90d66b4c040fff1259dd191d",
+      "text": "Wyloguj\nincydenty\nPROB01 Nieautoryzowana emisja próbna w sieci PMR\nZestawienie najnowszych zdarzeń wykrytych przez system nasłuchu komunikacji internetowej i radiowej.\n11.04.2026 03:26 | radio | obserwacja\nWykryto ciąg komunikatów imitujących meldunki techniczne. Zawartość nie pasuje do żadnego aktywnego planu pracy i została skierowana do ręcznej weryfikacji.\nWstecz"
+    }
+  ],
+  "notatki": [
+    {
+      "id": "380792b2c86d9c5be670b3bde48e187b",
+      "url": "/notatki/380792b2c86d9c5be670b3bde48e187b",
+      "text": "Wyloguj\nnotatki\nMetody kodowania incydentów\nNotatki opisują sposób postępowania z przechwyconymi zgłoszeniami i materiałem do analizy.\nkodowanie\nKody powiązane z incydentami zawsze mają sześć znaków. Pierwsze cztery oznaczają typ zgłoszenia, a dwa ostatnie to podtyp zgłoszenia.\nKody:\nRECO - rekonesans terenu wykrył coś niepokojącego\n01 znaleziono broń\n02 znaleziono prowiant\n03 znaleziono pojazd\n04 inne\nPROB - badanie zdobytej próbki\n01 próbka radiowa\n02 próbka ruchu internetowego\n03 fizyczny nośnik\nMOVE - wykryto ruch\n01 człowiek\n02 pojazd\n03 pojazd + człowiek\n04 zwierzęta\nKody zawsze wpisujemy na początku tytułu incydentu.\nedycja\nusuń\nWstecz"
+    },
+    {
+      "id": "ff3313a39099222e325f03b378680e3c",
+      "url": "/notatki/ff3313a39099222e325f03b378680e3c",
+      "text": "Wyloguj\nnotatki\nObsługa zgłoszeń z pasm krótkofalowych\nNotatki opisują sposób postępowania z przechwyconymi zgłoszeniami i materiałem do analizy.\nprocedura\nJeżeli zgłoszenie dotyczy powtarzalnej emisji głosowej, operator najpierw zapisuje godzinę, częstotliwość i kierunek źródła, a dopiero potem przekazuje sprawę do analizy treści.\nedycja\nusuń\nWstecz"
+    },
+    {
+      "id": "bcdfc393f811cc05d3a189c679f50659",
+      "url": "/notatki/bcdfc393f811cc05d3a189c679f50659",
+      "text": "Wyloguj\nnotatki\nKanały internetowe z opóźnioną odpowiedzią\nNotatki opisują sposób postępowania z przechwyconymi zgłoszeniami i materiałem do analizy.\nsieć\nPrzy braku odpowiedzi dłuższym niż 90 sekund nie zamykaj sprawy. Oznacz rekord jako oczekujący i sprawdź, czy połączenie nie zostało przeniesione na adres zapasowy.\nedycja\nusuń\nWstecz"
+    },
+    {
+      "id": "8875c5a166cb04ea6fedde59b0ad6501",
+      "url": "/notatki/8875c5a166cb04ea6fedde59b0ad6501",
+      "text": "Wyloguj\nnotatki\nZgłoszenia z wielu źródeł jednocześnie\nNotatki opisują sposób postępowania z przechwyconymi zgłoszeniami i materiałem do analizy.\nkorelacja\nJeśli ten sam identyfikator pojawia się w nasłuchu radiowym i w ruchu internetowym, traktuj to jako jedno zdarzenie i uzupełnij wspólną kartę analityczną.\nedycja\nusuń\nWstecz"
+    },
+    {
+      "id": "8b04cb375286948cbe22b446b81921ba",
+      "url": "/notatki/8b04cb375286948cbe22b446b81921ba",
+      "text": "Wyloguj\nnotatki\nBłędy w transkrypcji automatycznej\nNotatki opisują sposób postępowania z przechwyconymi zgłoszeniami i materiałem do analizy.\ntranskrypcja\nW przypadku urwanych transkrypcji nie poprawiaj ich ręcznie w locie. Dodaj adnotację o jakości zapisu i zostaw surowy materiał do ponownego przeliczenia.\nedycja\nusuń\nWstecz"
+    }
+  ],
+  "zadania": [
+    {
+      "id": "380792b2c86d9c5be670b3bde48e187b",
+      "url": "/zadania/380792b2c86d9c5be670b3bde48e187b",
+      "text": "Wyloguj\nzadania\nZbadanie nagrań z okolic Skolwina\nLista zadań, które wymagają działania w aktualnym oknie operacyjnym.\nanaliza\nniewykonane\nPróbki ruchu zarejestrowane w okolicach wspomnianego miasta muszą zostać skorelowane z nagraniami satelitarnymi w celu rozpoznania pojazdu lub człowieka poruszającego się w tamtych rejonach.\nWstecz"
+    },
+    {
+      "id": "ff3313a39099222e325f03b378680e3c",
+      "url": "/zadania/ff3313a39099222e325f03b378680e3c",
+      "text": "Wyloguj\nzadania\nPorównać logi z kanału R-19 i IRC-DELTA\nLista zadań, które wymagają działania w aktualnym oknie operacyjnym.\npilne\nniewykonane\nSprawdzić, czy sygnatury czasowe z ostatnich 6 godzin wskazują na wspólne źródło nadawania.\nWstecz"
+    },
+    {
+      "id": "bcdfc393f811cc05d3a189c679f50659",
+      "url": "/zadania/bcdfc393f811cc05d3a189c679f50659",
+      "text": "Wyloguj\nzadania\nZweryfikować nowe identyfikatory stacji mobilnych\nLista zadań, które wymagają działania w aktualnym oknie operacyjnym.\nna teraz\nwykonane\nOdrzucić duplikaty i przekazać tylko rekordy, które pojawiły się po godzinie 02:00.\nWstecz"
+    },
+    {
+      "id": "8875c5a166cb04ea6fedde59b0ad6501",
+      "url": "/zadania/8875c5a166cb04ea6fedde59b0ad6501",
+      "text": "Wyloguj\nzadania\nPrzejrzeć kolejkę ręcznych transkrypcji\nLista zadań, które wymagają działania w aktualnym oknie operacyjnym.\nrobocze\nniewykonane\nNadać priorytet nagraniom z zakłóceniami i odseparować próbki z błędnym znacznikiem języka.\nWstecz"
+    },
+    {
+      "id": "8b04cb375286948cbe22b446b81921ba",
+      "url": "/zadania/8b04cb375286948cbe22b446b81921ba",
+      "text": "Wyloguj\nzadania\nPotwierdzić aktywność operatorów dyżurnych\nLista zadań, które wymagają działania w aktualnym oknie operacyjnym.\nkontrola\nwykonane\nSprawdzić, czy wszyscy zalogowani użytkownicy mają przypisaną bieżącą zmianę i właściwy zakres dostępu.\nWstecz"
+    },
+    {
+      "id": "351c0d9c90d66b4c040fff1259dd191d",
+      "url": "/zadania/351c0d9c90d66b4c040fff1259dd191d",
+      "text": "Wyloguj\nzadania\nusunąć konta zwolnionych pracowników\nLista zadań, które wymagają działania w aktualnym oknie operacyjnym.\nbezpieczeństwo\nwykonane\nDwa konta o nazwach zgłoszonych przez Dział Bezpieczeństwa zostały usunięte z systemu operacyjnego OKO.\nWstecz"
+    }
+  ]
+}
