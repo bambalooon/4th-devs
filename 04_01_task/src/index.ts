@@ -3,9 +3,9 @@ import {runAgent} from './agent.js'
 import {langfuse, shutdownTracing} from "./instrumentation.js";
 
 async function main() {
-  console.log("Starting messenger route agent...");
+  console.log("Starting OKO editor agent...");
 
-  const prompt = await langfuse.prompt.get("savethem");
+  const prompt = await langfuse.prompt.get("okoeditor");
   const userPrompt = prompt.compile();
 
   const result = await runAgent('standard', userPrompt);
