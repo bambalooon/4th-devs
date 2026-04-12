@@ -41,18 +41,6 @@ export const taskTools: Tool[] = [
     {
         definition: {
             type: 'function',
-            name: 'okoeditor_help',
-            description: 'Returns the help message with available actions and their syntax.',
-            parameters: {
-                type: 'object',
-                properties: {},
-            },
-        },
-        handler: async () => sendAnswer({ action: 'help' }),
-    },
-    {
-        definition: {
-            type: 'function',
             name: 'okoeditor_update',
             description: 'Update a record. Allowed pages: incydenty, notatki, zadania. At least "content" or "title" must be provided. "done" is only allowed for page "zadania".',
             parameters: zodToJsonSchema(UpdateAnswerSchema, { target: 'openAi' }),
