@@ -41,7 +41,7 @@ export const taskTools: Tool[] = [
         definition: {
             type: 'function',
             name: 'call_tool',
-            description: '',
+            description: 'Call an external API tool. For /api/toolsearch: query can be natural language keywords. For /api/maps: query must be a CITY NAME (e.g. "Skolwin"). For /api/wehicles: query must be an EXACT vehicle name (one of: rocket, horse, walk, car). Keep queries short.',
             parameters: {
                 type: 'object',
                 properties: {
