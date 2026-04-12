@@ -1,29 +1,35 @@
 ## Zadanie praktyczne
 
-Twoim zadaniem jest zbudowanie agenta, który wytyczy optymalną trasę dla naszego posłańca, który podejmie negocjacje w mieście Skolwin. Niewiele wiemy na temat tego, jak wygląda teren, więc z pewnością na początku będziemy musieli zdobyć mapę. Musimy też zdecydować się na konkretny pojazd, którym wyruszymy z bazy. Jest ich do wyboru kilka. Myślę, że bez problemu znajdziesz informacje na ich temat. Każdy pojazd spala paliwo. Im szybciej się porusza, tym więcej paliwa zużywa. Jednocześnie nasz wysłannik potrzebuje prowiantu. Im dłużej trwa podróż, tym więcej będzie wymagał jedzenia. Trzeba więc odpowiednio rozplanować tę drogę w taki sposób, by poruszać się możliwie szybko, ale jednocześnie tak, aby wystarczyło nam jedzenia i paliwa na dotarcie do celu.
+Twoim zadaniem jest wprowadzenie zmian w Centrum Operacyjnym OKO za pomocą API wystawionego przez centralę.
 
-Tym razem nie dajemy Ci dostępu do konkretnych narzędzi, a jedynie do wyszukiwarki narzędzi, która pomoże Ci zdobyć informację o pozostałych narzędziach. Używasz jej jak poniżej:
+Zdobyliśmy login i hasło do wejścia do tego systemu, ale nie wolno Ci wprowadzać tam żadnych ręcznych zmian. Cała edycja musi odbywać się przez nasze tylne wejście.
 
-Narzędzie: call_tool(url_suffix="/api/toolsearch", query="query for toolsearch"), e.g.: call_tool(url_suffix="/api/toolsearch", query="I need notes about movement rules and terrain")
+Zadanie nazywa się: **okoeditor**
 
-Uwaga: wszystkie narzędzia porozumiewają się tylko w języku angielskim!
+Nasze API jest dostępne standardowo pod adresem `/verify`
 
-Wszystkie znalezione narzędzia obsługuje się identycznie jak toolsearch, czyli wysyła się do nich parametr 'url_suffix' (e.g. /api/toolsearch, /api/maps, /api/books - wartość można znaleźć w odpowiedzi do toolsearch w polu 'url') oraz 'query' odpowiednie dla wywoływanego narzędzia.
+Panel webowy operatora: https://oko.ag3nts.org/
 
-Twoim zadaniem jest wysłać do centrali optymalną trasę podróży dla naszego wysłannika.
+- Login: Zofia
+- Hasło: Zofia2026!
+- Klucz: Twój apikey
 
-Gotową trasę wysyłasz za pomocą narzędzia send_answer podając jako wartość pola 'answer' listę kolejnych ruchów (np. ["vehicle_name", "right", "right", "up", "down", "up","..."]).
+Na początek zacznij od zapoznania się z API dostępnym pod /verify w Centrali.
 
-## Wskazówki
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "okoeditor",
+  "answer": {
+    "action": "help"
+  }
+}
+```
 
-Co wiemy?
+Gdy wprowadzisz wszystkie wymagane zmiany na stronie, wykonaj akcję **done**. Oto Twoja lista zadań:
 
-- wysłannik musi dotrzeć do miasta Skolwin
-- pozyskane mapy zawsze mają wymiary 10x10 pól i zawierają rzeki, drzewa, kamienie itp.
-- masz do dyspozycji 10 porcji jedzenia i 10 jednostek paliwa
-- każdy ruch spala paliwo (no, chyba że idziesz pieszo) oraz jedzenie. Każdy pojazd ma własne parametry spalania zasobów.
-- im szybciej się poruszasz, tym więcej spalasz paliwa, ale im wolniej idziesz, tym więcej konsumujesz prowiantu. Trzeba to dobrze rozplanować.
-- w każdej chwili możesz wyjść z wybranego pojazdu i kontynuować podróż pieszo.
-- narzędzie toolsearch może przyjąć zarówno zapytanie w języku naturalnym, jak i słowa kluczowe
-- wszystkie narzędzia zwracane przez toolsearch przyjmują parametr "query" i odpowiadają w formacie JSON, zwracając zawsze 3 najlepiej dopasowane do zapytania wyniki (nie zwracają wszystkich wpisów!)
-- jeśli dotrzesz do pola końcowego, zdobędziesz flagę i zaliczysz zadanie (flaga pojawi się zarówno na podglądzie, w API jak i w debugu do zadań)
+- Zmień klasyfikację raportu o mieście Skolwin tak, aby nie był to raport o widzianych pojazdach i ludziach, a o zwierzętach.
+- Na liście zadań znajdź zadanie związane z miastem Skolwin i oznacz je jako wykonane. W jego treści wpisz, że widziano tam jakieś zwierzęta np. bobry.
+- Musimy przekierować uwagę operatorów na inne, niezamieszkałe miasto, aby ocalić Skolwin. Spraw więc, aby na liście incydentów pojawił się raport o wykryciu ruchu ludzi w okolicach miasta Komarowo.
+- Gdy to wszystko wykonasz, uruchom akcję "done".
+
