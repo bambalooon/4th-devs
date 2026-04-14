@@ -82,6 +82,14 @@ const extractUnlockCode = (value: unknown): string | null => {
     return null;
 };
 
+const parseResponse = (value: string): Record<string, unknown> => {
+    try {
+        return JSON.parse(value) as Record<string, unknown>;
+    } catch {
+        return {};
+    }
+};
+
 export const taskTools: Tool[] = [
     {
         definition: {
@@ -114,12 +122,13 @@ export const taskTools: Tool[] = [
 
             const collected: Record<string, unknown> = {};
             while (Object.keys(collected).length < queued.length) {
-                const result = await sendAnswer({ action: 'getResult' }, _ => {});
+                const result = parseResponse(await sendAnswer({ action: 'getResult' }, () => {}));
 
                 if (result.code === 11 && result.message === 'No completed queued response is available yet.') {
                     await new Promise((resolve) => setTimeout(resolve, 10));
                     continue;
                 }
+                console.log(result);
 
                 const source = result['sourceFunction'];
                 if (typeof source === 'string' && queued.includes(source) && collected[source] === undefined) {
