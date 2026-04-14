@@ -41,13 +41,13 @@ const cleanArgs = (args: Record<string, unknown>) =>
 
 const isString = (value: unknown): value is string => typeof value === 'string';
 
-const sendAnswer = async (answer: Record<string, unknown>) => {
+const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = data => console.log(data)) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
         task: 'windpower',
         answer,
     };
-    console.log(request);
+    loggerFunc(request);
     const response = await fetch('https://hub.ag3nts.org/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +55,7 @@ const sendAnswer = async (answer: Record<string, unknown>) => {
     });
 
     const data = JSON.stringify(await response.json());
-    console.log(data);
+    loggerFunc(data);
     return data;
 };
 
@@ -114,7 +114,13 @@ export const taskTools: Tool[] = [
 
             const collected: Record<string, unknown> = {};
             while (Object.keys(collected).length < queued.length) {
-                const result = await sendAnswer({ action: 'getResult' });
+                const result = await sendAnswer({ action: 'getResult' }, _ => {});
+
+                if (result.code === 11 && result.message === 'No completed queued response is available yet.') {
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    continue;
+                }
+
                 const source = result['sourceFunction'];
                 if (typeof source === 'string' && queued.includes(source) && collected[source] === undefined) {
                     collected[source] = result;
