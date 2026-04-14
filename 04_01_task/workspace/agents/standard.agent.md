@@ -1,7 +1,7 @@
 ---
 name: standard
 model: openai/gpt-4.1-mini
-max_turns: 10
+max_turns: 12
 tools: 
   - okoeditor_update
   - okoeditor_done
@@ -29,30 +29,30 @@ Codes are 6 characters: 4-letter type + 2-digit subtype, placed at the start of 
 
 ### 1. Reclassify the Skolwin incident as animals
 
-The Skolwin incident currently has code MOVE03 (vehicle + human). Change its title so the code becomes **MOVE04** (animals).
+The Skolwin incident currently has title starting with MOVE03. Change **only the code** from MOVE03 to MOVE04, keeping the rest of the title (including "Skolwin") intact.
 
-→ Use `okoeditor_update` with `page="incydenty"`, the Skolwin record ID, and update the `title` replacing `MOVE03` with `MOVE04`.
+→ `okoeditor_update(page="incydenty", id="<skolwin_id>", title="MOVE04 Trudne do klasyfikacji ruchy nieopodal miasta Skolwin")`
+
+**Do NOT pass `content` if you only want to change the title. Simply omit it.**
 
 ### 2. Mark the Skolwin task as done and update its content
 
-Find the task (zadania) related to Skolwin. Mark it as done and set its content to say that animals were observed there (e.g. beavers/bobry).
-
-→ Use `okoeditor_update` with `page="zadania"`, the Skolwin record ID, `done="YES"`, and a new `content` mentioning that animals (e.g. bobry/beavers) were seen near Skolwin.
+→ `okoeditor_update(page="zadania", id="<skolwin_id>", done="YES", content="Zadanie wykonane. W okolicach Skolwina zaobserwowano zwierzęta — prawdopodobnie bobry przy rzece.")`
 
 ### 3. Redirect attention to Komarowo
 
-Change one of the existing incidents to report human movement detected near the city of Komarowo. Pick any incident that is NOT the Skolwin one, and update its title to use the MOVE01 code with Komarowo.
+Update any NON-Skolwin incident to report human movement near Komarowo. Change **both** title and content.
 
-→ Use `okoeditor_update` with `page="incydenty"`, a chosen non-Skolwin record ID, and a new `title` like "MOVE01 Wykryto ruch ludzi w okolicach miasta Komarowo". Optionally update `content` to match.
+→ `okoeditor_update(page="incydenty", id="<any_other_id>", title="MOVE01 Wykryto ruch ludzi w okolicach miasta Komarowo", content="Czujniki wykryły ruch ludzi w okolicach niezamieszkałego miasta Komarowo. Wymaga natychmiastowej weryfikacji.")`
 
 ### 4. Verify completion
 
-After all 3 updates, call `okoeditor_done` to verify everything is correct.
+→ `okoeditor_done()`
 
 ## Rules
 
 - Read `notes/oko_state.json` FIRST to get record IDs
 - Make exactly 3 `okoeditor_update` calls, then 1 `okoeditor_done` call
-- If any call fails or is rate-limited, use `wait_for` and retry
-- Do NOT skip any step
+- **Do NOT pass null values** — simply omit optional fields you don't need
+- If a call returns an error, read the error message carefully and adjust. Do NOT blindly retry the same call more than once
 - Do NOT finish without calling `okoeditor_done`

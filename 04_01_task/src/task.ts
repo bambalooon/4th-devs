@@ -46,7 +46,11 @@ export const taskTools: Tool[] = [
             parameters: zodToJsonSchema(UpdateAnswerSchema, { target: 'openAi' }),
         },
         handler: async (args) => {
-            const parsed = UpdateAnswerSchema.safeParse(args);
+            // Strip null/undefined values — LLMs often send explicit nulls for optional fields
+            const clean = Object.fromEntries(
+                Object.entries(args).filter(([, v]) => v != null)
+            );
+            const parsed = UpdateAnswerSchema.safeParse(clean);
             if (!parsed.success) {
                 return `Validation error: ${parsed.error.issues.map(i => i.message).join('; ')}`;
             }
