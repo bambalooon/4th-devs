@@ -5,70 +5,43 @@ import {AI_DEVS_API_KEY} from "../../config.js";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'startDate must use YYYY-MM-DD');
 const hourSchema = z.string().regex(/^(?:[01]\d|2[0-3]):00:00$/, 'startHour must use HH:00:00');
-const timestampSchema = z.string().regex(/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):00:00$/, 'config keys must use YYYY-MM-DD HH:00:00');
 const pitchAngleSchema = z.number().finite();
 const windMsSchema = z.number().finite();
 const turbineModeSchema = z.enum(['production', 'idle']);
-const unlockCodeSchema = z.string().min(1, 'unlockCode is required');
 
-const ConfigPointSchema = z.object({
-    pitchAngle: pitchAngleSchema,
-    turbineMode: turbineModeSchema,
-    unlockCode: unlockCodeSchema,
-}).strict();
-
-const GetSchema = z.object({
-    param: z.enum(['weather', 'turbinecheck', 'powerplantcheck', 'documentation']),
-}).strict();
-
-const UnlockCodeGeneratorSchema = z.object({
+const ConfigInputSchema = z.object({
     startDate: dateSchema,
     startHour: hourSchema,
     windMs: windMsSchema,
     pitchAngle: pitchAngleSchema,
+    turbineMode: turbineModeSchema,
 }).strict();
+
+const GetSchema = z.object({
+    params: z.array(z.enum(['weather', 'turbinecheck', 'powerplantcheck', 'documentation'])).min(1),
+}).strict().superRefine((data, ctx) => {
+    const seen = new Set<string>();
+    for (const param of data.params) {
+        if (seen.has(param)) {
+            ctx.addIssue({ code: 'custom', message: `Duplicate param: ${param}` });
+            return;
+        }
+        seen.add(param);
+    }
+});
 
 const DoneSchema = z.object({}).strict();
 
 const ConfigSchema = z.object({
-    startDate: dateSchema.optional(),
-    startHour: hourSchema.optional(),
-    pitchAngle: pitchAngleSchema.optional(),
-    turbineMode: turbineModeSchema.optional(),
-    unlockCode: unlockCodeSchema.optional(),
-    configs: z.unknown().optional(),
-}).strict().refine(
-    (data) => {
-        const hasBatch = data.configs !== undefined;
-        const hasSingle = data.startDate !== undefined
-            || data.startHour !== undefined
-            || data.pitchAngle !== undefined
-            || data.turbineMode !== undefined
-            || data.unlockCode !== undefined;
-
-        if (hasBatch) {
-            if (hasSingle || data.configs === null || typeof data.configs !== 'object' || Array.isArray(data.configs)) {
-                return false;
-            }
-
-            return Object.entries(data.configs as Record<string, unknown>).every(
-                ([key, value]) => timestampSchema.safeParse(key).success && ConfigPointSchema.safeParse(value).success
-            );
-        }
-
-        return data.startDate !== undefined
-            && data.startHour !== undefined
-            && data.pitchAngle !== undefined
-            && data.turbineMode !== undefined
-            && data.unlockCode !== undefined;
-    },
-    { message: 'Provide either a single config point or a configs batch' }
-);
+    configs: z.array(ConfigInputSchema).min(1),
+}).strict();
 
 const cleanArgs = (args: Record<string, unknown>) =>
     Object.fromEntries(Object.entries(args).filter(([, value]) => value != null));
 
-export const sendAnswer = async (answer: Record<string, unknown>) => {
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+const sendAnswer = async (answer: Record<string, unknown>) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
         task: 'windpower',
@@ -86,29 +59,135 @@ export const sendAnswer = async (answer: Record<string, unknown>) => {
     return data;
 };
 
-const makeActionTool = <T extends z.ZodTypeAny>(name: string, description: string, action: string, schema: T): Tool => ({
-    definition: {
-        type: 'function',
-        name,
-        description,
-        parameters: zodToJsonSchema(schema),
-    },
-    handler: async (args) => {
-        const parsed = schema.safeParse(cleanArgs(args));
-        if (!parsed.success) {
-            return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+const extractUnlockCode = (value: unknown): string | null => {
+    if (isString(value)) {
+        return value.match(/[a-f0-9]{32}/i)?.[0] ?? null;
+    }
+
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            const found = extractUnlockCode(item);
+            if (found) return found;
         }
-        return sendAnswer({ action, ...parsed.data });
-    },
-});
+        return null;
+    }
+
+    if (value && typeof value === 'object') {
+        for (const nested of Object.values(value as Record<string, unknown>)) {
+            const found = extractUnlockCode(nested);
+            if (found) return found;
+        }
+    }
+
+    return null;
+};
+
+const waitForQueuedResult = async (expectedSourceFunction: string) => {
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+        const result = await sendAnswer({ action: 'getResult' });
+        if (result['sourceFunction'] === expectedSourceFunction) {
+            return result;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    throw new Error(`Timed out waiting for ${expectedSourceFunction}`);
+};
 
 export const taskTools: Tool[] = [
-    makeActionTool('windpower_start', 'Start a new windpower service window.', 'start', DoneSchema),
-    makeActionTool('windpower_get', 'Request task data for weather, turbinecheck, powerplantcheck, or documentation.', 'get', GetSchema),
-    makeActionTool('windpower_get_result', 'Fetch one completed queued response.', 'getResult', DoneSchema),
-    makeActionTool('windpower_config', 'Store a single config point or a batch of config points.', 'config', ConfigSchema),
-    makeActionTool('windpower_unlock_code_generator', 'Generate an unlock code for a config point.', 'unlockCodeGenerator', UnlockCodeGeneratorSchema),
-    makeActionTool('windpower_done', 'Validate the final configuration.', 'done', DoneSchema),
+    {
+        definition: {
+            type: 'function',
+            name: 'windpower_start',
+            description: 'Start a new windpower service window.',
+            parameters: zodToJsonSchema(DoneSchema),
+        },
+        handler: async () => sendAnswer({ action: 'start' }),
+    },
+    {
+        definition: {
+            type: 'function',
+            name: 'windpower_get',
+            description: 'Request multiple task reports at once and return the collected results.',
+            parameters: zodToJsonSchema(GetSchema),
+        },
+        handler: async (args) => {
+            const parsed = GetSchema.safeParse(cleanArgs(args));
+            if (!parsed.success) {
+                return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+            }
+
+            const queued = parsed.data.params.filter((param) => param !== 'documentation');
+            const directDocs = parsed.data.params.includes('documentation')
+                ? await sendAnswer({ action: 'get', param: 'documentation' })
+                : null;
+
+            await Promise.all(queued.map((param) => sendAnswer({ action: 'get', param })));
+
+            const collected: Record<string, unknown> = {};
+            while (Object.keys(collected).length < queued.length) {
+                const result = await sendAnswer({ action: 'getResult' });
+                const source = result['sourceFunction'];
+                if (typeof source === 'string' && queued.includes(source) && collected[source] === undefined) {
+                    collected[source] = result;
+                }
+            }
+
+            return JSON.stringify({
+                documentation: directDocs,
+                results: collected,
+            });
+        },
+    },
+    {
+        definition: {
+            type: 'function',
+            name: 'windpower_config',
+            description: 'Store a batch of config points; unlock codes are generated and flattened in code.',
+            parameters: zodToJsonSchema(ConfigSchema),
+        },
+        handler: async (args) => {
+            const parsed = ConfigSchema.safeParse(cleanArgs(args));
+            if (!parsed.success) {
+                return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+            }
+
+            const configs: Record<string, Record<string, unknown>> = {};
+            for (const item of parsed.data.configs) {
+                const unlockResponse = await sendAnswer({
+                    action: 'unlockCodeGenerator',
+                    startDate: item.startDate,
+                    startHour: item.startHour,
+                    windMs: item.windMs,
+                    pitchAngle: item.pitchAngle,
+                });
+                const unlockQueued = extractUnlockCode(unlockResponse) ? null : await waitForQueuedResult('unlockCodeGenerator');
+                const unlockCode = extractUnlockCode(unlockResponse) ?? extractUnlockCode(unlockQueued);
+
+                if (!unlockCode) {
+                    return 'Validation error: could not extract unlockCode';
+                }
+
+                const key = `${item.startDate} ${item.startHour}`;
+                configs[key] = {
+                    pitchAngle: item.pitchAngle,
+                    turbineMode: item.turbineMode,
+                    unlockCode,
+                };
+            }
+
+            return sendAnswer({ action: 'config', configs });
+        },
+    },
+    {
+        definition: {
+            type: 'function',
+            name: 'windpower_done',
+            description: 'Validate the final configuration.',
+            parameters: zodToJsonSchema(DoneSchema),
+        },
+        handler: async () => sendAnswer({ action: 'done' }),
+    },
     {
         definition: {
             type: 'function',
