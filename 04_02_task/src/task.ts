@@ -82,18 +82,6 @@ const extractUnlockCode = (value: unknown): string | null => {
     return null;
 };
 
-const waitForQueuedResult = async (expectedSourceFunction: string) => {
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-        const result = await sendAnswer({ action: 'getResult' });
-        if (result['sourceFunction'] === expectedSourceFunction) {
-            return result;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-
-    throw new Error(`Timed out waiting for ${expectedSourceFunction}`);
-};
-
 export const taskTools: Tool[] = [
     {
         definition: {
@@ -161,8 +149,7 @@ export const taskTools: Tool[] = [
                     windMs: item.windMs,
                     pitchAngle: item.pitchAngle,
                 });
-                const unlockQueued = extractUnlockCode(unlockResponse) ? null : await waitForQueuedResult('unlockCodeGenerator');
-                const unlockCode = extractUnlockCode(unlockResponse) ?? extractUnlockCode(unlockQueued);
+                const unlockCode = extractUnlockCode(unlockResponse);
 
                 if (!unlockCode) {
                     return 'Validation error: could not extract unlockCode';
