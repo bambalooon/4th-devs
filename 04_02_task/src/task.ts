@@ -36,12 +36,18 @@ const ConfigSchema = z.object({
     configs: z.array(ConfigInputSchema).min(1),
 }).strict();
 
+const TASK_STARTED_AT = Date.now();
+
+const elapsedSeconds = () => ((Date.now() - TASK_STARTED_AT) / 1000).toFixed(1);
+
+const logWithElapsed = (data: unknown) => console.log(`[+${elapsedSeconds()}s]`, data);
+
 const cleanArgs = (args: Record<string, unknown>) =>
     Object.fromEntries(Object.entries(args).filter(([, value]) => value != null));
 
 const isString = (value: unknown): value is string => typeof value === 'string';
 
-const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = data => console.log(data)) => {
+const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = logWithElapsed) => {
     const request = {
         apikey: AI_DEVS_API_KEY,
         task: 'windpower',
@@ -90,6 +96,9 @@ const parseResponse = (value: string): Record<string, unknown> => {
     }
 };
 
+const configSignature = (item: { [key: string]: unknown }) =>
+    [item.startDate, item.startHour, String(item.windMs), String(item.pitchAngle)].join('|');
+
 const waitForQueuedResult = async (expectedSourceFunction?: string) => {
     let delay = 10;
 
@@ -101,7 +110,7 @@ const waitForQueuedResult = async (expectedSourceFunction?: string) => {
             continue;
         }
 
-        console.log(result);
+        logWithElapsed(result);
         if (!expectedSourceFunction || result['sourceFunction'] === expectedSourceFunction) {
             return result;
         }
@@ -163,22 +172,45 @@ export const taskTools: Tool[] = [
         handler: async (args) => {
             const parsed = ConfigSchema.safeParse(cleanArgs(args));
             if (!parsed.success) {
-                return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+                const validationError = `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+                logWithElapsed(`windpower_config ${validationError}`);
+                return validationError;
+            }
+
+            const configItems = parsed.data.configs;
+            await Promise.all(configItems.map((item) => sendAnswer({
+                action: 'unlockCodeGenerator',
+                startDate: item.startDate,
+                startHour: item.startHour,
+                windMs: item.windMs,
+                pitchAngle: item.pitchAngle,
+            })));
+
+            const unlockCodeBySignature = new Map<string, string>();
+            while (unlockCodeBySignature.size < configItems.length) {
+                const unlockResponse = await waitForQueuedResult('unlockCodeGenerator');
+                const unlockCode = extractUnlockCode(unlockResponse);
+                const signedParams = unlockResponse['signedParams'];
+
+                if (!unlockCode || !signedParams || typeof signedParams !== 'object') {
+                    logWithElapsed(`windpower_config failed: could not extract unlockCode`);
+                    return 'Validation error: could not extract unlockCode';
+                }
+
+                const key = configSignature({
+                    startDate: String((signedParams as Record<string, unknown>).startDate ?? ''),
+                    startHour: String((signedParams as Record<string, unknown>).startHour ?? ''),
+                    windMs: (signedParams as Record<string, unknown>).windMs,
+                    pitchAngle: (signedParams as Record<string, unknown>).pitchAngle,
+                });
+                unlockCodeBySignature.set(key, unlockCode);
             }
 
             const configs: Record<string, Record<string, unknown>> = {};
-            for (const item of parsed.data.configs) {
-                await sendAnswer({
-                    action: 'unlockCodeGenerator',
-                    startDate: item.startDate,
-                    startHour: item.startHour,
-                    windMs: item.windMs,
-                    pitchAngle: item.pitchAngle,
-                });
-                const unlockResponse = await waitForQueuedResult('unlockCodeGenerator');
-                const unlockCode = extractUnlockCode(unlockResponse);
-
+            for (const item of configItems) {
+                const unlockCode = unlockCodeBySignature.get(configSignature(item));
                 if (!unlockCode) {
+                    logWithElapsed(`windpower_config failed could not extract unlockCode`);
                     return 'Validation error: could not extract unlockCode';
                 }
 
@@ -190,7 +222,9 @@ export const taskTools: Tool[] = [
                 };
             }
 
-            return sendAnswer({ action: 'config', configs });
+            const result = await sendAnswer({ action: 'config', configs });
+            logWithElapsed(`windpower_config finished`);
+            return result;
         },
     },
     {
