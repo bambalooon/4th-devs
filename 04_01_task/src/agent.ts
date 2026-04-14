@@ -146,6 +146,10 @@ export async function runAgent(
           tool_call_id: toolCall.id,
           content: result,
         })
+
+        // Log tool result for debugging
+        const resultPreview = result.length > 300 ? result.slice(0, 300) + '…' : result
+        console.log(`[${agentName}] ← ${resultPreview}`)
       }
     }
 
