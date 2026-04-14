@@ -96,8 +96,15 @@ const parseResponse = (value: string): Record<string, unknown> => {
     }
 };
 
+const normalizeSignedNumber = (value: unknown) => {
+    const numberValue = typeof value === 'string' ? Number(value) : value;
+    return typeof numberValue === 'number' && Number.isFinite(numberValue)
+        ? numberValue.toFixed(1)
+        : String(value);
+};
+
 const configSignature = (item: { [key: string]: unknown }) =>
-    [item.startDate, item.startHour, String(item.windMs), String(item.pitchAngle)].join('|');
+    [item.startDate, item.startHour, normalizeSignedNumber(item.windMs), normalizeSignedNumber(item.pitchAngle)].join('|');
 
 const waitForQueuedResult = async (expectedSourceFunction?: string) => {
     let delay = 10;
