@@ -90,6 +90,24 @@ const parseResponse = (value: string): Record<string, unknown> => {
     }
 };
 
+const waitForQueuedResult = async (expectedSourceFunction?: string) => {
+    let delay = 10;
+
+    while (true) {
+        const result = parseResponse(await sendAnswer({ action: 'getResult' }, () => {}));
+
+        if (result.code === 11 && result.message === 'No completed queued response is available yet.') {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+        }
+
+        console.log(result);
+        if (!expectedSourceFunction || result['sourceFunction'] === expectedSourceFunction) {
+            return result;
+        }
+    }
+};
+
 export const taskTools: Tool[] = [
     {
         definition: {
@@ -122,14 +140,7 @@ export const taskTools: Tool[] = [
 
             const collected: Record<string, unknown> = {};
             while (Object.keys(collected).length < queued.length) {
-                const result = parseResponse(await sendAnswer({ action: 'getResult' }, () => {}));
-
-                if (result.code === 11 && result.message === 'No completed queued response is available yet.') {
-                    await new Promise((resolve) => setTimeout(resolve, 10));
-                    continue;
-                }
-                console.log(result);
-
+                const result = await waitForQueuedResult();
                 const source = result['sourceFunction'];
                 if (typeof source === 'string' && queued.includes(source) && collected[source] === undefined) {
                     collected[source] = result;
@@ -157,13 +168,14 @@ export const taskTools: Tool[] = [
 
             const configs: Record<string, Record<string, unknown>> = {};
             for (const item of parsed.data.configs) {
-                const unlockResponse = await sendAnswer({
+                await sendAnswer({
                     action: 'unlockCodeGenerator',
                     startDate: item.startDate,
                     startHour: item.startHour,
                     windMs: item.windMs,
                     pitchAngle: item.pitchAngle,
                 });
+                const unlockResponse = await waitForQueuedResult('unlockCodeGenerator');
                 const unlockCode = extractUnlockCode(unlockResponse);
 
                 if (!unlockCode) {
