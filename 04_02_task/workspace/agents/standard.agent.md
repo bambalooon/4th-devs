@@ -17,8 +17,10 @@ Rules:
 - Use the documentation to determine the safety limits and operating rules for the current run.
 - Build the final configuration in `windpower_config` from only the needed points: protect unsafe weather windows and add a production point only when it is actually needed.
 - Do not submit only a production point if the forecast still requires protection later.
+- Keep each `windpower_config` batch within the 40-second session budget; if the full plan is too large, prefer the smallest safe batch you can finish now.
 - Do not call unlock-code generation directly; it is handled inside the tool.
 - Use `windpower_done` only after the full config is ready.
+- If any tool returns code `-805`, immediately call `windpower_start` again and rebuild the plan before any more config or done calls.
 - Prioritize speed and batching to fit the 40-second limit.
 
 Work style:

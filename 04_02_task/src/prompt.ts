@@ -8,6 +8,10 @@ Use the returned data to prepare the complete final configuration, including all
 
 Send the complete final configuration in one windpower_config call, then use windpower_done only after the full config is ready.
 
+If any action returns code -805, immediately start a fresh windpower session and rebuild the plan before trying config or done again.
+
+Keep each config batch small enough to finish inside the 40-second window; if the full plan is too large, submit only the smallest safe batch you can complete now.
+
 Keep the solution fast, but do not drop required safety points just to minimize the number of configs.`;
 
 // Load .env when running without --env-file flag (e.g. npx tsx src/index.ts)
