@@ -36,6 +36,14 @@ const ConfigSchema = z.object({
     configs: z.array(ConfigInputSchema).min(1),
 }).strict();
 
+const UnlockCodeResponseSchema = z.object({
+    code: z.number(),
+    message: z.string(),
+    sourceFunction: z.literal('unlockCodeGenerator'),
+    unlockCode: z.string(),
+    signedParams: z.record(z.unknown()),
+}).passthrough();
+
 const TASK_STARTED_AT = Date.now();
 
 const elapsedSeconds = () => ((Date.now() - TASK_STARTED_AT) / 1000).toFixed(1);
@@ -44,8 +52,6 @@ const logWithElapsed = (data: unknown) => console.log(`[+${elapsedSeconds()}s]`,
 
 const cleanArgs = (args: Record<string, unknown>) =>
     Object.fromEntries(Object.entries(args).filter(([, value]) => value != null));
-
-const isString = (value: unknown): value is string => typeof value === 'string';
 
 const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = logWithElapsed) => {
     const request = {
@@ -63,29 +69,6 @@ const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = logWithE
     const data = JSON.stringify(await response.json());
     loggerFunc(data);
     return data;
-};
-
-const extractUnlockCode = (value: unknown): string | null => {
-    if (isString(value)) {
-        return value.match(/[a-f0-9]{32}/i)?.[0] ?? null;
-    }
-
-    if (Array.isArray(value)) {
-        for (const item of value) {
-            const found = extractUnlockCode(item);
-            if (found) return found;
-        }
-        return null;
-    }
-
-    if (value && typeof value === 'object') {
-        for (const nested of Object.values(value as Record<string, unknown>)) {
-            const found = extractUnlockCode(nested);
-            if (found) return found;
-        }
-    }
-
-    return null;
 };
 
 const parseResponse = (value: string): Record<string, unknown> => {
@@ -111,6 +94,11 @@ const waitForQueuedResult = async (expectedSourceFunction?: string) => {
 
     while (true) {
         const result = parseResponse(await sendAnswer({ action: 'getResult' }, () => {}));
+
+        if (result.code === -805) {
+            logWithElapsed(result);
+            return result;
+        }
 
         if (result.code === 11 && result.message === 'No completed queued response is available yet.') {
             await new Promise((resolve) => setTimeout(resolve, delay));
@@ -152,11 +140,19 @@ export const taskTools: Tool[] = [
                 ? await sendAnswer({ action: 'get', param: 'documentation' })
                 : null;
 
+            const directDocsResponse = directDocs ? parseResponse(directDocs) : null;
+            if (directDocsResponse?.code === -805) {
+                return directDocs;
+            }
+
             await Promise.all(queued.map((param) => sendAnswer({ action: 'get', param })));
 
             const collected: Record<string, unknown> = {};
             while (Object.keys(collected).length < queued.length) {
                 const result = await waitForQueuedResult();
+                if (result.code === -805) {
+                    return JSON.stringify(result);
+                }
                 const source = result['sourceFunction'];
                 if (typeof source === 'string' && queued.includes(source) && collected[source] === undefined) {
                     collected[source] = result;
@@ -196,19 +192,23 @@ export const taskTools: Tool[] = [
             const unlockCodeBySignature = new Map<string, string>();
             while (unlockCodeBySignature.size < configItems.length) {
                 const unlockResponse = await waitForQueuedResult('unlockCodeGenerator');
-                const unlockCode = extractUnlockCode(unlockResponse);
-                const signedParams = unlockResponse['signedParams'];
+                if (unlockResponse.code === -805) {
+                    return JSON.stringify(unlockResponse);
+                }
 
-                if (!unlockCode || !signedParams || typeof signedParams !== 'object') {
+                const parsedUnlock = UnlockCodeResponseSchema.safeParse(unlockResponse);
+                if (!parsedUnlock.success) {
                     logWithElapsed(`windpower_config failed: could not extract unlockCode`);
                     return 'Validation error: could not extract unlockCode';
                 }
 
+                const { unlockCode, signedParams } = parsedUnlock.data;
+
                 const key = configSignature({
-                    startDate: String((signedParams as Record<string, unknown>).startDate ?? ''),
-                    startHour: String((signedParams as Record<string, unknown>).startHour ?? ''),
-                    windMs: (signedParams as Record<string, unknown>).windMs,
-                    pitchAngle: (signedParams as Record<string, unknown>).pitchAngle,
+                    startDate: String(signedParams.startDate ?? ''),
+                    startHour: String(signedParams.startHour ?? ''),
+                    windMs: signedParams.windMs,
+                    pitchAngle: signedParams.pitchAngle,
                 });
                 unlockCodeBySignature.set(key, unlockCode);
             }
