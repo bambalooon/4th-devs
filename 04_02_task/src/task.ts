@@ -53,7 +53,7 @@ const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = logWithE
         task: 'windpower',
         answer,
     };
-    loggerFunc(request);
+    loggerFunc(JSON.stringify(request));
     const response = await fetch('https://hub.ag3nts.org/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
