@@ -1,7 +1,7 @@
 ---
 name: standard
-model: openai/gpt-4o-mini
-max_turns: 8
+model: google/gemini-3-flash-preview
+max_turns: 20
 tools:
   - windpower_start
   - windpower_get
