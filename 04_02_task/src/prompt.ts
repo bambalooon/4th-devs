@@ -2,11 +2,13 @@ import { LangfuseClient } from "@langfuse/client";
 
 const USER_PROMPT = `Solve the windpower task.
 
-Start with windpower_start. Then request the needed reports with windpower_get in as few batch calls as possible. Treat returned reports as queued and unordered.
+Start with windpower_start. Then request the needed reports together with windpower_get.
 
-Use the data to prepare the smallest valid configuration set, send it with windpower_config, and finish with windpower_done only after the config is complete.
+Use the returned data to prepare the complete final configuration, including all required safety points and any needed production point.
 
-If rate-limited, use wait_for briefly and continue. Keep the solution fast and minimal to fit the 40-second limit.`;
+Send the complete final configuration in one windpower_config call, then use windpower_done only after the full config is ready.
+
+Keep the solution fast, but do not drop required safety points just to minimize the number of configs.`;
 
 // Load .env when running without --env-file flag (e.g. npx tsx src/index.ts)
 try { process.loadEnvFile(".env"); } catch { /* already loaded or file missing */ }
