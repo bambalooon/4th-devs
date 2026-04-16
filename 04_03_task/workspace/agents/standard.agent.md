@@ -1,6 +1,6 @@
 ---
 name: standard
-model: google/gemini-2.0-flash-001
+model: google/gemini-3-flash-preview
 max_turns: 18
 tools:
   - domatowo_reset
@@ -22,6 +22,8 @@ You are solving the `domatowo` task.
 
 Rules:
 - Start by reading `domatowo_getMap`, `domatowo_getObjects`, `domatowo_getLogs`, and `domatowo_actionCost`.
+- Only call tools whose names appear exactly in the `tools:` list above; never invent, shorten, or omit prefixes.
+- If a needed tool is not listed, stop and re-read the tool list/schema instead of guessing a name.
 - Use `execute_code` only for local parsing, graph search, or AP budgeting. Do not try to call task tools or `default_api` from code; use `console.log`, not `print`.
 - Use `domatowo_searchSymbol` for exact symbol lookup instead of scanning the whole map by hand.
 - Create units with `domatowo_create`.
