@@ -1,110 +1,130 @@
 ## Zadanie praktyczne
 
-Twoim zadaniem jest zaprogramowanie harmonogramu pracy turbiny wiatrowej w taki sposób, aby uzyskać moc niezbędną do uruchomienia elektrowni.
+Twoim zadaniem jest odnalezienie partyzanta ukrywającego się w ruinach Domatowa i przeprowadzenie sprawnej akcji ewakuacyjnej. Do dyspozycji masz transportery oraz żołnierzy zwiadowczych. Musisz tak rozegrać tę operację, aby odnaleźć człowieka, którego szukamy, nie wyczerpać punktów akcji i zdążyć wezwać helikopter zanim sytuacja wymknie się spod kontroli.
 
-Elektrownia nie może pracować przez cały czas, ponieważ jej bateria na to nie pozwoli. Musisz więc uruchomić jej system tylko wtedy, gdy naprawdę będzie wymagany. Jesteś w stanie znaleźć idealny czas poprzez analizę wyników prognozy pogody.
+Po mieście możesz poruszać się zarówno transporterami, jak i pieszo. Transportery potrafią jeździć tylko po ulicach. Zanim wyślesz kogokolwiek w teren, przeanalizuj bardzo dokładnie układ terenu. Gdy tylko któryś ze zwiadowców znajdzie człowieka, wezwij śmigłowiec ratunkowy tak szybko, jak to tylko możliwe.
 
-Dostarczone przez nas API dają Ci też informacje na temat stanu samej turbiny oraz na temat wymagań elektrowni. Przygotowanie raportu do każdej z funkcji wymaga czasu. Nie jesteśmy w stanie powiedzieć, ile konkretnie czasu zajmie wykonanie danej funkcji, ale wywołania te są kolejkowane. Później musisz tylko wywołać funkcję do pobierania wygenerowanych raportów.
+Nazwa zadania: **domatowo**
 
-Każdy wygenerowany raport da się pobrać tylko jednokrotnie. Jeśli uda Ci się wszystko skonfigurować w czasie **40 sekund**, to jesteśmy uratowani i możemy przejść do fazy produkcji prądu.
+Odpowiedź wysyłasz do `/verify`
 
-Nazwa zadania: **windpower**
+Przechwycony sygnał dźwiękowy:
 
-Odpowiedź wysyłasz do /verify
+> "Przeżyłem. Bomby zniszczyły miasto. Żołnierze tu byli, szukali surowców, zabrali ropę. Teraz jest pusto. Mam broń, jestem ranny. Ukryłem się w jednym z najwyższych bloków. Nie mam jedzenia. Pomocy."
 
-> **UWAGA**: to zadanie posiada limit czasu (40 sekund), w którym musisz się zmieścić. Liniowe wykonywanie wszystkich akcji nie umożliwi Ci ukończenia zadania.
+Podgląd mapy miasta: https://hub.ag3nts.org/domatowo\_preview
 
-Z API porozumiewasz się w ten sposób:
+Z API komunikujesz się zawsze przez `https://hub.ag3nts.org/verify` i wysyłasz JSON z polami `apikey`, `task` oraz `answer`.
+
+Podstawowy format komunikacji wygląda tak:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "windpower",
+  "task": "domatowo",
   "answer": {
     "action": "..."
   }
 }
 ```
 
-Sugerujemy od rozpoczęcia:
+Na początek warto pobrać opis dostępnych akcji:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "windpower",
+  "task": "domatowo",
   "answer": {
     "action": "help"
   }
 }
 ```
 
-Zanim przystąpisz do konfiguracji turbiny wiatrowej, musisz uruchomić okno serwisowe poprzez wydanie polecenia:
+### Co masz do dyspozycji
+
+- maksymalnie 4 transportery
+- maksymalnie 8 zwiadowców
+- 300 punktów akcji na całą operację
+- mapę 11x11 pól z oznaczeniami terenu
+
+Najważniejsze typy akcji mają swoją cenę:
+
+- utworzenie zwiadowcy: 5 punktów
+- utworzenie transportera: 5 punktów opłaty bazowej oraz dodatkowo 5 punktów za każdego przewożonego zwiadowcę
+- ruch zwiadowcy: 7 punktów za każde pole
+- ruch transportera: 1 punkt za każde pole
+- inspekcja pola: 1 punkt
+- wysadzenie zwiadowców z transportera: 0 punktów
+
+### Rozpoznanie terenu
+
+Najpierw zapoznaj się z układem miasta. Możesz pobrać całą mapę:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "windpower",
+  "task": "domatowo",
   "answer": {
-    "action": "start"
+    "action": "getMap"
   }
 }
 ```
 
-Przykładowe wysłanie konfiguracji może wyglądać tak - **w godzinie zawsze ustawiaj minuty i sekundy na zera**.
+Możesz także wyświetlić podgląd mapy uwzględniający tylko konkretne jej elementy, podając je w opcjonalnej tablicy `symbols`.
+
+### Tworzenie jednostek
+
+Możesz utworzyć transporter z załogą zwiadowców - tutaj przykład 2-osobowej załogi:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "windpower",
+  "task": "domatowo",
   "answer": {
-    "action": "config",
-    "startDate": "2238-12-31",
-    "startHour": "12:00:00",
-    "pitchAngle": 0,
-    "turbineMode": "idle",
-    "unlockCode": "tutaj-podpis-md5-z-unlockCodeGenerator"
+    "action": "create",
+    "type": "transporter",
+    "passengers": 2
   }
 }
 ```
 
-Możesz także wysłać wiele konfiguracji za jednym razem - inny format danych.
+Możesz też wysłać do miasta pojedynczego zwiadowcę:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "windpower",
+  "task": "domatowo",
   "answer": {
-    "action": "config",
-    "configs": {
-      "2026-03-24 20:00:00": {
-        "pitchAngle": 45,
-        "turbineMode": "production",
-        "unlockCode": "tutaj-podpis-1"
-      },
-      "2026-03-24 18:00:00": {
-        "pitchAngle": 90,
-        "turbineMode": "idle",
-        "unlockCode": "tutaj-podpis-2"
-      }
-    }
+    "action": "create",
+    "type": "scout"
   }
 }
 ```
+
+### Ewakuacja
+
+Helikopter można wezwać dopiero wtedy, gdy któryś zwiadowca odnajdzie człowieka. Finalne zgłoszenie wygląda tak:
+
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "domatowo",
+  "answer": {
+    "action": "callHelicopter",
+    "destination": "F6"
+  }
+}
+```
+
+W polu `destination` podajesz współrzędne miejsca, do którego ma przylecieć śmigłowiec. Musisz tam wskazać pole, na którym zwiadowca potwierdził obecność człowieka.
 
 ### Co musisz zrobić
 
-- Odczytaj z prognozy pogody wszystkie momenty, w których wiatr jest bardzo silny i może zniszczyć łopaty wiatraka. Zabezpiecz wtedy turbinę (odpowiednie nachylenie łopat i odpowiedni tryb pracy).
-- Wyznacz punkt, w którym możliwe jest wygenerowanie brakującej energii i ustaw tam optymalne nachylenie łopat wirnika i poprawny tryb pracy umożliwiający produkcję prądu.
-- Każda przesłana do API konfiguracja musi być cyfrowo podpisana. Mamy jednak generator kodów, który takie kody dla Ciebie wygeneruje - unlockCodeGenerator, a wygenerowane kody wyślij razem z konfiguracją.
-- Zapisz konfigurację przez "config".
-- Na końcu wyślij akcję o nazwie "done", która sprawdzi, czy Twoja konfiguracja jest poprawna.
+- rozpoznaj mapę miasta i zaplanuj trasę tak, by nie przepalić punktów akcji
+- utwórz odpowiednie jednostki i rozlokuj je na planszy
+- wykorzystaj transportery do szybkiego dotarcia w kluczowe miejsca
+- wysadzaj zwiadowców tam, gdzie dalsze sprawdzanie terenu wymaga działania pieszo
+- przeszukuj kolejne pola akcją `inspect` i analizuj wyniki przez `getLogs`
+- gdy odnajdziesz partyzanta, wezwij helikopter akcją `callHelicopter`
 
-### Dodatkowe uwagi
-
-- Większość funkcji działa asynchronicznie. Najpierw dodajesz zadanie do kolejki, potem odbierasz wynik przez action "getResult". Odpowiedzi przychodzą w losowej kolejności.
-- Za wichurę uznajesz wiatr powyżej wytrzymałości wiatraka.
-- Przy wichurze turbina nie powinna stawiać oporu i nie może produkować prądu.
-- Przed finalnym "done" musisz wykonać test turbiny przez "turbinecheck".
-- Każdy punkt konfiguracji musi mieć poprawny unlockCode z funkcji "unlockCodeGenerator".
-
-Jeśli konfiguracja będzie poprawna i zmieścisz się w czasie, Centrala odeśle flagę.
+Jeśli poprawnie odnajdziesz ukrywającego się człowieka i zakończysz ewakuację, Centrala odeśle flagę.

@@ -2,7 +2,7 @@ import {AI_DEVS_API_KEY} from "../config.js";
 
 const answer = {
     apikey: AI_DEVS_API_KEY,
-    task: "windpower",
+    task: "domatowo",
     answer: {
         action: "help"
     }
