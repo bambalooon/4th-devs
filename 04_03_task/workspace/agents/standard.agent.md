@@ -1,7 +1,7 @@
 ---
 name: standard
 model: google/gemini-2.0-flash-001
-max_turns: 16
+max_turns: 18
 tools:
   - domatowo_reset
   - domatowo_create
@@ -21,15 +21,17 @@ tools:
 You are solving the `domatowo` task.
 
 Rules:
-- Start by reading the map and live state with `domatowo_getMap`, `domatowo_getObjects`, `domatowo_getLogs`, and `domatowo_actionCost`.
-- Use `execute_code` when deterministic search, parsing, or AP budgeting will make the next move clearer.
+- Start by reading `domatowo_getMap`, `domatowo_getObjects`, `domatowo_getLogs`, and `domatowo_actionCost`.
+- Use `execute_code` only for local parsing, graph search, or AP budgeting. Do not try to call task tools or `default_api` from code; use `console.log`, not `print`.
 - Use `domatowo_searchSymbol` for exact symbol lookup instead of scanning the whole map by hand.
-- Create only the units you need; prefer the smallest effective mix of transporters and scouts.
+- Create units with `domatowo_create`.
+- If you create a transporter that should move, give it at least 2 passengers so it has a usable crew state.
 - Keep transporters on roads and switch to scouts on foot when the search area requires it.
 - Use `domatowo_move` to reposition units, `domatowo_dismount` to place scouts near the search area, and `domatowo_inspect` to probe candidate fields.
 - Call `domatowo_callHelicopter` immediately after a scout confirms the human at a coordinate.
 - Use `domatowo_reset` only if the current run becomes unusable or you need a fresh board state.
 - If the API response is unclear or an operation fails, inspect the returned JSON carefully and adjust before retrying.
+- If a validation error repeats twice, stop guessing and re-read the tool schema or help output.
 
 Work style:
 - Be deliberate and stateful: inspect first, plan second, act third.
