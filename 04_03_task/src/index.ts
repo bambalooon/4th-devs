@@ -3,9 +3,9 @@ import {runAgent} from './agent.js'
 import {langfuse, shutdownTracing} from "./instrumentation.js";
 
 async function main() {
-  console.log("Starting windpower agent...");
+  console.log("Starting domatowo agent...");
 
-  const prompt = await langfuse.prompt.get("windpower");
+  const prompt = await langfuse.prompt.get("domatowo");
   const userPrompt = prompt.compile();
 
   const result = await runAgent('standard', userPrompt);

@@ -1,48 +1,53 @@
-import {z} from 'zod';
-import {zodToJsonSchema} from 'zod-to-json-schema';
-import type {Tool} from "./tools.js";
-import {AI_DEVS_API_KEY} from "../../config.js";
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+import type { Tool } from './tools.js';
+import { AI_DEVS_API_KEY } from '../../config.js';
 
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'startDate must use YYYY-MM-DD');
-const hourSchema = z.string().regex(/^(?:[01]\d|2[0-3]):00:00$/, 'startHour must use HH:00:00');
-const pitchAngleSchema = z.number().finite();
-const windMsSchema = z.number().finite();
-const turbineModeSchema = z.enum(['production', 'idle']);
+const TASK_NAME = 'domatowo';
+const API_URL = 'https://hub.ag3nts.org/verify';
 
-const ConfigInputSchema = z.object({
-    startDate: dateSchema,
-    startHour: hourSchema,
-    windMs: windMsSchema,
-    pitchAngle: pitchAngleSchema,
-    turbineMode: turbineModeSchema,
+const coordinateSchema = z.string().regex(/^[A-K](?:[1-9]|10|11)$/, 'Coordinate must be A1..K11');
+const objectIdSchema = z.string().min(1, 'object must be a non-empty string');
+const symbolSchema = z.string().regex(/^[A-Za-z0-9]{2}$/, 'symbol must be exactly 2 alphanumeric characters');
+const mapTokenSchema = z.string().regex(/^[A-Za-z0-9]{2,3}$/, 'symbols must be 2- or 3-character alphanumeric tokens');
+
+const EmptySchema = z.object({}).strict();
+
+const CreateSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('scout'),
+  }).strict(),
+  z.object({
+    type: z.literal('transporter'),
+    passengers: z.number().int().min(1).max(4),
+  }).strict(),
+]);
+
+const MoveSchema = z.object({
+  object: objectIdSchema,
+  where: coordinateSchema,
 }).strict();
 
-const GetSchema = z.object({
-    params: z.array(z.enum(['weather', 'turbinecheck', 'powerplantcheck', 'documentation'])).min(1),
-}).strict().superRefine((data, ctx) => {
-    const seen = new Set<string>();
-    for (const param of data.params) {
-        if (seen.has(param)) {
-            ctx.addIssue({ code: 'custom', message: `Duplicate param: ${param}` });
-            return;
-        }
-        seen.add(param);
-    }
-});
-
-const DoneSchema = z.object({}).strict();
-
-const ConfigSchema = z.object({
-    configs: z.array(ConfigInputSchema).min(1),
+const InspectSchema = z.object({
+  object: objectIdSchema,
 }).strict();
 
-const UnlockCodeResponseSchema = z.object({
-    code: z.number(),
-    message: z.string(),
-    sourceFunction: z.literal('unlockCodeGenerator'),
-    unlockCode: z.string(),
-    signedParams: z.record(z.unknown()),
-}).passthrough();
+const DismountSchema = z.object({
+  object: objectIdSchema,
+  passengers: z.number().int().min(1).max(4),
+}).strict();
+
+const GetMapSchema = z.object({
+  symbols: z.array(mapTokenSchema).min(1).optional(),
+}).strict();
+
+const SearchSymbolSchema = z.object({
+  symbol: symbolSchema,
+}).strict();
+
+const CallHelicopterSchema = z.object({
+  destination: coordinateSchema,
+}).strict();
 
 const TASK_STARTED_AT = Date.now();
 
@@ -51,215 +56,190 @@ const elapsedSeconds = () => ((Date.now() - TASK_STARTED_AT) / 1000).toFixed(1);
 const logWithElapsed = (data: unknown) => console.log(`[+${elapsedSeconds()}s]`, data);
 
 const cleanArgs = (args: Record<string, unknown>) =>
-    Object.fromEntries(Object.entries(args).filter(([, value]) => value != null));
+  Object.fromEntries(Object.entries(args).filter(([, value]) => value != null));
 
 const sendAnswer = async (answer: Record<string, unknown>, loggerFunc = logWithElapsed) => {
-    const request = {
-        apikey: AI_DEVS_API_KEY,
-        task: 'windpower',
-        answer,
-    };
-    loggerFunc(JSON.stringify(request));
-    const response = await fetch('https://hub.ag3nts.org/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
-    });
+  const request = {
+    apikey: AI_DEVS_API_KEY,
+    task: TASK_NAME,
+    answer,
+  };
 
-    const data = JSON.stringify(await response.json());
-    loggerFunc(data);
-    return data;
+  loggerFunc(JSON.stringify(request));
+
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const text = await response.text();
+  loggerFunc(text);
+
+  try {
+    return JSON.stringify(JSON.parse(text));
+  } catch {
+    return text;
+  }
 };
 
-const parseResponse = (value: string): Record<string, unknown> => {
-    try {
-        return JSON.parse(value) as Record<string, unknown>;
-    } catch {
-        return {};
-    }
-};
-
-const normalizeSignedNumber = (value: unknown) => {
-    const numberValue = typeof value === 'string' ? Number(value) : value;
-    return typeof numberValue === 'number' && Number.isFinite(numberValue)
-        ? numberValue.toFixed(1)
-        : String(value);
-};
-
-const configSignature = (item: { [key: string]: unknown }) =>
-    [item.startDate, item.startHour, normalizeSignedNumber(item.windMs), normalizeSignedNumber(item.pitchAngle)].join('|');
-
-const waitForQueuedResult = async (expectedSourceFunction?: string) => {
-    let delay = 10;
-
-    while (true) {
-        const result = parseResponse(await sendAnswer({ action: 'getResult' }, () => {}));
-
-        if (result.code === -805) {
-            logWithElapsed(result);
-            return result;
-        }
-
-        if (result.code === 11 && result.message === 'No completed queued response is available yet.') {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            continue;
-        }
-
-        logWithElapsed(result);
-        if (!expectedSourceFunction || result['sourceFunction'] === expectedSourceFunction) {
-            return result;
-        }
-    }
-};
+const makeTool = (
+  name: string,
+  description: string,
+  answer: Record<string, unknown> | ((args: Record<string, unknown>) => Record<string, unknown>),
+  parameters = zodToJsonSchema(EmptySchema),
+): Tool => ({
+  definition: {
+    type: 'function',
+    name,
+    description,
+    parameters,
+  },
+  handler: async (args) => {
+    const payload = typeof answer === 'function' ? answer(args) : answer;
+    return sendAnswer(payload);
+  },
+});
 
 export const taskTools: Tool[] = [
-    {
-        definition: {
-            type: 'function',
-            name: 'windpower_start',
-            description: 'Start a new windpower service window.',
-            parameters: zodToJsonSchema(DoneSchema),
-        },
-        handler: async () => sendAnswer({ action: 'start' }),
+  makeTool('domatowo_reset', 'Reset the Domatowo board state, queue, and action points.', { action: 'reset' }),
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_create',
+      description: 'Create a scout or transporter unit.',
+      parameters: zodToJsonSchema(CreateSchema),
     },
-    {
-        definition: {
-            type: 'function',
-            name: 'windpower_get',
-            description: 'Request multiple task reports at once and return the collected results.',
-            parameters: zodToJsonSchema(GetSchema),
-        },
-        handler: async (args) => {
-            const parsed = GetSchema.safeParse(cleanArgs(args));
-            if (!parsed.success) {
-                return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
-            }
+    handler: async (args) => {
+      const parsed = CreateSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
 
-            const queued = parsed.data.params.filter((param) => param !== 'documentation');
-            const directDocs = parsed.data.params.includes('documentation')
-                ? await sendAnswer({ action: 'get', param: 'documentation' })
-                : null;
+      const payload =
+        parsed.data.type === 'transporter'
+          ? { action: 'create', type: parsed.data.type, passengers: parsed.data.passengers }
+          : { action: 'create', type: parsed.data.type };
 
-            const directDocsResponse = directDocs ? parseResponse(directDocs) : null;
-            if (directDocsResponse?.code === -805) {
-                return directDocs;
-            }
-
-            await Promise.all(queued.map((param) => sendAnswer({ action: 'get', param })));
-
-            const collected: Record<string, unknown> = {};
-            while (Object.keys(collected).length < queued.length) {
-                const result = await waitForQueuedResult();
-                if (result.code === -805) {
-                    return JSON.stringify(result);
-                }
-                const source = result['sourceFunction'];
-                if (typeof source === 'string' && queued.includes(source) && collected[source] === undefined) {
-                    collected[source] = result;
-                }
-            }
-
-            return JSON.stringify({
-                documentation: directDocs,
-                results: collected,
-            });
-        },
+      return sendAnswer(payload);
     },
-    {
-        definition: {
-            type: 'function',
-            name: 'windpower_config',
-            description: 'Store a batch of config points; unlock codes are generated and flattened in code.',
-            parameters: zodToJsonSchema(ConfigSchema),
-        },
-        handler: async (args) => {
-            const parsed = ConfigSchema.safeParse(cleanArgs(args));
-            if (!parsed.success) {
-                const validationError = `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
-                logWithElapsed(`windpower_config ${validationError}`);
-                return validationError;
-            }
-
-            const configItems = parsed.data.configs;
-            await Promise.all(configItems.map((item) => sendAnswer({
-                action: 'unlockCodeGenerator',
-                startDate: item.startDate,
-                startHour: item.startHour,
-                windMs: item.windMs,
-                pitchAngle: item.pitchAngle,
-            })));
-
-            const unlockCodeBySignature = new Map<string, string>();
-            while (unlockCodeBySignature.size < configItems.length) {
-                const unlockResponse = await waitForQueuedResult('unlockCodeGenerator');
-                if (unlockResponse.code === -805) {
-                    return JSON.stringify(unlockResponse);
-                }
-
-                const parsedUnlock = UnlockCodeResponseSchema.safeParse(unlockResponse);
-                if (!parsedUnlock.success) {
-                    logWithElapsed(`windpower_config failed: could not extract unlockCode`);
-                    return 'Validation error: could not extract unlockCode';
-                }
-
-                const { unlockCode, signedParams } = parsedUnlock.data;
-
-                const key = configSignature({
-                    startDate: String(signedParams.startDate ?? ''),
-                    startHour: String(signedParams.startHour ?? ''),
-                    windMs: signedParams.windMs,
-                    pitchAngle: signedParams.pitchAngle,
-                });
-                unlockCodeBySignature.set(key, unlockCode);
-            }
-
-            const configs: Record<string, Record<string, unknown>> = {};
-            for (const item of configItems) {
-                const unlockCode = unlockCodeBySignature.get(configSignature(item));
-                if (!unlockCode) {
-                    logWithElapsed(`windpower_config failed could not extract unlockCode`);
-                    return 'Validation error: could not extract unlockCode';
-                }
-
-                const key = `${item.startDate} ${item.startHour}`;
-                configs[key] = {
-                    pitchAngle: item.pitchAngle,
-                    turbineMode: item.turbineMode,
-                    unlockCode,
-                };
-            }
-
-            const result = await sendAnswer({ action: 'config', configs });
-            logWithElapsed(`windpower_config finished`);
-            return result;
-        },
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_move',
+      description: 'Queue movement of a unit to a target field.',
+      parameters: zodToJsonSchema(MoveSchema),
     },
-    {
-        definition: {
-            type: 'function',
-            name: 'windpower_done',
-            description: 'Validate the final configuration.',
-            parameters: zodToJsonSchema(DoneSchema),
-        },
-        handler: async () => sendAnswer({ action: 'done' }),
+    handler: async (args) => {
+      const parsed = MoveSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
+
+      return sendAnswer({
+        action: 'move',
+        object: parsed.data.object,
+        where: parsed.data.where,
+      });
     },
-    {
-        definition: {
-            type: 'function',
-            name: 'wait_for',
-            description: 'Wait for a given number of seconds before continuing. Use when you get rate-limited.',
-            parameters: {
-                type: 'object',
-                properties: {
-                    seconds: { type: 'number', description: 'Number of seconds to wait. Recommended: 1–3 on first retry, double on each subsequent retry.' },
-                },
-                required: ['seconds'],
-            },
-        },
-        handler: async (args) => {
-            const seconds = typeof args.seconds === 'number' ? args.seconds : 5;
-            await new Promise(resolve => setTimeout(resolve, seconds * 1000));
-            return `Waited ${seconds} second(s).`;
-        },
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_inspect',
+      description: 'Inspect the current field of a scout unit.',
+      parameters: zodToJsonSchema(InspectSchema),
     },
+    handler: async (args) => {
+      const parsed = InspectSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
+
+      return sendAnswer({ action: 'inspect', object: parsed.data.object });
+    },
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_dismount',
+      description: 'Remove scouts from a transporter and spawn them around the vehicle.',
+      parameters: zodToJsonSchema(DismountSchema),
+    },
+    handler: async (args) => {
+      const parsed = DismountSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
+
+      return sendAnswer({
+        action: 'dismount',
+        object: parsed.data.object,
+        passengers: parsed.data.passengers,
+      });
+    },
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_getObjects',
+      description: 'Return all currently known units with type, position, and identifier.',
+      parameters: zodToJsonSchema(EmptySchema),
+    },
+    handler: async () => sendAnswer({ action: 'getObjects' }),
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_getMap',
+      description: 'Return the clean map layout; optionally filter by selected symbols or coordinates.',
+      parameters: zodToJsonSchema(GetMapSchema),
+    },
+    handler: async (args) => {
+      const parsed = GetMapSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
+
+      return sendAnswer(
+        parsed.data.symbols ? { action: 'getMap', symbols: parsed.data.symbols } : { action: 'getMap' },
+      );
+    },
+  },
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_searchSymbol',
+      description: 'Search the clean map for all fields matching the provided symbol.',
+      parameters: zodToJsonSchema(SearchSymbolSchema),
+    },
+    handler: async (args) => {
+      const parsed = SearchSymbolSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
+
+      return sendAnswer({ action: 'searchSymbol', symbol: parsed.data.symbol });
+    },
+  },
+  makeTool('domatowo_getLogs', 'Return collected inspect log entries.', { action: 'getLogs' }),
+  makeTool('domatowo_expenses', 'Return the action points spending history.', { action: 'expenses' }),
+  makeTool('domatowo_actionCost', 'Return action point cost rules for all operations.', { action: 'actionCost' }),
+  {
+    definition: {
+      type: 'function',
+      name: 'domatowo_callHelicopter',
+      description: 'Call the evacuation helicopter to the selected destination after a scout confirms a human.',
+      parameters: zodToJsonSchema(CallHelicopterSchema),
+    },
+    handler: async (args) => {
+      const parsed = CallHelicopterSchema.safeParse(cleanArgs(args));
+      if (!parsed.success) {
+        return `Validation error: ${parsed.error.issues.map((i) => i.message).join('; ')}`;
+      }
+
+      return sendAnswer({ action: 'callHelicopter', destination: parsed.data.destination });
+    },
+  },
 ];
