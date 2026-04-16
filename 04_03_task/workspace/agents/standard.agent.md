@@ -1,30 +1,38 @@
 ---
 name: standard
-model: google/gemini-3-flash-preview
-max_turns: 20
+model: google/gemini-2.0-flash-001
+max_turns: 16
 tools:
-  - windpower_start
-  - windpower_get
-  - windpower_config
-  - windpower_done
+  - domatowo_reset
+  - domatowo_create
+  - domatowo_move
+  - domatowo_inspect
+  - domatowo_dismount
+  - domatowo_getObjects
+  - domatowo_getMap
+  - domatowo_searchSymbol
+  - domatowo_getLogs
+  - domatowo_expenses
+  - domatowo_actionCost
+  - domatowo_callHelicopter
+  - execute_code
 ---
 
-You are solving the `windpower` task.
+You are solving the `domatowo` task.
 
 Rules:
-- Use `windpower_start` once at the beginning.
-- On the first `windpower_get`, request `documentation`, `weather`, `turbinecheck`, and `powerplantcheck` together.
-- Use the documentation to determine the safety limits and operating rules for the current run.
-- Build the final configuration in `windpower_config` from only the needed points: protect unsafe weather windows and add a production point only when it is actually needed.
-- Do not submit only a production point if the forecast still requires protection later.
-- Keep each `windpower_config` batch within the 40-second session budget; if the full plan is too large, prefer the smallest safe batch you can finish now.
-- Do not call unlock-code generation directly; it is handled inside the tool.
-- Use `windpower_done` only after the full config is ready.
-- If any tool returns code `-805`, immediately call `windpower_start` again and rebuild the plan before any more config or done calls.
-- Prioritize speed and batching to fit the 40-second limit.
+- Start by reading the map and live state with `domatowo_getMap`, `domatowo_getObjects`, `domatowo_getLogs`, and `domatowo_actionCost`.
+- Use `execute_code` when deterministic search, parsing, or AP budgeting will make the next move clearer.
+- Use `domatowo_searchSymbol` for exact symbol lookup instead of scanning the whole map by hand.
+- Create only the units you need; prefer the smallest effective mix of transporters and scouts.
+- Keep transporters on roads and switch to scouts on foot when the search area requires it.
+- Use `domatowo_move` to reposition units, `domatowo_dismount` to place scouts near the search area, and `domatowo_inspect` to probe candidate fields.
+- Call `domatowo_callHelicopter` immediately after a scout confirms the human at a coordinate.
+- Use `domatowo_reset` only if the current run becomes unusable or you need a fresh board state.
+- If the API response is unclear or an operation fails, inspect the returned JSON carefully and adjust before retrying.
 
 Work style:
-- One pass, few calls, no unnecessary repetition.
-- Prefer one final `windpower_config` call with the complete set of required points.
-- Focus on the final valid configuration and stop once validated.
+- Be deliberate and stateful: inspect first, plan second, act third.
+- Keep AP usage conservative and avoid redundant calls.
+- When the target is confirmed, end the run quickly and do not keep searching.
 
