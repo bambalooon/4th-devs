@@ -1,0 +1,977 @@
+Starting windpower agent...
+[standard] Starting (depth: 0)
+[standard] Tool: windpower_start({})
+[+1.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"start"}}
+[+2.0s] {"code":60,"message":"Windpower session started.","sessionStart":"2026-04-15 10:54:51","sessionTimeout":40}
+[standard] ← {"code":60,"message":"Windpower session started.","sessionStart":"2026-04-15 10:54:51","sessionTimeout":40}
+[standard] Tool: windpower_get({"params":["documentation","weather","turbinecheck","powerplantcheck"]})
+[+2.9s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"get","param":"documentation"}}
+[+3.0s] {"code":50,"message":"Wind turbine documentation returned.","language":"en","ratedPowerKw":14,"windPowerYieldPercent":[{"windMs":4,"yieldPercent":"10-15"},{"windMs":6,"yieldPercent":"30-40"},{"windMs":8,"yieldPercent":"60-70"},{"windMs":10,"yieldPercent":"90-100"},{"windMsRange":"12-14","yieldPercent":"100"},{"windMsRange":"14+","yieldPercent":"damage"}],"pitchAngleYieldPercent":[{"pitchAngleDeg":0,"yieldPercent":"100"},{"pitchAngleDeg":45,"yieldPercent":"65"},{"pitchAngleDeg":90,"yieldPercent":"0"}],"operationalNote":"Generated power in this model depends on wind speed (m/s) and blade pitch angle. Allowed pitch settings are 0, 45, and 90 degrees. At 90 degrees, electricity generation is disabled and this mode should be used during severe storms. At low wind speeds, set pitch to 0 degrees to maximize energy capture.","safety":{"cutoffWindMs":14,"shutdownRule":"Shut down the turbine above 14 m/s to prevent blade damage or blade breakage.","minOperationalWindMs":4,"lowWindRule":"Below 4 m/s the turbine cannot generate electricity."}}
+[+3.0s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"get","param":"weather"}}
+[+3.0s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"get","param":"turbinecheck"}}
+[+3.0s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"get","param":"powerplantcheck"}}
+[+3.1s] {"code":21,"message":"Task has been queued. Use getResult to retrieve the response."}
+[+3.2s] {"code":31,"message":"Task has been queued. Use getResult to retrieve the response."}
+[+3.3s] {"code":41,"message":"Task has been queued. Use getResult to retrieve the response."}
+[+12.7s] {
+  code: 12,
+  message: 'insufficient energy to start management systems',
+  sourceFunction: 'powerplantcheck',
+  mode: 'StandBy',
+  cooling: 'within norm',
+  firmware: 'operational',
+  powerDeficitKw: '2-3',
+  producedPowerKw: 0
+}
+[+14.7s] {
+  code: 12,
+  message: 'Low battery level detected in turbine backup power system.',
+  sourceFunction: 'turbinecheck',
+  status: 'Turbine is operating correctly.',
+  bladePitchAngleDeg: 0,
+  battery: 'low'
+}
+[+26.7s] {
+  code: 12,
+  message: 'Queued response retrieved.',
+  sourceFunction: 'weather',
+  intervalHours: 2,
+  forecastDays: 7,
+  unit: { windMs: 'm/s', precipitationMm: 'mm', temperatureC: 'C' },
+  forecast: [
+    {
+      timestamp: '2026-04-15 00:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 29.4
+    },
+    {
+      timestamp: '2026-04-15 02:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 29.4
+    },
+    {
+      timestamp: '2026-04-15 04:00:00',
+      windMs: 3.3,
+      precipitationMm: 0,
+      temperatureC: 27.9
+    },
+    {
+      timestamp: '2026-04-15 06:00:00',
+      windMs: 3.4,
+      precipitationMm: 0,
+      temperatureC: 28.7
+    },
+    {
+      timestamp: '2026-04-15 08:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 28.7
+    },
+    {
+      timestamp: '2026-04-15 10:00:00',
+      windMs: 2.7,
+      precipitationMm: 0,
+      temperatureC: 30
+    },
+    {
+      timestamp: '2026-04-15 12:00:00',
+      windMs: 3.2,
+      precipitationMm: 0,
+      temperatureC: 29.7
+    },
+    {
+      timestamp: '2026-04-15 14:00:00',
+      windMs: 3.5,
+      precipitationMm: 0,
+      temperatureC: 31.2
+    },
+    {
+      timestamp: '2026-04-15 16:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 30.1
+    },
+    {
+      timestamp: '2026-04-15 18:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 30.1
+    },
+    {
+      timestamp: '2026-04-15 20:00:00',
+      windMs: 3.8,
+      precipitationMm: 0,
+      temperatureC: 29.1
+    },
+    {
+      timestamp: '2026-04-15 22:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 28.5
+    },
+    {
+      timestamp: '2026-04-16 00:00:00',
+      windMs: 3.7,
+      precipitationMm: 0,
+      temperatureC: 28.9
+    },
+    {
+      timestamp: '2026-04-16 02:00:00',
+      windMs: 3.5,
+      precipitationMm: 0,
+      temperatureC: 28.6
+    },
+    {
+      timestamp: '2026-04-16 04:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 27.6
+    },
+    {
+      timestamp: '2026-04-16 06:00:00',
+      windMs: 2,
+      precipitationMm: 0,
+      temperatureC: 28.1
+    },
+    {
+      timestamp: '2026-04-16 08:00:00',
+      windMs: 2.5,
+      precipitationMm: 0,
+      temperatureC: 28.7
+    },
+    {
+      timestamp: '2026-04-16 10:00:00',
+      windMs: 3.5,
+      precipitationMm: 0,
+      temperatureC: 29.4
+    },
+    {
+      timestamp: '2026-04-16 12:00:00',
+      windMs: 3.6,
+      precipitationMm: 0,
+      temperatureC: 30
+    },
+    {
+      timestamp: '2026-04-16 14:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 31.3
+    },
+    {
+      timestamp: '2026-04-16 16:00:00',
+      windMs: 2.9,
+      precipitationMm: 0,
+      temperatureC: 31.9
+    },
+    {
+      timestamp: '2026-04-16 18:00:00',
+      windMs: 25,
+      precipitationMm: 0,
+      temperatureC: 31.4
+    },
+    {
+      timestamp: '2026-04-16 20:00:00',
+      windMs: 4.9,
+      precipitationMm: 0,
+      temperatureC: 30.8
+    },
+    {
+      timestamp: '2026-04-16 22:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 30
+    },
+    {
+      timestamp: '2026-04-17 00:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 27.8
+    },
+    {
+      timestamp: '2026-04-17 02:00:00',
+      windMs: 2.6,
+      precipitationMm: 0,
+      temperatureC: 27.5
+    },
+    {
+      timestamp: '2026-04-17 04:00:00',
+      windMs: 2.2,
+      precipitationMm: 0.2,
+      temperatureC: 28.4
+    },
+    {
+      timestamp: '2026-04-17 06:00:00',
+      windMs: 2.7,
+      precipitationMm: 0.2,
+      temperatureC: 29
+    },
+    {
+      timestamp: '2026-04-17 08:00:00',
+      windMs: 3.3,
+      precipitationMm: 0,
+      temperatureC: 29
+    },
+    {
+      timestamp: '2026-04-17 10:00:00',
+      windMs: 3.3,
+      precipitationMm: 0,
+      temperatureC: 29.2
+    },
+    {
+      timestamp: '2026-04-17 12:00:00',
+      windMs: 3.4,
+      precipitationMm: 0,
+      temperatureC: 29.1
+    },
+    {
+      timestamp: '2026-04-17 14:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 28.6
+    },
+    {
+      timestamp: '2026-04-17 16:00:00',
+      windMs: 3.3,
+      precipitationMm: 0,
+      temperatureC: 30.1
+    },
+    {
+      timestamp: '2026-04-17 18:00:00',
+      windMs: 2.9,
+      precipitationMm: 0,
+      temperatureC: 29
+    },
+    {
+      timestamp: '2026-04-17 20:00:00',
+      windMs: 2.5,
+      precipitationMm: 0,
+      temperatureC: 28.8
+    },
+    {
+      timestamp: '2026-04-17 22:00:00',
+      windMs: 2.7,
+      precipitationMm: 0,
+      temperatureC: 26.9
+    },
+    {
+      timestamp: '2026-04-18 00:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 26.2
+    },
+    {
+      timestamp: '2026-04-18 02:00:00',
+      windMs: 3.1,
+      precipitationMm: 0,
+      temperatureC: 27.1
+    },
+    {
+      timestamp: '2026-04-18 04:00:00',
+      windMs: 2.1,
+      precipitationMm: 0,
+      temperatureC: 27.8
+    },
+    {
+      timestamp: '2026-04-18 06:00:00',
+      windMs: 2.4,
+      precipitationMm: 0,
+      temperatureC: 27
+    },
+    {
+      timestamp: '2026-04-18 08:00:00',
+      windMs: 2.6,
+      precipitationMm: 0,
+      temperatureC: 27.6
+    },
+    {
+      timestamp: '2026-04-18 10:00:00',
+      windMs: 2.4,
+      precipitationMm: 0,
+      temperatureC: 28.2
+    },
+    {
+      timestamp: '2026-04-18 12:00:00',
+      windMs: 2.6,
+      precipitationMm: 0,
+      temperatureC: 27.9
+    },
+    {
+      timestamp: '2026-04-18 14:00:00',
+      windMs: 3.4,
+      precipitationMm: 0,
+      temperatureC: 29.8
+    },
+    {
+      timestamp: '2026-04-18 16:00:00',
+      windMs: 2.9,
+      precipitationMm: 0,
+      temperatureC: 30.6
+    },
+    {
+      timestamp: '2026-04-18 18:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 30.2
+    },
+    {
+      timestamp: '2026-04-18 20:00:00',
+      windMs: 4.9,
+      precipitationMm: 0,
+      temperatureC: 29.6
+    },
+    {
+      timestamp: '2026-04-18 22:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 28.7
+    },
+    {
+      timestamp: '2026-04-19 00:00:00',
+      windMs: 2.9,
+      precipitationMm: 0,
+      temperatureC: 29
+    },
+    {
+      timestamp: '2026-04-19 02:00:00',
+      windMs: 2.1,
+      precipitationMm: 0,
+      temperatureC: 29.1
+    },
+    {
+      timestamp: '2026-04-19 04:00:00',
+      windMs: 2.3,
+      precipitationMm: 0,
+      temperatureC: 28
+    },
+    {
+      timestamp: '2026-04-19 06:00:00',
+      windMs: 2,
+      precipitationMm: 0,
+      temperatureC: 27.4
+    },
+    {
+      timestamp: '2026-04-19 08:00:00',
+      windMs: 2.9,
+      precipitationMm: 0,
+      temperatureC: 28.8
+    },
+    {
+      timestamp: '2026-04-19 10:00:00',
+      windMs: 3.4,
+      precipitationMm: 0,
+      temperatureC: 30.2
+    },
+    {
+      timestamp: '2026-04-19 12:00:00',
+      windMs: 2.8,
+      precipitationMm: 0,
+      temperatureC: 29.5
+    },
+    {
+      timestamp: '2026-04-19 14:00:00',
+      windMs: 2.9,
+      precipitationMm: 0,
+      temperatureC: 29
+    },
+    {
+      timestamp: '2026-04-19 16:00:00',
+      windMs: 2.7,
+      precipitationMm: 0,
+      temperatureC: 30.6
+    },
+    {
+      timestamp: '2026-04-19 18:00:00',
+      windMs: 22,
+      precipitationMm: 0,
+      temperatureC: 29.4
+    },
+    {
+      timestamp: '2026-04-19 20:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 28.5
+    },
+    {
+      timestamp: '2026-04-19 22:00:00',
+      windMs: 3.5,
+      precipitationMm: 0,
+      temperatureC: 28.9
+    },
+    {
+      timestamp: '2026-04-20 00:00:00',
+      windMs: 3.5,
+      precipitationMm: 0,
+      temperatureC: 27.7
+    },
+    {
+      timestamp: '2026-04-20 02:00:00',
+      windMs: 3.6,
+      precipitationMm: 0,
+      temperatureC: 28
+    },
+    {
+      timestamp: '2026-04-20 04:00:00',
+      windMs: 2.6,
+      precipitationMm: 0,
+      temperatureC: 27.5
+    },
+    {
+      timestamp: '2026-04-20 06:00:00',
+      windMs: 2.1,
+      precipitationMm: 0,
+      temperatureC: 27.1
+    },
+    {
+      timestamp: '2026-04-20 08:00:00',
+      windMs: 2.8,
+      precipitationMm: 0,
+      temperatureC: 28.4
+    },
+    {
+      timestamp: '2026-04-20 10:00:00',
+      windMs: 3.1,
+      precipitationMm: 0,
+      temperatureC: 29.8
+    },
+    {
+      timestamp: '2026-04-20 12:00:00',
+      windMs: 2.5,
+      precipitationMm: 0,
+      temperatureC: 30.7
+    },
+    {
+      timestamp: '2026-04-20 14:00:00',
+      windMs: 2.4,
+      precipitationMm: 0,
+      temperatureC: 31.4
+    },
+    {
+      timestamp: '2026-04-20 16:00:00',
+      windMs: 3.1,
+      precipitationMm: 0,
+      temperatureC: 31.3
+    },
+    {
+      timestamp: '2026-04-20 18:00:00',
+      windMs: 28,
+      precipitationMm: 0.2,
+      temperatureC: 30.6
+    },
+    {
+      timestamp: '2026-04-20 20:00:00',
+      windMs: 3.9,
+      precipitationMm: 0,
+      temperatureC: 29.4
+    },
+    {
+      timestamp: '2026-04-20 22:00:00',
+      windMs: 3.6,
+      precipitationMm: 0,
+      temperatureC: 28.9
+    },
+    {
+      timestamp: '2026-04-21 00:00:00',
+      windMs: 3.6,
+      precipitationMm: 0,
+      temperatureC: 27.3
+    },
+    {
+      timestamp: '2026-04-21 02:00:00',
+      windMs: 3.8,
+      precipitationMm: 0,
+      temperatureC: 28.1
+    },
+    {
+      timestamp: '2026-04-21 04:00:00',
+      windMs: 3.2,
+      precipitationMm: 0,
+      temperatureC: 27.1
+    },
+    {
+      timestamp: '2026-04-21 06:00:00',
+      windMs: 2.8,
+      precipitationMm: 0,
+      temperatureC: 28.1
+    },
+    {
+      timestamp: '2026-04-21 08:00:00',
+      windMs: 3.8,
+      precipitationMm: 0,
+      temperatureC: 28.9
+    },
+    {
+      timestamp: '2026-04-21 10:00:00',
+      windMs: 3.2,
+      precipitationMm: 0,
+      temperatureC: 30.5
+    },
+    {
+      timestamp: '2026-04-21 12:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 29.8
+    },
+    {
+      timestamp: '2026-04-21 14:00:00',
+      windMs: 3.8,
+      precipitationMm: 0,
+      temperatureC: 29.7
+    },
+    {
+      timestamp: '2026-04-21 16:00:00',
+      windMs: 3,
+      precipitationMm: 0,
+      temperatureC: 31.3
+    },
+    {
+      timestamp: '2026-04-21 18:00:00',
+      windMs: 2.3,
+      precipitationMm: 0,
+      temperatureC: 30.7
+    },
+    {
+      timestamp: '2026-04-21 20:00:00',
+      windMs: 2.1,
+      precipitationMm: 0,
+      temperatureC: 29.7
+    },
+    {
+      timestamp: '2026-04-21 22:00:00',
+      windMs: 2.5,
+      precipitationMm: 0.4,
+      temperatureC: 28
+    }
+  ]
+}
+[standard] ← {"documentation":"{\"code\":50,\"message\":\"Wind turbine documentation returned.\",\"language\":\"en\",\"ratedPowerKw\":14,\"windPowerYieldPercent\":[{\"windMs\":4,\"yieldPercent\":\"10-15\"},{\"windMs\":6,\"yieldPercent\":\"30-40\"},{\"windMs\":8,\"yieldPercent\":\"60-70\"},{\"windMs\":10,\"yieldP…
+[standard] Tool: windpower_config({"configs":[{"startDate":"2026-04-15","startHour":"00:00:00","windMs":3.9,"pitchAngle":0,"turbineMod…)
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"00:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"02:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"04:00:00","windMs":3.3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"06:00:00","windMs":3.4,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"08:00:00","windMs":3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"10:00:00","windMs":2.7,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"12:00:00","windMs":3.2,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"14:00:00","windMs":3.5,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"16:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"18:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"20:00:00","windMs":3.8,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-15","startHour":"22:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"00:00:00","windMs":3.7,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"02:00:00","windMs":3.5,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"04:00:00","windMs":3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"06:00:00","windMs":2,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"08:00:00","windMs":2.5,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"10:00:00","windMs":3.5,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"12:00:00","windMs":3.6,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"14:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"16:00:00","windMs":2.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"18:00:00","windMs":25,"pitchAngle":90}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"20:00:00","windMs":4.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-16","startHour":"22:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"00:00:00","windMs":3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"02:00:00","windMs":2.6,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"04:00:00","windMs":2.2,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"06:00:00","windMs":2.7,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"08:00:00","windMs":3.3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"10:00:00","windMs":3.3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"12:00:00","windMs":3.4,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"14:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"16:00:00","windMs":3.3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"18:00:00","windMs":2.9,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"20:00:00","windMs":2.5,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-17","startHour":"22:00:00","windMs":2.7,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"00:00:00","windMs":3,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"02:00:00","windMs":3.1,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"04:00:00","windMs":2.1,"pitchAngle":0}}
+[+95.6s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"06:00:00","windMs":2.4,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"08:00:00","windMs":2.6,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"10:00:00","windMs":2.4,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"12:00:00","windMs":2.6,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"14:00:00","windMs":3.4,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"16:00:00","windMs":2.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"18:00:00","windMs":3,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"20:00:00","windMs":4.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-18","startHour":"22:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"00:00:00","windMs":2.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"02:00:00","windMs":2.1,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"04:00:00","windMs":2.3,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"06:00:00","windMs":2,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"08:00:00","windMs":2.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"10:00:00","windMs":3.4,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"12:00:00","windMs":2.8,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"14:00:00","windMs":2.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"16:00:00","windMs":2.7,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"18:00:00","windMs":22,"pitchAngle":90}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"20:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-19","startHour":"22:00:00","windMs":3.5,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"00:00:00","windMs":3.5,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"02:00:00","windMs":3.6,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"04:00:00","windMs":2.6,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"06:00:00","windMs":2.1,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"08:00:00","windMs":2.8,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"10:00:00","windMs":3.1,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"12:00:00","windMs":2.5,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"14:00:00","windMs":2.4,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"16:00:00","windMs":3.1,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"18:00:00","windMs":28,"pitchAngle":90}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"20:00:00","windMs":3.9,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-20","startHour":"22:00:00","windMs":3.6,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"00:00:00","windMs":3.6,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"02:00:00","windMs":3.8,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"04:00:00","windMs":3.2,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"06:00:00","windMs":2.8,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"08:00:00","windMs":3.8,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"10:00:00","windMs":3.2,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"12:00:00","windMs":3,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"14:00:00","windMs":3.8,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"16:00:00","windMs":3,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"18:00:00","windMs":2.3,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"20:00:00","windMs":2.1,"pitchAngle":0}}
+[+95.7s] {"apikey":"45c66011-814f-47fa-b1a6-cb4b31bc5ada","task":"windpower","answer":{"action":"unlockCodeGenerator","startDate":"2026-04-21","startHour":"22:00:00","windMs":2.5,"pitchAngle":0}}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.0s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.1s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.2s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.2s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.2s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.2s] {"code":-805,"message":"Service window timeout exceeded. Run action 'start' and try again."}
+[+96.3s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.7s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+96.9s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.0s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.3s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.3s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.7s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+97.9s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.0s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.0s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.1s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+98.9s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.1s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.3s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.7s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+99.9s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.0s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.1s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.7s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+100.9s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.0s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.1s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.2s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.3s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.4s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.5s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.6s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.7s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.7s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.8s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+101.9s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
+[+102.0s] {
+  code: -805,
+  message: "Service window timeout exceeded. Run action 'start' and try again."
+}
