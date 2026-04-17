@@ -38,8 +38,8 @@ function decodeVigenere(cipherText: string, key: string): string {
 }
 
 // Example usage:
-const encodedMessage = "P uasaq qzjmźvdjp pw srhtetkov xówq Sdbket?";
-const secretKey = "Blaise";
+const encodedMessage = "mkhnf://czs.oe3aox.ffe/qvsv/oxnujc_gcpmjk.an4";
+const secretKey = "froynv";
 
 const result = decodeVigenere(encodedMessage, secretKey);
 console.log(`Decoded: ${result}`);
