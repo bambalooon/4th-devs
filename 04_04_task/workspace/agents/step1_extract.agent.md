@@ -21,11 +21,15 @@ Format: `{ "CityName": { "item name": quantity }, ... }`
 
 **persons_cities.json** — which person manages trade for which city.
 Format: `{ "Full Name": "CityName", ... }`
-Natan Rams manages Domatowo (his home city, mentioned in rozmowy.txt).
+Rules:
+- Natan Rams manages Domatowo (his home city).
+- If a note mentions both a first name and a surname in the context of the same city, combine them (e.g. "sygnal od Konkel" + "Lena pilnuje tam handlu" → "Lena Konkel" for Karlinkowo).
+- If only one name is known, use that single name as the key.
+- Do NOT include duplicate contacts for the same city (e.g. "Kisiel" and "Rafal" both seem to refer to Brudzewo — keep the one with the most name info, or just one).
 
-**items_for_sale.json** — for each trade item sold, which city sells it. Use transakcje.txt where format is `seller -> item -> buyer`. The SELLER is the city offering that item for sale.
-Format: `{ "item name": "SellerCityName", ... }`
-If the same item appears multiple times with different sellers, include all (use an array or keep one — prefer the most relevant match).
+**items_for_sale.json** — for each trade item, which city sells it. Use transakcje.txt where format is `seller -> item -> buyer`. The SELLER is the city offering that item.
+Format: `{ "item name": "SellerCityName", ... }` — one string value per item, NOT an array.
+If the same item is sold by multiple different cities, pick the city that appears first in the file.
 
 4. Keep original Polish names and spelling for now — normalization happens in the next step.
 5. Write `pipeline/step1/result/status.json` with content `{"status":"done"}` when all files are saved.

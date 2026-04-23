@@ -15,7 +15,17 @@ const writeResult = async (step: number, filename: string, content: string) => {
 };
 
 const readResult = (step: number, filename: string): Promise<string> =>
-  readFile(join(WORKSPACE, `pipeline/step${step}/result`, filename), 'utf-8');
+  readFile(join(WORKSPACE, `pipeline/step${step}/result`, filename), 'utf-8')
+
+const assertStepDone = async (step: number): Promise<void> => {
+  try {
+    const raw = await readResult(step, 'status.json')
+    const status = JSON.parse(raw) as { status?: string }
+    if (status.status !== 'done') throw new Error(`status=${status.status}`)
+  } catch (err) {
+    throw new Error(`Step ${step} did not complete successfully: ${err instanceof Error ? err.message : err}`)
+  }
+};
 
 const STEP1_TASK = `Read all note files from the notes/ directory and extract structured data.
 Save the results to pipeline/step1/result/ as described in your instructions.`;
@@ -35,13 +45,15 @@ async function main() {
   }
 
   if (FROM_STEP <= 2) {
-    console.log('\n[Step 2/5] Normalizing names...');
-    await runAgent('step2_normalize', STEP2_TASK);
+    console.log('\n[Step 2/5] Normalizing names...')
+    await runAgent('step2_normalize', STEP2_TASK)
+    await assertStepDone(2)
   }
 
   if (FROM_STEP <= 3) {
-    console.log('\n[Step 3/5] Generating filesystem plan...');
-    await runAgent('step3_plan', STEP3_TASK);
+    console.log('\n[Step 3/5] Generating filesystem plan...')
+    await runAgent('step3_plan', STEP3_TASK)
+    await assertStepDone(3)
   }
 
   if (FROM_STEP <= 4) {
