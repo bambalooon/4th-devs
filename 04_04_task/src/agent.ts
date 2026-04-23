@@ -148,15 +148,27 @@ export async function runAgent(
         })
 
         // Log tool result for debugging
-        const resultPreview = result.length > 300 ? result.slice(0, 300) + '…' : result
-        console.log(`[${agentName}] ← ${resultPreview}`)
+        console.log(`[${agentName}] ← ${result}`)
       }
     }
 
     return 'Agent exceeded maximum turns'
   } catch (err) {
+    // Log the full error — including API status, headers, and body
+    if (err && typeof err === 'object') {
+      const e = err as Record<string, unknown>
+      console.error(`[${agentName}] Error:`, JSON.stringify({
+        message: e.message,
+        status: e.status,
+        code: e.code,
+        type: e.type,
+        body: e.error ?? e.body ?? undefined,
+        headers: e.headers ?? undefined,
+      }, null, 2))
+    } else {
+      console.error(`[${agentName}] Error:`, err)
+    }
     const msg = err instanceof Error ? err.message : String(err)
-    console.error(`[${agentName}] Error:`, msg)
     return `Agent error: ${msg}`
   }
 }
