@@ -83,8 +83,8 @@ const PERSONS_SCHEMA = {
           items: {
             type: 'object',
             properties: {
-              firstname: { type: 'string' },
-              surname: { type: 'string' },
+              firstname: { type: 'string', minLength: 1 },
+              surname: { type: 'string', minLength: 1 },
               city: { type: 'string' },
             },
             required: ['firstname', 'surname', 'city'],
@@ -153,7 +153,11 @@ async function main() {
     const notesContent = `=== ogłoszenia.txt ===\n${ogl}\n\n=== rozmowy.txt ===\n${rozm}\n\n=== transakcje.txt ===\n${trans}`;
     const personsRaw = await runAgent('step1_persons', notesContent, undefined, undefined, PERSONS_SCHEMA);
     const { persons } = JSON.parse(personsRaw) as { persons: { firstname: string; surname: string; city: string }[] };
-    const personsCities = Object.fromEntries(persons.map(p => [`${p.firstname} ${p.surname}`, p.city]));
+    const incomplete = persons.filter(p => !p.firstname.trim() || !p.surname.trim());
+    if (incomplete.length > 0) {
+      throw new Error(`Incomplete persons extracted (missing firstname or surname): ${JSON.stringify(incomplete)}`);
+    }
+    const personsCities = Object.fromEntries(persons.map(p => [`${p.firstname.trim()} ${p.surname.trim()}`, p.city]));
     await writeResult(1, 'persons_cities.json', JSON.stringify(personsCities, null, 2));
     console.log(`  Extracted ${persons.length} persons`);
   }
