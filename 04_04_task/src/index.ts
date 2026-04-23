@@ -143,6 +143,18 @@ async function main() {
     await runAgent('step1_extract', STEP1_TASK);
     await assertStepDone(1);
 
+    // 1b: parse transakcje.txt in code (perfectly structured — no LLM needed)
+    const transakcje = await readFile(join(WORKSPACE, 'notes/transakcje.txt'), 'utf-8');
+    const items_for_sale: Record<string, string> = {};
+    for (const line of transakcje.split('\n')) {
+      const parts = line.split('->').map(s => s.trim());
+      if (parts.length === 3) {
+        const [seller, item] = parts;
+        if (item && !items_for_sale[item]) items_for_sale[item] = seller; // first occurrence wins
+      }
+    }
+    await writeResult(1, 'items_for_sale.json', JSON.stringify(items_for_sale, null, 2));
+
     // 1b: persons via focused agent with response schema (notes embedded in prompt)
     console.log('\n[Step 1b/5] Extracting persons...');
     const [ogl, rozm, trans] = await Promise.all([

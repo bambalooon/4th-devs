@@ -19,12 +19,9 @@ You are a data extraction agent. Read Natan's trade notes and extract structured
 2. Extract and save to `pipeline/step1/result/`:
 
 **cities_needs.json** — what each city needs and how much (numbers only, no units).
-Item names must be the core item noun in singular nominative Polish — drop any unit/quantity words (e.g. "porcji wołowiny" → "wołowina", "butelek wody" → "woda", "worków ryżu" → "ryż").
+Item names must be the core item noun in singular nominative Polish — drop unit/quantity words (e.g. "porcji wołowiny" → "wołowina", "butelek wody" → "woda", "worków ryżu" → "ryż").
 Format: `{ "CityName": { "item": quantity, ... }, ... }`
-
-**items_for_sale.json** — what each city sells, from `transakcje.txt` (format: `seller → item → buyer`). Item names must be singular nominative. If the same item appears with multiple sellers, use the first occurrence only.
-Format: `{ "item": "SellerCity", ... }`
 
 3. Write `pipeline/step1/result/status.json` → `{"status":"done"}`.
 
-Do not finish until all three files are written.
+Do not finish until both files are written.
