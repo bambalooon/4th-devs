@@ -70,35 +70,41 @@ const normalizeStep2 = async () => {
 const STEP1_TASK = `Read all note files from the notes/ directory and extract structured data.
 Save the results to pipeline/step1/result/ as described in your instructions.`;
 
-const STEP3_TASK = `Read pipeline/step2/result/normalized.json and return a filesystem plan as { "actions": [...] }.`;
+const toDisplay = (key: string) =>
+  key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
-const PLAN_SCHEMA = {
-  type: 'json_schema',
-  json_schema: {
-    name: 'filesystem_plan',
-    strict: true,
-    schema: {
-      type: 'object',
-      properties: {
-        actions: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              action: { type: 'string', enum: ['createDirectory', 'createFile'] },
-              path: { type: 'string' },
-              content: { type: 'string' },
-            },
-            required: ['action', 'path'],
-            additionalProperties: false,
-          },
-        },
-      },
-      required: ['actions'],
-      additionalProperties: false,
-    },
-  },
-} as const;
+const generatePlan = async () => {
+  const normalized = JSON.parse(await readResult(2, 'normalized.json')) as {
+    cities: Record<string, Record<string, number>>
+    persons: Record<string, string>
+    items_for_sale: Record<string, string>
+  }
+
+  const actions: FilesystemAction[] = [
+    { action: 'createDirectory', path: '/miasta' },
+    { action: 'createDirectory', path: '/osoby' },
+    { action: 'createDirectory', path: '/towary' },
+  ]
+
+  for (const [city, needs] of Object.entries(normalized.cities)) {
+    actions.push({ action: 'createFile', path: `/miasta/${city}`, content: JSON.stringify(needs) })
+  }
+
+  for (const [person, city] of Object.entries(normalized.persons)) {
+    const name = toDisplay(person)
+    const cityDisplay = toDisplay(city)
+    actions.push({ action: 'createFile', path: `/osoby/${person}`, content: `${name}\n\n[${cityDisplay}](/miasta/${city})` })
+  }
+
+  for (const [item, city] of Object.entries(normalized.items_for_sale)) {
+    const cityDisplay = toDisplay(city)
+    actions.push({ action: 'createFile', path: `/towary/${item}`, content: `[${cityDisplay}](/miasta/${city})` })
+  }
+
+  await writeResult(3, 'plan.json', JSON.stringify(actions, null, 2))
+  await writeResult(3, 'status.json', JSON.stringify({ status: 'done' }))
+  console.log(`  Plan saved: ${actions.length} actions`)
+}
 
 async function main() {
   console.log(`Starting filesystem pipeline from step ${FROM_STEP}...`);
@@ -115,12 +121,8 @@ async function main() {
   }
 
   if (FROM_STEP <= 3) {
-    console.log('\n[Step 3/5] Generating filesystem plan...')
-    const raw = await runAgent('step3_plan', STEP3_TASK, undefined, undefined, PLAN_SCHEMA)
-    const { actions } = JSON.parse(raw) as { actions: FilesystemAction[] }
-    await writeResult(3, 'plan.json', JSON.stringify(actions, null, 2))
-    await writeResult(3, 'status.json', JSON.stringify({ status: 'done' }))
-    console.log(`  Plan saved: ${actions.length} actions`)
+    console.log('\n[Step 3/5] Generating filesystem plan (code)...')
+    await generatePlan()
   }
 
   if (FROM_STEP <= 4) {
