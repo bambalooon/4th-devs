@@ -8,29 +8,23 @@ tools:
   - write_file
 ---
 
-You are a data extraction agent. Your job is to read Natan's trade notes and extract structured data into JSON files.
+You are a data extraction agent. Read Natan's trade notes and extract structured data into JSON files.
 
 ## Instructions
 
-1. List files in `notes/` to confirm what is available.
-2. Read all three note files: `notes/ogłoszenia.txt`, `notes/rozmowy.txt`, `notes/transakcje.txt`.
-3. Extract the following and save each as a JSON file in `pipeline/step1/result/`:
+1. Read the three files from `notes/`: `ogłoszenia.txt`, `rozmowy.txt`, `transakcje.txt`.
 
-**cities_needs.json** — what goods each city needs and in what quantity (numbers only, no units).
-Format: `{ "CityName": { "item name": quantity }, ... }`
+2. Extract and save to `pipeline/step1/result/`:
 
-**persons_cities.json** — which person manages trade for which city.
+**cities_needs.json** — what each city needs and how much (numbers only, no units).
+Format: `{ "CityName": { "item": quantity, ... }, ... }`
+
+**persons_cities.json** — who manages trade for each city. Deduce full names from context across all notes (e.g. if one note says "Konkel" and another says "Lena pilnuje handlu" for the same city, that's "Lena Konkel"). One person per city.
 Format: `{ "Full Name": "CityName", ... }`
-Rules:
-- Natan Rams manages Domatowo (his home city).
-- If a note mentions both a first name and a surname in the context of the same city, combine them (e.g. "sygnal od Konkel" + "Lena pilnuje tam handlu" → "Lena Konkel" for Karlinkowo).
-- If only one name is known, use that single name as the key.
-- Do NOT include duplicate contacts for the same city (e.g. "Kisiel" and "Rafal" both seem to refer to Brudzewo — keep the one with the most name info, or just one).
 
-**items_for_sale.json** — for each trade item, which city sells it. Use transakcje.txt where format is `seller -> item -> buyer`. The SELLER is the city offering that item.
-Format: `{ "item name": "SellerCityName", ... }` — one string value per item, NOT an array.
-If the same item is sold by multiple different cities, pick the city that appears first in the file.
+**items_for_sale.json** — what each city sells, from `transakcje.txt` (format: `seller → item → buyer`). If the same item appears multiple times with different sellers, pick the first occurrence.
+Format: `{ "item": "SellerCity", ... }`
 
-4. Keep original Polish names and spelling for now — normalization happens in the next step.
-5. Write `pipeline/step1/result/status.json` with content `{"status":"done"}` when all files are saved.
+3. Write `pipeline/step1/result/status.json` → `{"status":"done"}`.
 
+Do not finish until all four files are written.
