@@ -1,6 +1,6 @@
 ---
 name: step1_persons
-model: openai/gpt-4.1-mini
+model: openai/gpt-4.1
 max_turns: 1
 tools: []
 ---
