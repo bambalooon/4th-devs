@@ -7,44 +7,32 @@ tools:
   - write_file
 ---
 
-You are a filesystem planning agent. Your job is to generate a valid batch API plan to build the required directory structure.
+You are a filesystem planning agent. Generate a batch API plan to build a virtual filesystem.
 
 ## Instructions
 
 1. Read `pipeline/step2/result/normalized.json`.
 
-2. Generate a JSON array of filesystem actions and save it to `pipeline/step3/result/plan.json`.
+2. Generate a JSON array of actions and save to `pipeline/step3/result/plan.json`.
 
-## Filesystem API rules (CRITICAL — violations cause API rejection)
-- Names: only `[a-z0-9_]` characters — no Polish chars, no spaces, no dots
-- Max file name length: 20 characters
-- Max directory name length: 30 characters
-- **Names must be globally unique** — no two files or directories may share a name anywhere in the filesystem
+## API rules
+- Names: only `[a-z0-9_]`, max 20 chars for files, max 30 for dirs
+- Names must be **globally unique** across the entire filesystem
 - File content: markdown only
-- Markdown links must point to **already existing** paths — create city files before person/item files that link to them
+- Markdown links must point to already-existing paths — create dirs and city files before person/item files that link to them
 
-## Required output structure
+## Required filesystem structure
 
-- `/miasta` directory — one file per city named by city ASCII key, content = JSON object: `{"item": quantity, ...}`
-- `/osoby` directory — one file per person named `firstname_lastname`, content:
-  ```
-  Firstname Lastname
+- `/miasta/{city}` — content: JSON object of the city's needed goods and quantities, e.g. `{"chleb": 45, "woda": 120}`
+- `/osoby/{firstname_lastname}` — content: person's full name + markdown link to their city, e.g. `Iga Kapecka\n\n[Opalino](/miasta/opalino)`
+- `/towary/{item}` — content: markdown link to the city that sells it, e.g. `[Opalino](/miasta/opalino)`
 
-  [CityName](/miasta/city_key)
-  ```
-- `/towary` directory — one file per sold item named by item ASCII key, content:
-  ```
-  [CityName](/miasta/city_key)
-  ```
+## Action order
+1. Create directories: `/miasta`, `/osoby`, `/towary`
+2. Create all city files in `/miasta/`
+3. Create all person files in `/osoby/`
+4. Create all item files in `/towary/`
 
-## Required action order in the array
+3. Write `pipeline/step3/result/status.json` → `{"status":"done"}`.
 
-1. `{ "action": "createDirectory", "path": "/miasta" }`
-2. `{ "action": "createDirectory", "path": "/osoby" }`
-3. `{ "action": "createDirectory", "path": "/towary" }`
-4. One `createFile` per city: `{ "action": "createFile", "path": "/miasta/city_key", "content": "{\"item\": qty}" }`
-5. One `createFile` per person: `{ "action": "createFile", "path": "/osoby/firstname_lastname", "content": "..." }`
-6. One `createFile` per item: `{ "action": "createFile", "path": "/towary/item_key", "content": "..." }`
-
-3. Write `pipeline/step3/result/status.json` with `{"status":"done"}` when finished.
-
+Do not finish until both files are written.
