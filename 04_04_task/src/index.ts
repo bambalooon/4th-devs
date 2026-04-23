@@ -70,8 +70,35 @@ const normalizeStep2 = async () => {
 const STEP1_TASK = `Read all note files from the notes/ directory and extract structured data.
 Save the results to pipeline/step1/result/ as described in your instructions.`;
 
-const STEP3_TASK = `Read pipeline/step2/result/normalized.json and generate a valid filesystem batch plan.
-Save the plan array to pipeline/step3/result/plan.json as described in your instructions.`;
+const STEP3_TASK = `Read pipeline/step2/result/normalized.json and return a filesystem plan as { "actions": [...] }.`;
+
+const PLAN_SCHEMA = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'filesystem_plan',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: {
+        actions: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              action: { type: 'string', enum: ['createDirectory', 'createFile'] },
+              path: { type: 'string' },
+              content: { type: 'string' },
+            },
+            required: ['action', 'path'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['actions'],
+      additionalProperties: false,
+    },
+  },
+} as const;
 
 async function main() {
   console.log(`Starting filesystem pipeline from step ${FROM_STEP}...`);
@@ -89,8 +116,11 @@ async function main() {
 
   if (FROM_STEP <= 3) {
     console.log('\n[Step 3/5] Generating filesystem plan...')
-    await runAgent('step3_plan', STEP3_TASK)
-    await assertStepDone(3)
+    const raw = await runAgent('step3_plan', STEP3_TASK, undefined, undefined, PLAN_SCHEMA)
+    const { actions } = JSON.parse(raw) as { actions: FilesystemAction[] }
+    await writeResult(3, 'plan.json', JSON.stringify(actions, null, 2))
+    await writeResult(3, 'status.json', JSON.stringify({ status: 'done' }))
+    console.log(`  Plan saved: ${actions.length} actions`)
   }
 
   if (FROM_STEP <= 4) {
