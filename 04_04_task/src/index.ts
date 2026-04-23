@@ -100,6 +100,10 @@ async function main() {
     console.log(`  Loaded ${actions.length} actions from plan.json`);
     const result = await executeFilesystemBatch(actions);
     await writeResult(4, 'api_response.json', JSON.stringify(result, null, 2));
+    const batchCode = (result as { code?: number })?.code;
+    if (batchCode !== undefined && batchCode < 0) {
+      throw new Error(`Batch execution failed (code ${batchCode}): ${(result as { message?: string })?.message}`);
+    }
     await writeResult(4, 'status.json', JSON.stringify({ status: 'done' }));
   }
 

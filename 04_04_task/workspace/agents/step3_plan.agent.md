@@ -21,6 +21,10 @@ You are a filesystem planning agent. Generate a batch API plan to build a virtua
 - File content: markdown only
 - Markdown links must point to already-existing paths — create dirs and city files before person/item files that link to them
 
+## Exact action names (use these exactly, case-sensitive)
+- `createDirectory` — create a directory
+- `createFile` — create a file with `path` and `content`
+
 ## Required filesystem structure
 
 - `/miasta/{city}` — content: JSON object of the city's needed goods and quantities, e.g. `{"chleb": 45, "woda": 120}`
