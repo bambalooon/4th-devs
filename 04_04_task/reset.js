@@ -4,7 +4,7 @@ const answer = {
     apikey: AI_DEVS_API_KEY,
     task: "filesystem",
     answer: {
-        action: "help"
+        action: "reset"
     }
 }
 console.log(answer);
