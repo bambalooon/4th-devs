@@ -70,6 +70,34 @@ const normalizeStep2 = async () => {
 const STEP1_TASK = `Read all note files from the notes/ directory and extract structured data.
 Save the results to pipeline/step1/result/ as described in your instructions.`;
 
+const PERSONS_SCHEMA = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'persons',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: {
+        persons: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              firstname: { type: 'string' },
+              surname: { type: 'string' },
+              city: { type: 'string' },
+            },
+            required: ['firstname', 'surname', 'city'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['persons'],
+      additionalProperties: false,
+    },
+  },
+} as const;
+
 const toDisplay = (key: string) =>
   key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
@@ -111,8 +139,23 @@ async function main() {
 
   if (FROM_STEP <= 1) {
     console.log('\n[Step 1/5] Extracting data from notes...');
+    // 1a: cities + items via agent with file tools
     await runAgent('step1_extract', STEP1_TASK);
     await assertStepDone(1);
+
+    // 1b: persons via focused agent with response schema (notes embedded in prompt)
+    console.log('\n[Step 1b/5] Extracting persons...');
+    const [ogl, rozm, trans] = await Promise.all([
+      readFile(join(WORKSPACE, 'notes/ogłoszenia.txt'), 'utf-8'),
+      readFile(join(WORKSPACE, 'notes/rozmowy.txt'), 'utf-8'),
+      readFile(join(WORKSPACE, 'notes/transakcje.txt'), 'utf-8'),
+    ]);
+    const notesContent = `=== ogłoszenia.txt ===\n${ogl}\n\n=== rozmowy.txt ===\n${rozm}\n\n=== transakcje.txt ===\n${trans}`;
+    const personsRaw = await runAgent('step1_persons', notesContent, undefined, undefined, PERSONS_SCHEMA);
+    const { persons } = JSON.parse(personsRaw) as { persons: { firstname: string; surname: string; city: string }[] };
+    const personsCities = Object.fromEntries(persons.map(p => [`${p.firstname} ${p.surname}`, p.city]));
+    await writeResult(1, 'persons_cities.json', JSON.stringify(personsCities, null, 2));
+    console.log(`  Extracted ${persons.length} persons`);
   }
 
   if (FROM_STEP <= 2) {
