@@ -153,9 +153,13 @@ async function main() {
     const notesContent = `=== ogłoszenia.txt ===\n${ogl}\n\n=== rozmowy.txt ===\n${rozm}\n\n=== transakcje.txt ===\n${trans}`;
     const personsRaw = await runAgent('step1_persons', notesContent, undefined, undefined, PERSONS_SCHEMA);
     const { persons } = JSON.parse(personsRaw) as { persons: { firstname: string; surname: string; city: string }[] };
-    const incomplete = persons.filter(p => !p.firstname.trim() || !p.surname.trim());
+    const incomplete = persons.filter(p =>
+      !p.firstname.trim() || !p.surname.trim() ||
+      p.firstname.trim().toLowerCase() === p.city.toLowerCase() ||
+      p.surname.trim().toLowerCase() === p.city.toLowerCase()
+    );
     if (incomplete.length > 0) {
-      throw new Error(`Incomplete persons extracted (missing firstname or surname): ${JSON.stringify(incomplete)}`);
+      throw new Error(`Bad persons extracted: ${JSON.stringify(incomplete)}`);
     }
     const personsCities = Object.fromEntries(persons.map(p => [`${p.firstname.trim()} ${p.surname.trim()}`, p.city]));
     await writeResult(1, 'persons_cities.json', JSON.stringify(personsCities, null, 2));
