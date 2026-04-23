@@ -1,8 +1,12 @@
 Please read:
+- [[./lesson.md]] - AI generative lesson content
 - [[./goal.md]] - describes task to implement/solve 
 - [[./help-response.md]] - describes output of help command in available tool
 
 and let's plan work together.
+Lesson content is not required, but it'd be nice if we could try to use it in our implementation. 
+The goal and help-response are crucial for understanding the task and available tools, so please read them carefully.
+Main goal is to solve task defined in [[./goal.md]], secondary goal is to learn (especially about topics in lesson).
 
 My proposition is to:
 1. Define which part of task will be solved with code and which with LLM agent.
