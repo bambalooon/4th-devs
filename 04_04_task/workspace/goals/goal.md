@@ -1,130 +1,99 @@
 ## Zadanie praktyczne
 
-Twoim zadaniem jest odnalezienie partyzanta ukrywającego się w ruinach Domatowa i przeprowadzenie sprawnej akcji ewakuacyjnej. Do dyspozycji masz transportery oraz żołnierzy zwiadowczych. Musisz tak rozegrać tę operację, aby odnaleźć człowieka, którego szukamy, nie wyczerpać punktów akcji i zdążyć wezwać helikopter zanim sytuacja wymknie się spod kontroli.
+Twoje zadanie polega na logicznym uporządkowaniu notatek Natana w naszym wirtualnym file systemie. Potrzebujemy dowiedzieć się, które miasta brały udział w handlu, jakie osoby odpowiadały za ten handel w konkretnych miastach oraz które towary były przez kogo sprzedawane.
 
-Po mieście możesz poruszać się zarówno transporterami, jak i pieszo. Transportery potrafią jeździć tylko po ulicach. Zanim wyślesz kogokolwiek w teren, przeanalizuj bardzo dokładnie układ terenu. Gdy tylko któryś ze zwiadowców znajdzie człowieka, wezwij śmigłowiec ratunkowy tak szybko, jak to tylko możliwe.
+Dokładny opis potrzebnej nam struktury znajdziesz poniżej.
 
-Nazwa zadania: **domatowo**
+Nazwa zadania to: **filesystem**
 
-Odpowiedź wysyłasz do `/verify`
+Wszystkie operacje wykonujesz przez /verify/
 
-Przechwycony sygnał dźwiękowy:
+Link do notatek Natana: https://hub.ag3nts.org/dane/natan\_notes.zip
 
-> "Przeżyłem. Bomby zniszczyły miasto. Żołnierze tu byli, szukali surowców, zabrali ropę. Teraz jest pusto. Mam broń, jestem ranny. Ukryłem się w jednym z najwyższych bloków. Nie mam jedzenia. Pomocy."
+Podgląd utworzonego systemu plików: https://hub.ag3nts.org/filesystem\_preview.html
 
-Podgląd mapy miasta: https://hub.ag3nts.org/domatowo\_preview
-
-Z API komunikujesz się zawsze przez `https://hub.ag3nts.org/verify` i wysyłasz JSON z polami `apikey`, `task` oraz `answer`.
-
-Podstawowy format komunikacji wygląda tak:
+Na początek warto wywołać przez API funkcję 'help':
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "domatowo",
-  "answer": {
-    "action": "..."
-  }
-}
-```
-
-Na początek warto pobrać opis dostępnych akcji:
-
-```json
-{
-  "apikey": "tutaj-twoj-klucz",
-  "task": "domatowo",
+  "task": "filesystem",
   "answer": {
     "action": "help"
   }
 }
 ```
 
-### Co masz do dyspozycji
+W udostępnionym API znajdziesz funkcje do tworzenia plików i katalogów, usuwania ich, listowania katalogów oraz dwie funkcje specjalne:
 
-- maksymalnie 4 transportery
-- maksymalnie 8 zwiadowców
-- 300 punktów akcji na całą operację
-- mapę 11x11 pól z oznaczeniami terenu
+- **reset** - czyści cały filesystem (usuwa wszystkie pliki)
+- **done** - wysyła utworzoną strukturę danych do Centrali w celu weryfikacji zadania.
 
-Najważniejsze typy akcji mają swoją cenę:
+### Komunikacja z API
 
-- utworzenie zwiadowcy: 5 punktów
-- utworzenie transportera: 5 punktów opłaty bazowej oraz dodatkowo 5 punktów za każdego przewożonego zwiadowcę
-- ruch zwiadowcy: 7 punktów za każde pole
-- ruch transportera: 1 punkt za każde pole
-- inspekcja pola: 1 punkt
-- wysadzenie zwiadowców z transportera: 0 punktów
+Możesz wysyłać do API pojedyncze instrukcje lub wykonać wiele operacji hurtowo.
 
-### Rozpoznanie terenu
+Przykładowo, utworzenie 2 plików może wyglądać tak:
 
-Najpierw zapoznaj się z układem miasta. Możesz pobrać całą mapę:
+Zapytanie 1:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "domatowo",
+  "task": "filesystem",
   "answer": {
-    "action": "getMap"
+    "action": "createFile",
+    "path": "/plik1",
+    "content": "Test1"
   }
 }
 ```
 
-Możesz także wyświetlić podgląd mapy uwzględniający tylko konkretne jej elementy, podając je w opcjonalnej tablicy `symbols`.
-
-### Tworzenie jednostek
-
-Możesz utworzyć transporter z załogą zwiadowców - tutaj przykład 2-osobowej załogi:
+Zapytanie 2:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "domatowo",
+  "task": "filesystem",
   "answer": {
-    "action": "create",
-    "type": "transporter",
-    "passengers": 2
+    "action": "createFile",
+    "path": "/plik2",
+    "content": "Test2"
   }
 }
 ```
 
-Możesz też wysłać do miasta pojedynczego zwiadowcę:
+Możesz także wykorzystać **batch\_mode** i wysłać wszystko razem - dzięki tej funkcji, możliwe jest utworzenie całego filesystemu w jednym requeście.
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "domatowo",
-  "answer": {
-    "action": "create",
-    "type": "scout"
-  }
+  "task": "filesystem",
+  "answer": [
+    {
+      "action": "createFile",
+      "path": "/plik1",
+      "content": "Test1"
+    },
+    {
+      "action": "createFile",
+      "path": "/plik2",
+      "content": "Test2"
+    }
+  ]
 }
 ```
 
-### Ewakuacja
+### Oto nasze wymagania
 
-Helikopter można wezwać dopiero wtedy, gdy któryś zwiadowca odnajdzie człowieka. Finalne zgłoszenie wygląda tak:
+- Potrzebujemy trzech katalogów: `/miasta`, `/osoby` oraz `/towary`
+- W katalogu `/miasta` mają znaleźć się pliki o nazwach (w mianowniku) takich jak miasta opisywane przez Natana. W środku tych plików powinna być struktura JSON z towarami, jakie potrzebuje to miasto i ile tego potrzebuje (bez jednostek).
+- W katalogu `/osoby` powinny być pliki z notatkami na temat osób, które odpowiadają za handel w miastach. Każdy plik powinien zawierać imię i nazwisko jednej osoby i link (w formacie markdown) do miasta, którym ta osoba zarządza.
+- Nazwa pliku w `/osoby` nie ma znaczenia, ale jeśli nazwiesz plik tak jak dana osoba (z podkreśleniem zamiast spacji), a w środku dasz wymagany link, to system też rozpozna, o co chodzi.
+- W katalogu `/towary/` mają znajdować się pliki określające, które przedmioty są wystawione na sprzedaż. We wnętrzu każdego pliku powinien znajdować się link do miasta, które oferuje ten towar. Nazwa towaru to mianownik w liczbie pojedynczej, więc "koparka", a nie "koparki"
 
-```json
-{
-  "apikey": "tutaj-twoj-klucz",
-  "task": "domatowo",
-  "answer": {
-    "action": "callHelicopter",
-    "destination": "F6"
-  }
-}
-```
+### Oczekiwany filesystem
 
-W polu `destination` podajesz współrzędne miejsca, do którego ma przylecieć śmigłowiec. Musisz tam wskazać pole, na którym zwiadowca potwierdził obecność człowieka.
+Efektem Twojej pracy powinny być takie trzy katalogi wypełnione plikami.
 
-### Co musisz zrobić
-
-- rozpoznaj mapę miasta i zaplanuj trasę tak, by nie przepalić punktów akcji
-- utwórz odpowiednie jednostki i rozlokuj je na planszy
-- wykorzystaj transportery do szybkiego dotarcia w kluczowe miejsca
-- wysadzaj zwiadowców tam, gdzie dalsze sprawdzanie terenu wymaga działania pieszo
-- przeszukuj kolejne pola akcją `inspect` i analizuj wyniki przez `getLogs`
-- gdy odnajdziesz partyzanta, wezwij helikopter akcją `callHelicopter`
-
-Jeśli poprawnie odnajdziesz ukrywającego się człowieka i zakończysz ewakuację, Centrala odeśle flagę.
+> **Uwaga**: w nazwach plików nie używamy polskich znaków. Podobnie w tekstach w JSON.
