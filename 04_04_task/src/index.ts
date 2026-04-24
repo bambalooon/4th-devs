@@ -44,7 +44,7 @@ const normalizeStep2 = async () => {
   ])
   const cities1 = JSON.parse(citiesRaw) as Record<string, Record<string, number>>
   const persons1 = JSON.parse(personsRaw) as Record<string, string>
-  const items1 = JSON.parse(itemsRaw) as Record<string, string>
+  const items1 = JSON.parse(itemsRaw) as Record<string, string[]>
 
   const cities: Record<string, Record<string, number>> = {}
   for (const [city, needs] of Object.entries(cities1)) {
@@ -56,9 +56,9 @@ const normalizeStep2 = async () => {
   for (const [name, city] of Object.entries(persons1)) {
     persons[toKey(name)] = toKey(city)
   }
-  const items_for_sale: Record<string, string> = {}
-  for (const [item, city] of Object.entries(items1)) {
-    items_for_sale[toKey(item)] = toKey(city)
+  const items_for_sale: Record<string, string[]> = {}
+  for (const [item, cities] of Object.entries(items1)) {
+    items_for_sale[toKey(item)] = cities.map(toKey)
   }
 
   await writeResult(2, 'normalized.json', JSON.stringify({ cities, persons, items_for_sale }, null, 2))
@@ -105,7 +105,7 @@ const generatePlan = async () => {
   const normalized = JSON.parse(await readResult(2, 'normalized.json')) as {
     cities: Record<string, Record<string, number>>
     persons: Record<string, string>
-    items_for_sale: Record<string, string>
+    items_for_sale: Record<string, string[]>
   }
 
   const actions: FilesystemAction[] = [
@@ -124,9 +124,9 @@ const generatePlan = async () => {
     actions.push({ action: 'createFile', path: `/osoby/${person}`, content: `${name}\n\n[${cityDisplay}](/miasta/${city})` })
   }
 
-  for (const [item, city] of Object.entries(normalized.items_for_sale)) {
-    const cityDisplay = toDisplay(city)
-    actions.push({ action: 'createFile', path: `/towary/${item}`, content: `[${cityDisplay}](/miasta/${city})` })
+  for (const [item, cities] of Object.entries(normalized.items_for_sale)) {
+    const links = cities.map(city => `[${toDisplay(city)}](/miasta/${city})`).join('\n')
+    actions.push({ action: 'createFile', path: `/towary/${item}`, content: links })
   }
 
   await writeResult(3, 'plan.json', JSON.stringify(actions, null, 2))
@@ -145,12 +145,15 @@ async function main() {
 
     // 1b: parse transakcje.txt in code (perfectly structured — no LLM needed)
     const transakcje = await readFile(join(WORKSPACE, 'notes/transakcje.txt'), 'utf-8');
-    const items_for_sale: Record<string, string> = {};
+    const items_for_sale: Record<string, string[]> = {};
     for (const line of transakcje.split('\n')) {
       const parts = line.split('->').map(s => s.trim());
       if (parts.length === 3) {
         const [seller, item] = parts;
-        if (item && !items_for_sale[item]) items_for_sale[item] = seller; // first occurrence wins
+        if (item) {
+          if (!items_for_sale[item]) items_for_sale[item] = [];
+          items_for_sale[item].push(seller);
+        }
       }
     }
     await writeResult(1, 'items_for_sale.json', JSON.stringify(items_for_sale, null, 2));
