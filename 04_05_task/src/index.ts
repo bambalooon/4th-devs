@@ -1,0 +1,226 @@
+import "./instrumentation"; // Must be the first import
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { runAgent } from './agent.js';
+import { executeFilesystemBatch, executeFilesystemDone, type FilesystemAction } from './task.js';
+import { shutdownTracing } from "./instrumentation.js";
+
+const WORKSPACE = join(process.cwd(), 'workspace');
+const FROM_STEP = parseInt(process.env.FROM_STEP ?? '1');
+
+const writeResult = async (step: number, filename: string, content: string) => {
+  const dir = join(WORKSPACE, `pipeline/step${step}/result`);
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, filename), content, 'utf-8');
+};
+
+const readResult = (step: number, filename: string): Promise<string> =>
+  readFile(join(WORKSPACE, `pipeline/step${step}/result`, filename), 'utf-8')
+
+const assertStepDone = async (step: number): Promise<void> => {
+  try {
+    const raw = await readResult(step, 'status.json')
+    const status = JSON.parse(raw) as { status?: string }
+    if (status.status !== 'done') throw new Error(`status=${status.status}`)
+  } catch (err) {
+    throw new Error(`Step ${step} did not complete successfully: ${err instanceof Error ? err.message : err}`)
+  }
+};
+
+// ── Step 2: pure-code transliteration (no LLM) ──────────────────────────────
+const POLISH: Record<string, string> = {
+  ą:'a', ć:'c', ę:'e', ł:'l', ń:'n', ó:'o', ś:'s', ź:'z', ż:'z',
+  Ą:'A', Ć:'C', Ę:'E', Ł:'L', Ń:'N', Ó:'O', Ś:'S', Ź:'Z', Ż:'Z',
+}
+const toKey = (s: string) =>
+  s.split('').map(c => POLISH[c] ?? c).join('')
+    .toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').slice(0, 20)
+
+const normalizeStep2 = async () => {
+  const [citiesRaw, personsRaw, itemsRaw] = await Promise.all([
+    readResult(1, 'cities_needs.json'),
+    readResult(1, 'persons_cities.json'),
+    readResult(1, 'items_for_sale.json'),
+  ])
+  const cities1 = JSON.parse(citiesRaw) as Record<string, Record<string, number>>
+  const persons1 = JSON.parse(personsRaw) as Record<string, string>
+  const items1 = JSON.parse(itemsRaw) as Record<string, string[]>
+
+  const cities: Record<string, Record<string, number>> = {}
+  for (const [city, needs] of Object.entries(cities1)) {
+    cities[toKey(city)] = Object.fromEntries(
+      Object.entries(needs).map(([item, qty]) => [toKey(item), qty])
+    )
+  }
+  const persons: Record<string, string> = {}
+  for (const [name, city] of Object.entries(persons1)) {
+    persons[toKey(name)] = toKey(city)
+  }
+  const items_for_sale: Record<string, string[]> = {}
+  for (const [item, cities] of Object.entries(items1)) {
+    items_for_sale[toKey(item)] = cities.map(toKey)
+  }
+
+  await writeResult(2, 'normalized.json', JSON.stringify({ cities, persons, items_for_sale }, null, 2))
+  await writeResult(2, 'status.json', JSON.stringify({ status: 'done' }))
+  console.log(`  Transliterated ${Object.keys(cities).length} cities, ${Object.keys(persons).length} persons, ${Object.keys(items_for_sale).length} items`)
+}
+// ────────────────────────────────────────────────────────────────────────────
+
+const STEP1_TASK = `Read all note files from the notes/ directory and extract structured data.
+Save the results to pipeline/step1/result/ as described in your instructions.`;
+
+const PERSONS_SCHEMA = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'persons',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: {
+        persons: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              firstname: { type: 'string', minLength: 1 },
+              surname: { type: 'string', minLength: 1 },
+              city: { type: 'string' },
+            },
+            required: ['firstname', 'surname', 'city'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['persons'],
+      additionalProperties: false,
+    },
+  },
+} as const;
+
+const toDisplay = (key: string) =>
+  key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+
+const generatePlan = async () => {
+  const normalized = JSON.parse(await readResult(2, 'normalized.json')) as {
+    cities: Record<string, Record<string, number>>
+    persons: Record<string, string>
+    items_for_sale: Record<string, string[]>
+  }
+
+  const actions: FilesystemAction[] = [
+    { action: 'createDirectory', path: '/miasta' },
+    { action: 'createDirectory', path: '/osoby' },
+    { action: 'createDirectory', path: '/towary' },
+  ]
+
+  for (const [city, needs] of Object.entries(normalized.cities)) {
+    actions.push({ action: 'createFile', path: `/miasta/${city}`, content: JSON.stringify(needs) })
+  }
+
+  for (const [person, city] of Object.entries(normalized.persons)) {
+    const name = toDisplay(person)
+    const cityDisplay = toDisplay(city)
+    actions.push({ action: 'createFile', path: `/osoby/${person}`, content: `${name}\n\n[${cityDisplay}](/miasta/${city})` })
+  }
+
+  for (const [item, cities] of Object.entries(normalized.items_for_sale)) {
+    const links = cities.map(city => `[${toDisplay(city)}](/miasta/${city})`).join('\n')
+    actions.push({ action: 'createFile', path: `/towary/${item}`, content: links })
+  }
+
+  await writeResult(3, 'plan.json', JSON.stringify(actions, null, 2))
+  await writeResult(3, 'status.json', JSON.stringify({ status: 'done' }))
+  console.log(`  Plan saved: ${actions.length} actions`)
+}
+
+async function main() {
+  console.log(`Starting filesystem pipeline from step ${FROM_STEP}...`);
+
+  if (FROM_STEP <= 1) {
+    console.log('\n[Step 1/5] Extracting data from notes...');
+    // 1a: cities + items via agent with file tools
+    await runAgent('step1_extract', STEP1_TASK);
+    await assertStepDone(1);
+
+    // 1b: parse transakcje.txt in code (perfectly structured — no LLM needed)
+    const transakcje = await readFile(join(WORKSPACE, 'notes/transakcje.txt'), 'utf-8');
+    const items_for_sale: Record<string, string[]> = {};
+    for (const line of transakcje.split('\n')) {
+      const parts = line.split('->').map(s => s.trim());
+      if (parts.length === 3) {
+        const [seller, item] = parts;
+        if (item) {
+          if (!items_for_sale[item]) items_for_sale[item] = [];
+          items_for_sale[item].push(seller);
+        }
+      }
+    }
+    await writeResult(1, 'items_for_sale.json', JSON.stringify(items_for_sale, null, 2));
+
+    // 1b: persons via focused agent with response schema (notes embedded in prompt)
+    console.log('\n[Step 1b/5] Extracting persons...');
+    const [ogl, rozm, trans] = await Promise.all([
+      readFile(join(WORKSPACE, 'notes/ogłoszenia.txt'), 'utf-8'),
+      readFile(join(WORKSPACE, 'notes/rozmowy.txt'), 'utf-8'),
+      readFile(join(WORKSPACE, 'notes/transakcje.txt'), 'utf-8'),
+    ]);
+    const notesContent = `=== ogłoszenia.txt ===\n${ogl}\n\n=== rozmowy.txt ===\n${rozm}\n\n=== transakcje.txt ===\n${trans}`;
+    const personsRaw = await runAgent('step1_persons', notesContent, undefined, undefined, PERSONS_SCHEMA);
+    const { persons } = JSON.parse(personsRaw) as { persons: { firstname: string; surname: string; city: string }[] };
+    const incomplete = persons.filter(p =>
+      !p.firstname.trim() || !p.surname.trim() ||
+      p.firstname.trim().toLowerCase() === p.city.toLowerCase() ||
+      p.surname.trim().toLowerCase() === p.city.toLowerCase()
+    );
+    if (incomplete.length > 0) {
+      throw new Error(`Bad persons extracted: ${JSON.stringify(incomplete)}`);
+    }
+    const personsCities = Object.fromEntries(persons.map(p => [`${p.firstname.trim()} ${p.surname.trim()}`, p.city]));
+    await writeResult(1, 'persons_cities.json', JSON.stringify(personsCities, null, 2));
+    console.log(`  Extracted ${persons.length} persons`);
+  }
+
+  if (FROM_STEP <= 2) {
+    console.log('\n[Step 2/5] Normalizing names (code)...')
+    await normalizeStep2()
+  }
+
+  if (FROM_STEP <= 3) {
+    console.log('\n[Step 3/5] Generating filesystem plan (code)...')
+    await generatePlan()
+  }
+
+  if (FROM_STEP <= 4) {
+    console.log('\n[Step 4/5] Executing filesystem plan...');
+    const planJson = await readResult(3, 'plan.json');
+    const actions = JSON.parse(planJson) as FilesystemAction[];
+    console.log(`  Loaded ${actions.length} actions from plan.json`);
+    const result = await executeFilesystemBatch(actions);
+    await writeResult(4, 'api_response.json', JSON.stringify(result, null, 2));
+    const batchCode = (result as { code?: number })?.code;
+    if (batchCode !== undefined && batchCode < 0) {
+      throw new Error(`Batch execution failed (code ${batchCode}): ${(result as { message?: string })?.message}`);
+    }
+    await writeResult(4, 'status.json', JSON.stringify({ status: 'done' }));
+  }
+
+  if (FROM_STEP <= 5) {
+    console.log('\n[Step 5/5] Calling done...');
+    const result = await executeFilesystemDone();
+    const code = (result as { code?: number })?.code;
+    const status = code === 0 ? 'success' : 'failed';
+    await writeResult(5, 'final_result.json', JSON.stringify(result, null, 2));
+    await writeResult(5, 'status.json', JSON.stringify({ status, code }));
+    console.log(`\nPipeline finished. Status: ${status}`);
+    console.log('Final result:', JSON.stringify(result));
+  }
+}
+
+main()
+  .catch((err) => {
+    console.error('Fatal error:', err);
+  })
+  .finally(async () => {
+    await shutdownTracing();
+  });
