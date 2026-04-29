@@ -2,9 +2,9 @@ import {AI_DEVS_API_KEY} from "../config.js";
 
 const answer = {
     apikey: AI_DEVS_API_KEY,
-    task: "filesystem",
+    task: "foodwarehouse",
     answer: {
-        action: "reset"
+        tool: "help"
     }
 }
 console.log(answer);
