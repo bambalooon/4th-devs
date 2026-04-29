@@ -1,99 +1,176 @@
 ## Zadanie praktyczne
 
-Twoje zadanie polega na logicznym uporządkowaniu notatek Natana w naszym wirtualnym file systemie. Potrzebujemy dowiedzieć się, które miasta brały udział w handlu, jakie osoby odpowiadały za ten handel w konkretnych miastach oraz które towary były przez kogo sprzedawane.
+Musisz uporządkować pracę magazynu żywności i narzędzi tak, aby przygotować jedno poprawne zamówienie, które zaspokoi potrzeby wszystkich wskazanych miast. Do dyspozycji dostajesz gotowe API magazynu, generator podpisów bezpieczeństwa oraz dostęp tylko do odczytu do bazy danych, z której trzeba wyciągnąć dane potrzebne do autoryzacji zamówienia.
 
-Dokładny opis potrzebnej nam struktury znajdziesz poniżej.
+To zadanie nie polega na zgadywaniu. Najpierw poznaj strukturę danych, później ustal pełne zapotrzebowanie miast, a na końcu zbuduj jedno zamówienie, którego zawartość będzie zgodna z wymaganiami Centrali.
 
-Nazwa zadania to: **filesystem**
+Nazwa zadania: **foodwarehouse**
 
-Wszystkie operacje wykonujesz przez /verify/
+Odpowiedź wysyłasz do: https://hub.ag3nts.org/verify
 
-Link do notatek Natana: https://hub.ag3nts.org/dane/natan\_notes.zip
+Plik z zapotrzebowaniem miast: https://hub.ag3nts.org/dane/food4cities.json
 
-Podgląd utworzonego systemu plików: https://hub.ag3nts.org/filesystem\_preview.html
+W tym zadaniu rozmawiasz także z bazą danych **SQLite**. Dostęp do niej jest wyłącznie w trybie odczytu.
 
-Na początek warto wywołać przez API funkcję 'help':
+Na początek najlepiej pobrać pomoc API:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "filesystem",
+  "task": "foodwarehouse",
   "answer": {
-    "action": "help"
+    "tool": "help"
   }
 }
 ```
 
-W udostępnionym API znajdziesz funkcje do tworzenia plików i katalogów, usuwania ich, listowania katalogów oraz dwie funkcje specjalne:
+### Jak działa API
 
-- **reset** - czyści cały filesystem (usuwa wszystkie pliki)
-- **done** - wysyła utworzoną strukturę danych do Centrali w celu weryfikacji zadania.
+Każde wywołanie wysyłasz do `/verify` w polu `answer` jako obiekt z polem `tool`.
 
-### Komunikacja z API
+Najważniejsze narzędzia:
 
-Możesz wysyłać do API pojedyncze instrukcje lub wykonać wiele operacji hurtowo.
+- **orders** - odczyt, tworzenie, uzupełnianie i usuwanie zamówień
+- **signatureGenerator** - generowanie podpisu SHA1 na podstawie danych użytkownika z bazy SQLite
+- **database** - odczyt danych i schematów z bazy SQLite
+- **reset** - przywrócenie początkowego stanu zamówień
+- **done** - końcowa weryfikacja rozwiązania
 
-Przykładowo, utworzenie 2 plików może wyglądać tak:
-
-Zapytanie 1:
+Jeśli po drodze namieszasz w stanie zadania, użyj `reset`:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "filesystem",
+  "task": "foodwarehouse",
   "answer": {
-    "action": "createFile",
-    "path": "/plik1",
-    "content": "Test1"
+    "tool": "reset"
   }
 }
 ```
 
-Zapytanie 2:
+### Praca z zamówieniami
+
+Możesz pobrać listę aktualnych zamówień:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "filesystem",
+  "task": "foodwarehouse",
   "answer": {
-    "action": "createFile",
-    "path": "/plik2",
-    "content": "Test2"
+    "tool": "orders",
+    "action": "get"
   }
 }
 ```
 
-Możesz także wykorzystać **batch\_mode** i wysłać wszystko razem - dzięki tej funkcji, możliwe jest utworzenie całego filesystemu w jednym requeście.
+Nowe zamówienie tworzysz dopiero wtedy, gdy znasz już tytuł, `creatorID`, kod `destination` oraz poprawny podpis:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "filesystem",
-  "answer": [
-    {
-      "action": "createFile",
-      "path": "/plik1",
-      "content": "Test1"
-    },
-    {
-      "action": "createFile",
-      "path": "/plik2",
-      "content": "Test2"
+  "task": "foodwarehouse",
+  "answer": {
+    "tool": "orders",
+    "action": "create",
+    "title": "Dostawa dla Torunia",
+    "creatorID": 2,
+    "destination": "1234",
+    "signature": "tutaj-podpis-sha1"
+  }
+}
+```
+
+Po utworzeniu zamówienia możesz dopisywać towary pojedynczo:
+
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "foodwarehouse",
+  "answer": {
+    "tool": "orders",
+    "action": "append",
+    "id": "tutaj-id-zamowienia",
+    "name": "woda",
+    "items": 120
+  }
+}
+```
+
+Możesz też użyć **batch mode** i dopisać wiele pozycji naraz. To ważne, bo `orders.append` przyjmuje również obiekt z wieloma towarami:
+
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "foodwarehouse",
+  "answer": {
+    "tool": "orders",
+    "action": "append",
+    "id": "tutaj-id-zamowienia",
+    "items": {
+      "chleb": 45,
+      "woda": 120,
+      "mlotek": 6
     }
-  ]
+  }
 }
 ```
 
-### Oto nasze wymagania
+Jeżeli dopiszesz do zamówienia towar, który już w nim istnieje, system zwiększy jego ilość zamiast tworzyć duplikat.
 
-- Potrzebujemy trzech katalogów: `/miasta`, `/osoby` oraz `/towary`
-- W katalogu `/miasta` mają znaleźć się pliki o nazwach (w mianowniku) takich jak miasta opisywane przez Natana. W środku tych plików powinna być struktura JSON z towarami, jakie potrzebuje to miasto i ile tego potrzebuje (bez jednostek).
-- W katalogu `/osoby` powinny być pliki z notatkami na temat osób, które odpowiadają za handel w miastach. Każdy plik powinien zawierać imię i nazwisko jednej osoby i link (w formacie markdown) do miasta, którym ta osoba zarządza.
-- Nazwa pliku w `/osoby` nie ma znaczenia, ale jeśli nazwiesz plik tak jak dana osoba (z podkreśleniem zamiast spacji), a w środku dasz wymagany link, to system też rozpozna, o co chodzi.
-- W katalogu `/towary/` mają znajdować się pliki określające, które przedmioty są wystawione na sprzedaż. We wnętrzu każdego pliku powinien znajdować się link do miasta, które oferuje ten towar. Nazwa towaru to mianownik w liczbie pojedynczej, więc "koparka", a nie "koparki"
+### Odczyt bazy SQLite
 
-### Oczekiwany filesystem
+Możesz sprawdzić, jakie tabele znajdują się w bazie:
 
-Efektem Twojej pracy powinny być takie trzy katalogi wypełnione plikami.
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "foodwarehouse",
+  "answer": {
+    "tool": "database",
+    "query": "show tables"
+  }
+}
+```
 
-> **Uwaga**: w nazwach plików nie używamy polskich znaków. Podobnie w tekstach w JSON.
+Możesz też wykonywać zapytania select:
+
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "foodwarehouse",
+  "answer": {
+    "tool": "database",
+    "query": "select * from tabela"
+  }
+}
+```
+
+### Co musisz zrobić
+
+- Ustal, które miasta biorą udział w operacji na podstawie pliku `food4cities.json`
+- Znajdź odpowiednie wartości dla pola `destination` dla tych miast
+- Odczytaj z `food4cities.json`, jakie towary i ilości są potrzebne w każdym z tych miast
+- Przygotuj osobne zamówienie dla każdego wymaganego miasta
+- Każde zamówienie utwórz z poprawnym `creatorID`, `destination` i podpisem wygenerowanym na podstawie danych z bazy SQLite
+- Uzupełnij zamówienia dokładnie tymi towarami, których potrzebują miasta. Bez braków i bez nadmiarów
+- Gdy wszystko będzie gotowe, wywołaj narzędzie `done`
+
+### Dodatkowe uwagi
+
+- Musisz utworzyć tyle zamówień, ile mamy miast w pliku JSON
+- Jeśli coś zepsujesz po drodze, użyj `reset`, żeby wrócić do stanu początkowego
+- Każde zamówienie musi mieć poprawny `creatorID` oraz `signature`
+
+Gdy uznasz, że wszystkie wymagane zamówienia są gotowe, wyślij finalne sprawdzenie:
+
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "foodwarehouse",
+  "answer": {
+    "tool": "done"
+  }
+}
+```
+
+Jeśli komplet zamówień będzie zgodny z potrzebami miast, trafi pod właściwe kody docelowe i zachowa poprawne podpisy, Centrala odeśle flagę.

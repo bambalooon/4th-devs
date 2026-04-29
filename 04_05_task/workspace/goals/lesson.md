@@ -1,134 +1,136 @@
 ---
-title: S04E04 — Projektowanie własnej bazy wiedzy dla AI
+title: S04E05 — Projektowanie rozwiązań wewnątrzfirmowych
 space_id: 2476415
 status: scheduled
-published_at: '2026-04-02T04:00:00Z'
+published_at: '2026-04-03T04:00:00Z'
 is_comments_enabled: true
 is_liking_enabled: true
 skip_notifications: false
-cover_image: 'https://cloud.overment.com/0404-1774694246.png'
-circle_post_id: 31103404
+cover_image: 'https://cloud.overment.com/0405-1774694248.png'
+circle_post_id: 31103407
 ---
-Programowanie wspólnie z agentami jest tak wartościowe między innymi z powodu personalizacji wynikającej z dostępu do kodu źródłowego. Nasze zapytania, nawet jeśli są dość ogólne, potrafią poprowadzić AI przez kolejne pliki, odkrywając informacje potrzebne do udzielenia odpowiedzi bądź podjęcia działań.
+Zastosowanie możliwości obecnego AI w firmach może obejmować **wdrożenie zewnętrznych narzędzi czy platform** bądź **zbudowanie własnych** rozwiązań. W obu przypadkach może pojawić się potrzeba zaangażowania osób technicznych, ale w tym drugim nasza rola jest zdecydowanie większa i to właśnie nim się teraz zajmiemy.
 
-Zdarzają się jednak sytuacje, gdy agent nie rozumie tego, co chcemy zrobić, ponieważ z samego kodu nie da się odczytać potrzebnego kontekstu. Aby zaadresować ten problem zaczęliśmy tworzyć **plany** i pliki **specyfikacji** czy powtarzalne **umiejętności** wpływające na ogólną skuteczność agenta.
+Wielokrotnie mówiliśmy, ale też doświadczyliśmy w praktyce, że AI bez wątpienia potrafi już dziś robić imponujące rzeczy. Jednak na tym etapie często nie spełnia ona ogromnych oczekiwań, jakie mamy wobec tej technologii. A nawet jeśli mówimy o zastosowaniach, w których obecne modele odnajdują się świetnie, to nadal stoi przed nami niezwykle trudny problem do rozwiązania: **jest nim "zmiana"** za którą kryją się różne przyczyny, którym się dziś przyjrzymy.
 
-Gdy wychodzimy poza kontekst programowania, odpowiednik kodu źródłowego przestaje istnieć. Wówczas użyteczność agenta opiera się na treści instrukcji systemowej i bieżącej interakcji. I teraz patrząc na to z tej perspektywy, oczywiste staje się to, dlaczego tak dużo rozmawiamy na temat tworzenia baz wiedzy, systemów plików oraz zarządzania kontekstem. Po prostu to w tym obszarze leży potencjalnie największa wartość, jaką może dać nam AI zarówno w kontekście prywatnym jak i przy projektowaniu systemów agentowych.
+## Stosowanie generatywnego AI wewnątrz firmy
 
-## Rola budowania i generowania prywatnej bazy wiedzy
+Na tym etapie AI\_devs raczej oczywiste jest to, że obecnie jakość jaką daje nam sztuczna inteligencja jest w dużym stopniu uzależniona od wiedzy, jaką posiadamy na temat działania modeli czy otaczających je mechanik. Jednak ludzie z którymi będziemy pracować oraz użytkownicy rozwiązań, które będziemy tworzyć, nie zawsze będą mieć takie samo zrozumienie tej technologii jak my. Ich perspektywa będzie się więc różnić od naszej i musimy mieć to na uwadze.
 
-Dotychczasowe lekcje prezentowały różne przykłady przetwarzania treści oraz mechanizmy związane z przepływem informacji, w dużym stopniu kontrolowanym przez modele językowe. Jest bardzo prawdopodobne, że większość z nich nie ma znaczenia dla nas wszystkich, a z drugiej strony możliwe, że nawet jeden z nich znacząco wpłynie na codzienność wybranych osób. Jest to więc bardzo **indywidualne**, dlatego zamiast pytać "jak budować bazę wiedzy?", zastanowimy się nad tym **"jak zbudować WŁASNĄ bazę wiedzy?"**. Oznacza to, że odpowiedź będziemy musieli znaleźć sami i w dodatku niekiedy dojdziemy do wniosku, że w ogóle jej nie potrzebujemy.
+Co ciekawe, różnice w sposobie pracy z AI, w tym także stylu zadawania pytań, będą różnić się nawet wśród osób technicznych, posiadających dość dużą wiedzę na temat modeli. Trudno stwierdzić, co jest dokładną przyczyną, ale da się to zauważyć w sposobie pracy z narzędziami, które będziemy tworzyć. Na przykład dla nas, agent pomagający w organizacji dnia, będzie znacznie bardziej użyteczny niż dla innych i będzie to wynikało między innymi ze **świadomości mechanik**, które nim kierują. Przykładowo nasze zapytania mogą naturalnie zawierać wskazówki dla agenta, na przykład "Sprawdź mi wiadomości **w gmailu i na slacku** a potem zerknij do **plików** z moimi **planem dnia**". Ktoś inny mógłby zapytać po prostu: "Sprawdź co mam na dziś?" i z dużym prawdopodobieństwem agent nie zrobiłby tego, o co został poproszony.
 
-Przez kilka ostatnich lekcji na różne sposoby patrzyliśmy na nasze otoczenie, próbując odnaleźć połączenia pomiędzy możliwościami agentów z funkcjonalnościami narzędzi oraz procesami składającymi się na naszą codzienność, logikę aplikacji czy firmowe procesy. Tym razem skupimy się na tym pierwszym.
+![Różnica pomiędzy sposobem pracy z agentami AI uzależniona od doświadczenia](https://cloud.overment.com/2026-03-11/ai_devs_4_query_awareness-9a1f8376-3.png)
 
-Gdy zastanowimy się nad tym, co agenci powinni wiedzieć na nasz temat, zauważymy, że lista jest długa, ale jednocześnie nie jest nieskończona. Bo nawet jeśli przeskanujemy historię przeglądarki, to z dużym prawdopodobieństwem lista regularnie odwiedzanych domen będzie dość skromna. To samo dotyczy listy powtarzalnych aktywności i narzędzi z których korzystamy, nawet jeśli początkowo wydaje nam się, że jest inaczej. Następnie jeśli z tych list wybierzemy obszary, w których AI może nam pomóc oraz odrzucimy te do których nie chcemy podłączać agentów, to uzyskamy dość sensowne pozycje na których powinniśmy się skupić. W takim odkrywaniu bardzo dobrym towarzyszem jest AI. Dobrze jest więc otworzyć ulubiony interfejs czatu i po prostu porozmawiać.
+Rozwój modeli językowych, narzędzi i technik pracy sprawia, że agenci są w stanie coraz lepiej odpowiadać na nawet ogólne polecenia użytkowników końcowych. Widzieliśmy już jednak przykłady sytuacji w których nie jest to oczywiste i wdrożenie rozwiązań na poziomie technicznym bywa w pewnym sensie niewykonalne lub bardziej **nieopłacalne** i wówczas musimy szukać innych ścieżek.
 
-![Mapowanie obszarów w których AI faktycznie może nam się przydać](https://cloud.overment.com/2026-03-08/ai_devs_4_knowledge_scope-06622f93-8.png)
+Jeśli połączymy fakt, że wdrażanie nowych rozwiązań wiąże się ze **zmianą istniejących procesów, nawyków** i niekiedy także **zdobyciem nowych umiejętności**, ale także **dodatkowymi kosztami** oraz połączymy to z niedeterministyczną naturą modeli o tym, co właśnie powiedzieliśmy na temat doświadczeń w pracy z AI, to otrzymamy pełen obraz tego, dlaczego wdrożenia AI stanowią tak duże wyzwanie. Mówiąc na bardzo ogólnym poziomie chodzi o:
 
-Takie ćwiczenie pozwoli rozbić iluzję sugerującą, że AI z łatwością pozwoli na zautomatyzowanie wszystkiego, co robimy. Z drugiej strony, nie mamy tu gwarancji, że wypracowana lista jest kompletna. Tym bardziej, że nowe możliwości ujawniają się przez praktykę, a "najlepsze pomysły nie są **powodem** wykonanej pracy, lecz jej **rezultatem**". Mówiąc inaczej, musimy budować, popełniać błędy i eksplorować, aby dotrzeć do rzeczy na które trudno jest wpaść nawet podczas najlepszych sesji planowania.
+- **Aspekt Biznesowy:** choć potrzeba wdrożenia AI może być uzasadniona, tak wdrażanie zmian w istniejących procesach wiąże się też z kosztami, które obejmują także późniejsze utrzymanie. Konieczne jest tutaj także zaadresowanie kwestii prawnych, które mogą sięgać w obszar technologii, na przykład wyboru dostawcy bądź rozwiązań chmurowych, np. Amazon Bedrock czy Microsoft Azure. Z naszej strony musimy więc zadbać o to, aby biznes był świadomy możliwości i ograniczeń technicznych, które pozwolą na podjęcie właściwych decyzji.
+- **Aspekt Kulturowy:** wdrożenie nawet prostych narzędzi AI wymaga odpowiedniego zaangażowania na różnych poziomach organizacji. Tutaj świetnie sprawdzają się inicjatywy oddolne, w postaci wewnętrznych warsztatów czy nawet zwykłej wymiany doświadczeń na spotkaniach zespołu.
+- **Aspekt Technologiczny / Produktowy:** tutaj, jako programiści, mamy do zrobienia najwięcej, ale jednocześnie musimy brać pod uwagę pozostałe obszary i na ich podstawie, a także na podstawie naszej wiedzy, określić zakres projektu, plan wdrożenia, wskaźniki sukcesu i porażki oraz samą realizację. Są to więc raczej dobrze znane nam aktywności, ale rozszerzone o decyzje dotyczące modeli, ich ewaluacji oraz architektury agentów i ich optymalizacji, a także o zaadresowanie faktu, że osiągnięcie 100% skuteczności ich działania jest obecnie mało prawdopodobne.
 
-Przy kształtowaniu bazy wiedzy dobrze jest też wziąć pod uwagę obszary, których **nie chcemy** automatyzować, ale które warto w niej uwzględnić. Przykładowo sam zajmuje się tworzeniem treści i chcę aby tak pozostało. Ale jeśli AI może mieć dostęp do materiałów, które tworzę, to mogę mieć z tego wartość, ponieważ zamiast ręcznie przekazywać kontekst, mogę zwyczajnie się do niego odwołać. Poza tym, agenci będą mogli do niego dotrzeć bez mojego udziału.
+![Trudność wdrożenia AI w organizacjach](https://cloud.overment.com/2026-03-12/ai_devs_4_adoption-892e49ad-f.png)
 
-Mając więc w głowie te dwa obszary, **nasz oraz agentowy**, możemy zastanowić się nad docelową strukturą, uwzględniając przy tym przestrzeń na rzeczy, którymi będziemy zajmować się my, przestrzeń, w której będą działać agenci, oraz przestrzeń na wiedzę, która będzie stanowić kontekst dla agentów, a jednocześnie wnosić wartość dla nas.
+W związku z tym, że obszary biznesowe oraz kulturowe dotyczące organizacji leżą poza zakresem AI\_devs, na potrzeby dalszej części lekcji założymy, że mamy w organizacji dostęp do modeli dowolnego dostawcy (np. OpenAI/Anthropic/Gemini) za pośrednictwem API.
 
-Tutaj ponownie bardzo wartościowa jest iteracyjna rozmowa z AI podczas której będziemy stopniowo kształtować strukturę naszej bazy wiedzy. Mogą się w niej znaleźć elementy takie jak:
+## Przykłady narzędzi stosowanych w zespołach
 
-- **Profil:** obejmuje informacje na nasz temat i jest to przestrzeń prowadzona przede wszystkim przez nas, ponieważ zawiera informacje na temat "osobistego systemu", który może obejmować określenie naszych wartości, kierunku, preferencji, nawyków, przemyśleń czy szeroko rozumianego rozwoju. Agenci mogą mieć dostęp do wybranych obszarów tej przestrzeni o ile zawarte tam informacje mogą być pomocne przy ich działaniu.
-- **Świat:** zawiera informacje o ludziach, miejscach, narzędziach czy źródłach wiedzy. Tutaj też znajdują się informacje przydatne dla agentów, na przykład dotyczące sposobu organizacji pracy czy konfiguracji narzędzi.
-- **Tworzenie:** to nasza przestrzeń robocza na pracę koncepcyjną, eksperymenty, informacje o projektach, a także publikowane przez nas materiały.
-- **Operacje:** to przestrzeń przede wszystkim dla agentów. Są tu opisy procesów oraz dane gromadzone w trakcie wykonywania zadań, na przykład research'u.
-- **System:** to miejsce na treści aktualizowane wyłącznie przez system, na przykład powiadomienia, statusy urządzeń czy metadane z otoczenia.
+We wcześniejszych lekcjach mówiliśmy o budowaniu agentów, współpracy bezpośredniej z nimi oraz agentach działających w tle. Jednak wdrożenie AI do procesów firmowych może obejmować nawet **opracowanie promptu** w postaci dokumentu bądź zaledwie kilku plików, które można podłączyć do agentów i interfejsów czatu (np. Claude). Na pozór może wyglądać to na mało poważne podejście do wdrożeń AI, ale tak nie jest, bo:
 
-![Przykładowa struktura bazy wiedzy](https://cloud.overment.com/2026-03-08/ai_devs_4_knowledge_structure-41f3bac5-6.png)
+- **Checklista:** dokument może zawierać listę aktywności wraz z opisami, dla stałych ale powtarzalnych procesów, w przypadku których zawsze trzeba upewnić się, że wszystko zostało zrealizowane zgodnie z wymaganiami. Przykładem może być proces marketingowy związany z tworzeniem treści na firmowego bloga przy współpracy z zewnętrzną agencją. Każdy wpis może potrzebować weryfikacji pod kątem na przykład linkowania wewnętrznego, opisania zdjęć zgodnie z dobrymi praktykami SEO czy zawierać sekcje uzależnione od kategorii danego wpisu. Normalnie cały proces weryfikacji wykonywany jest ręcznie, bywa czasochłonny i łatwo w nim coś pominąć. Wsparcie ze strony AI może w tym bardzo pomóc, nawet pomimo tego, że zaangażowanie człowieka nadal będzie konieczne.
+- **Onboarding:** czyli dokument zawierający kompletną listę niezbędnych informacji, które mogą być przydatne dla nowych pracowników, albo osób z innych działów. Może on obejmować linki do zasobów wiedzy oraz informacje o osobach odpowiedzialnych za stałe procesy. Dokument ten nie ma więc na celu **zastąpienia rozmowy**, lecz **przekierowania** we właściwe miejsce. Tutaj można zapytać o to, po co nam tutaj AI, skoro pliki tekstowe można przeszukiwać. Natomiast jeśli informacji jest dużo, nowy pracownik może mieć problem z wpisaniem dokładnej frazy, a AI będzie w stanie dopasować zapytanie nawet jeśli będzie dość odległe od zawartości dokumentu.
+- **Styl:** to przykład bezpośrednio z realizacji AI\_devs. Wszystkie grafiki, które widzicie w treściach lekcji i zadań zostały wygenerowane na podstawie tego samego promptu opisującego spójny styl. Raz opracowany dokument dodaliśmy na Slacka, gdzie każdy mógł z niego skorzystać i z pomocą dowolnego narzędzia oferującego dostęp do Nano Banana 2 wygenerować odpowiednią grafikę. Tak prosta rzecz wpływa teraz na odbiór całego materiału dość dużego projektu jakim jest to szkolenie.
 
-Nawet jeśli zaplanujemy teraz podobną strukturę, to wcale nie oznacza, że musimy ją natychmiast wdrażać. Tym bardziej, że jest to praktycznie niemożliwe lub przynajmniej niepotrzebne. W zamian znacznie lepiej jest wybrać **jeden obszar** lub nawet **jedną aktywność** i ją zaadresować. Przykładem może być omawiany już spersonalizowany newsletter, podcast, czy proste automatyzacje związane z planowaniem dnia czy aktywnościami związanymi z naszym hobby. Bardzo dobrym pomysłem, jest wybranie na początek czegoś, co się nam po prostu podoba, a dopiero później tym, co jest faktycznie użyteczne.
+Zatem nawet najmniejsze aktywności związane z pracą z AI mogą wnieść dużo wartości wyrażonej przez oszczędność czasu, zwiększenie komfortu pracy czy utrzymania wyznaczonych standardów. Co ciekawe zwykle dość trudno jest zauważyć potrzebę wprowadzenia aż tak prostych elementów, bo zwykle zwyczajnie o tym nie myślimy. Jednocześnie opracowanie takich plików, jak chociażby wymieniony opis stylu, zwykle będzie wymagał doświadczenia w pracy z modelami.
 
-Na organizację treści można też spojrzeć przez pryzmat znanych technik notowania, na przykład Zettelkasten czy PARA lub przynajmniej ich elementów. Przykładowo koncepcja "atomowych" notatek czy ich łączenia z pomocą linków może być bardzo użyteczna z perspektywy agentów i procesu wyszukiwania. Ale z drugiej strony, agenci mogą też zyskać na strukturze katalogów i jasnym podziale uprawnień czy odpowiedzialności. Także różne zasady mogą obowiązywać nas, a inne agentów. Tym bardziej, że dla AI notatka może zawierać tekst, ale też fragmenty kodu bądź skrypty.
+Sama koncepcja dokumentów / promptów nabiera też nieco innego znaczenia, gdy spojrzymy na nią przez pryzmat popularnych w programowaniu plików AGENTS.md czy Skills. W ich przypadku również często mówimy o prostych zestawach instrukcji. A skoro takie podejście bywa użyteczne w programowaniu, to sprawdzi się również poza nim.
 
-Poniżej widzimy przykładową strukturę notatki w której początkowy fragment (frontmatter) zawiera zarówno ustawienia na potrzeby publikacji na stronie www, ale też bieżący status, tagi czy kontrolę uprawnień i przypisanie odpowiedzialności a nawet "prompt".
+Opieranie działania AI wyłącznie o dokumenty, które agent może dowolnie zinterpretować, szczególnie w połączeniu z zapytaniem użytkownika na które też nie mamy zbyt dużego wpływu. W takiej sytuacji może być uzasadnione utworzenie wewnątrzfirmowego serwera MCP, albo niezależnego narzędzia, które będzie w pełni dopasowane do danego procesu. Warto to rozważyć, bo z pomocą AI możemy bardzo niskim kosztem utworzyć dość rozbudowane rozwiązanie, które nawet jeśli będzie wykorzystywane przez krótki czas, nadal będzie się opłacać. Przykład takiego narzędzia znajduje się w katalogu **04\_05\_review**.
 
-![Przykładowa struktura notatki](https://cloud.overment.com/2026-03-08/ai_devs_4_knowledge_contents-850ed061-0.png)
+Koncepcja tego agenta jest niezwykle prosta i polega na **przetwarzaniu akapitów** w dokumencie tekstowym. Agent otrzymuje treść każdego z nich i podejmuje decyzję o tym, czy skomentować ich fragmenty narzędziem **add\_comment**. Może więc dojść do sytuacji w której agent zostawia jeden lub więcej komentarzy, bądź wcale. Poniżej mamy animację głównej mechaniki tego agenta.
 
-Jeśli dobrze przemyślimy sobie strukturę i/lub zasady tworzenia notatek, to wspólnie z AI możemy ją rozwijać znacznie łatwiej, niż gdybyśmy musieli robić to samodzielnie. Dodatkowo użyteczność tych notatek będzie nieporównywalnie większa, jeśli agenci będą mogli się nimi posługiwać w rzeczywistych procesach.
+![Wizualizacja agenta](https://cloud.overment.com/agent-1773399141.gif)
 
-I teraz co ważne, na tym etapie możemy nawet w ogóle nie pisać kodu, ponieważ katalog z bazą wiedzy możemy podłączyć bezpośrednio do Claude Code i wspólnie z agentem ukształtować pierwsze procesy, notatki czy szablony. Ten sam agent może później zająć się ich realizacją, ponieważ na tym etapie bez problemu podłączymy serwery MCP czy narzędzia CLI. Dopiero później możemy pomyśleć o uruchomieniu tego procesu na zdalnym serwerze, połączeniu interfejsów czy w ogóle napisania całej logiki agenta od podstaw.
+Zatem to narzędzie opiera się o **dokument tekstowy**, który ma zostać "skomentowany", **prompt** opisujący na co agent ma zwrócić uwagę oraz **logika przetwarzania kolejnych fragmentów**. Istotną rolę odgrywa tutaj interfejs użytkownika, który wyświetla utworzone komentarze w formie **okienek** z opcją akceptacji, bądź odrzucenia danej sugestii.
 
-## Zalety i ograniczenia formatu markdown
+Można powiedzieć, że wizualny interfejs (UI) odgrywa tu kluczową rolę, ponieważ można uznać, że "ten sam efekt można uzyskać wklejając dokument do ChatGPT". Jednak tam nie uzyskamy rezultatu, który pozwoli na wygodne zarządzać sugestiami agenta. Znacznie trudniej też będzie w ogóle je zauważyć. A tymczasem tutaj mówimy o kilku krokach:
 
-Format Markdown jest z nami od dawna i zwykle utożsamiany jest z kontekstem technicznym, prawdopodobnie ze względu na jego popularyzację przez Github mniej więcej w 2009 roku. W 2024 pojawił się nawet w Google Docs, co sugeruje także obecność w obszarach biznesowych i jest to uzasadnione, ponieważ Markdown to format którym bardzo naturalnie posługuje się AI.
+1. Użytkownik wybiera dokument oraz prompt
+2. Dokument zostaje podzielony na fragmenty
+3. Każdy fragment zostaje sprawdzony przez agenta i ewentualnie skomentowany
+4. Przed zakończeniem pracy agent generuje notatkę końcową
+5. Użytkownik może zaakceptować / odrzucić sugestie lub poprosić o ponowne sprawdzenie z opcją przesłania krótkiego promptu.
 
-Z programistycznego punktu widzenia Markdown to zwykły plik tekstowy, więc możemy go swobodnie transformować, przeszukiwać albo po prostu tworzyć. Fakt, że potrafią to również modele językowe sprawia oraz że mówimy o nim tak dużo w kontekście agentów i teraz także baz wiedzy sugeruje, że powinniśmy korzystać z niego przy każdej okazji.
+Całą logika prezentuje się więc następująco:
 
-Jeśli jednak pracujemy w zespole, gdzie często konieczna jest praca wielu osób na jednym pliku jednocześnie, czy współdzielenia dokumentów z różnymi poziomami uprawnień, to wówczas Notion bądź Google Docs będą zdecydowanie lepszym wyborem. I choć w nich również pojawia się format Markdown, tak jego wsparcie jest raczej ograniczone. Natomiast wartość którą dają wspomniane funkcjonalności będzie niemal zawsze wyższa niż elastyczność pliku tekstowego. Choć w teorii istnieje możliwość konwertowania Markdown do formatu Notion lub odwrotnie, w praktyce sprawdza się to bardzo przeciętnie, ponieważ większość informacji i tak jest tracona na etapie konwersji. Znacznie mądrzej jest więc podjąć decyzję, w których obszarach stosować Notion lub Docs, a w których pliki .md.
+![Przegląd narzędzia wspierającego tworzenie treści](https://cloud.overment.com/2026-03-13/ai_devs_4_review-64de189a-3.png)
 
-![Wybór Markdown i innych rozwiązań](https://cloud.overment.com/2026-03-09/ai_devs_4_markdown_vs-8af9d115-9.png)
+W przypadku narzędzi takich jak to, szczególnie interesująca jest ich ogromna elastyczność, bo agent może otrzymać dodatkowe narzędzia. Wówczas ten sam interfejs może adresować zupełnie inny proces. Przykładowo:
 
-Wzbogacanie formatu Markdown nie jest też niemożliwe, czego przykładem może być projekt [with-md](https://github.com/emotion-machine-org/with-md) w przypadku którego agenci mogą mieć nawet dostęp do dodatkowych informacji na temat treści. Na tym etapie jest to jednak jedynie koncepcja i narzędzie stworzone [na własne potrzeby](https://x.com/egeozin/status/2026344803097878939). Niewykluczone jednak, że pomysły takie jak ten prędzej czy później przerodzą się w pełnoprawne produkty czy nawet coś więcej.
+- Proste prompty mogą opierać się o wiedzę i umiejętności modelu. Mowa tu o korektach, czy transformacjach (np. tłumaczeniach).
+- Jeśli agent zostanie podłączony do Internetu bądź wybranych domen, to do gry wchodzi także grounding czy fact-checking.
+- Jeśli agent otrzyma dodatkowe dokumenty, na przykład w postaci indeksu stron firmowego bloga, to agent może zająć się linkowaniem wewnętrznym, co jest przydatne dla czytelników ale też z punktu widzenia SEO
+- Dodanie narzędzi łączących agenta z zewnętrznymi usługami może posłużyć przesyłaniu informacji. Np. agent może zasugerować, aby wybrany fragment, np. zgłoszenia, został przekierowany do odpowiedniego działu.
 
-W plikach markdown często będzie pojawiać się potrzeba osadzania obrazów. Edytory tekstowe niemal zawsze wspierają taką możliwość, ale wówczas pliki są zapisywane lokalnie, a w praktyce jest to bardzo ograniczające. Znacznie lepiej jest zadbać o to, aby obrazy były osadzane w treści w formie linków. Wówczas agent może się nimi posługiwać, co widzieliśmy w kontekście obsługi narzędzi w lekcji **S01E04**. Podobnie też agent może cytować takie linki w swoich wypowiedziach, co w przypadku plików lokalnych może być utrudnione bądź niemożliwe.
+Oczywiście takie scenariusze mogą wymagać zmian w interfejsie czy logice, ale wszystkie opierają się o tę samą koncepcję. I właśnie takich rzeczy warto jest szukać w naszej codzienności oraz procesach firmowych.
 
-![Zdalne obrazy w treści markdown](https://cloud.overment.com/2026-03-09/ai_devs_4_external_links_practices-32d5ae17-5.png)
+Działanie przykładu **04\_05\_review** pokazałem osobom z którymi sam współpracuję, sugerując możliwe zastosowania w **marketingu** oraz integracji z jedną z naszych **platform**. Podczas rozmów z nimi wybraliśmy obszary w których to rozwiązanie nam się przyda. Od razu też pojawiły się potrzeby na inne narzędzia, ponieważ prezentacja tego, pokazała możliwości o których wcześniej nikt nie pomyślał. Warto jest więc **eksperymentować** nawet na bardzo małej skali.
 
-Jak widać powyżej, otwarte linki są niemal niezbędne, a jednocześnie dość trudno je kontrolować zarówno pod kątem uprawnień jak i terminu ważności. Dobrze jest więc ustalić zasady oraz mieć wgląd w listę dostępnych zasobów, a także ewentualną możliwość przywrócenia dostępności.
+## Prywatność danych i konsekwencje błędów
 
-## Różnice pomiędzy bazą wiedzy a pamięcią długoterminową
+Jednym z pierwszych pytań dotyczących zastosowania AI jest kwestia zachowania bezpieczeństwa oraz prywatności danych. W tym miejscu dyskusja zwykle prowadzi nas do usługi chmurowe (np. wspomniany [Bedrock](https://aws.amazon.com/bedrock/)) bądź rozwiązań lokalnych o ile na takie możemy sobie pozwolić.
 
-W lekcji **S02E03** rozmawialiśmy na temat pamięci długoterminowej oraz zewnętrznych dokumentów, a także koncepcji agentów "uczących się" nowych informacji zamiast zwykłego indeksowania. Teraz mówimy o sytuacji w której pamięć długoterminowa i baza wiedzy stają się niemal tym samym, ponieważ funkcjonują w tej samej przestrzeni. Poza tym, mamy do czynienia z dynamiczną treścią tworzoną zarówno przez człowieka, jak i przez AI.
+Instancje na Bedrock lub Azure dają nam zwykle pełną swobodę pracy z danymi (o tym ostatecznie decydują wewnętrzne polityki firmy bądź umowy z klientami(!!)) i może to sprawić wrażenie, że nasze dane są bezpieczne. **Ale tak nie jest**, ponieważ:
 
-Gdy rozwijamy bazę wiedzy na potrzeby prywatne bądź firmowe, to tworzymy treści w sposób bardzo naturalny, pomijając rzeczy, które już wiemy bądź które łatwo można wywnioskować z otoczenia. Jednak z perspektywy agenta poruszającego się po takiej bazie wiedzy, nie zawsze jest to oczywiste, a luki wiedzy mają negatywny wpływ na jego skuteczność. Przykładowo:
+- Agent podłączony do Internetu może przesłać wewnętrzne dane na zewnątrz
+- Agent posiadający możliwość wykonania kodu, może usunąć bądź uszkodzić źródła danych
+- LLM może popełniać błędy. Bez weryfikacji ze strony człowieka, w danych mogą zacząć pojawiać się problemy, które trudno będzie zauważyć oraz naprawić.
+- Agent może przypadkowo skorzystać z narzędzia, np. "send\_email" i wysłać go na niepoprawny adres. Podobnie też może zaprosić na spotkanie w Google Calendar osoby, których nie powinno tam być (np. spoza organizacji).
+- Agent może wprowadzić człowieka w błąd, np. czatbot podłączony do firmowej bazy wiedzy może zasugerować wykonanie akcji, która nie powinna mieć miejsca (np. restart serwera produkcyjnego bez zachowania ustalonych procedur).
 
-- nazwy projektów czy imiona osób naturalnie sugerują nam ich kontekst. Wiemy więc gdzie znajdziemy informacje na ich temat oraz kiedy mogą być nam potrzebne, ale agent nie będzie w stanie do nich dotrzeć.
-- linki pojawiające się w treści, których ścieżki oraz opis w żaden sposób nie sugerują ich zawartości (np. w przypadku skrócenia) są praktycznie "niewidoczne" dla agenta
-- referencje do zdarzeń bez wyraźnego powiązania, na przykład "ostatnia rozmowa" czy "w poprzedniej wersji" uniemożliwiają dalszą eksplorację i zrozumienie kontekstu. Tutaj wystarczy nawet link do powiązanej notatki, aby zaadresować ten problem.
-- unikanie powtórzeń przy powiązaniach notatek może utrudnić agentowi dotarcie do treści, gdy w trakcie przeszukiwania wczyta on jedynie fragment dokumentu, w którym powiązanie nie będzie istnieć
-- zmiany w dokumentach nadpisują istniejące informacje, więc agent traci do nich dostęp. Jeśli tworzone są nowe wersje dokumentów, to agent musi wiedzieć która z nich jest najnowsza oraz jak do niej dotrzeć.
+![Potencjalne problemy z danymi](https://cloud.overment.com/2026-03-13/ai_devs_4_issues-c9618cc5-0.png)
 
-![Problemy z niewystarczającym kontekstem dla agentów](https://cloud.overment.com/2026-03-09/ai_devs_4_note_context-fb70430d-9.png)
+Zatem nawet jeśli dostawca LLM będzie zaufany, to nadal nie możemy ufać samemu modelowi. Na przestrzeni lekcji, pojawiało się mnóstwo przykładów prezentujących **ograniczanie uprawnień** agentów, albo wprost **fizyczne uniemożliwianie** podjęcia określonych działań.
 
-Mówiąc więc wprost: **notatki muszą być tworzone tak, jakby osoba, która je czyta nie posiadała żadnego dodatkowego kontekstu.** A to całkowicie zmienia sposób w jaki rozwijamy bazę wiedzy. Jednocześnie dość jasno sugeruje też, dlaczego agenci mają dość duży problem w nawigacji gdy zostają wprost połączeni z zewnętrznymi dokumentami.
+Ostrożność należy zachować także w pracy z sandboxami, gdzie agent może znaleźć sprytne obejścia, o których nie pomyśleliśmy. Dobrym przykładem są agenci do kodowania, którzy zauważając brak dostępu do pliku .env piszą i uruchamiają skrypt, który to zrobi. Interesujące przykłady można znaleźć w dokumentach takich jak [System Card: Claude Opus 4.6](https://www-cdn.anthropic.com/6a5fa276ac68b9aeb0c8b6af5fa36326e0e166dd.pdf) czy [Eval Awareness](https://www.anthropic.com/engineering/eval-awareness-browsecomp) sygnalizujące, że obecne modele są w stanie zauważyć, że są testowane i dopasować swoje zachowanie tak, aby zaliczyć testy, nawet jeśli będzie wymagało to ukrycia ich faktycznych umiejętności. Mówiąc inaczej - obecne LLMy są **potencjalnie** zdolne do omijania zabezpieczeń.
 
-## Korzystanie z modeli przy edycji notatek
+Niestety mamy dość ograniczoną przestrzeń w zakresie kształtowania zachowań agentów, aby całkowicie wyeliminować wspomniane ryzyka. Warto jednak z góry nie zakładać, że coś jest **niemożliwe** i poświęcić czas na przeanalizowanie opcji, które nawet jeśli będą wymagały zaangażowania człowieka, co uniemożliwi pełną automatyzację procesu, nadal przełożą się na dużą wartość.
 
-Gdy generujemy kod, którego w ogóle nie czytamy, a większość decyzji podejmuje LLM, możemy bardzo szybko wdrażać kolejne funkcjonalności. Jednak równie szybko tracimy orientację w tym, co się dzieje, i gdy coś idzie nie tak, trudno jest nam to naprawić. W przypadku baz wiedzy tworzonych przez AI jest jeszcze gorzej, ponieważ gubimy cały sens jej budowania. Tutaj ewentualnie wyjątek stanowi sytuacja w której świadomie podejmujemy decyzję, że rozwój leży niemal w całości po stronie agentów, ale wówczas odbywa się to według naszych zasad bądź przynajmniej w określonym przez nas celu.
+## Praca z kontekstem usług i narzędzi
 
-Nie oznacza to, że musimy całkowicie zrezygnować z AI i nie chodzi tylko o katalogi dedykowane agentom, ale także obszary w których treści pochodzą bezpośrednio od nas. Wystarczy postawić wyraźną granicę, której agent nie może przekroczyć, na przykład:
+Praktycznie każdy z nas pracuje z różnymi narzędziami. Część aktywności polega na **przenoszeniu danych** pomiędzy nimi i ewentualnej transformacji. Nierzadko też musimy zgromadzić informacje z wielu takich źródeł, a następnie zwizualizować bądź opisać, aby na tej podstawie móc podjąć jakieś decyzje. Bywa również tak, że musimy podjąć wiele małych akcji w różnych miejscach i więcej czasu tracimy na przełączanie się między usługami, niż faktyczną pracę.
 
-- **Transformacja:** gdy pozostajemy źródłem informacji, a LLM odpowiada jedynie za jej formatowanie, delikatną korektę czy po prostu przepisanie (z obrazu bądź audio), tak trudno jest mówić o utracie kontroli nad bazą wiedzy. Wprost przeciwnie. Takie zaangażowanie AI może sprawić, że w ogóle będziemy rozwijać swoją cyfrową przestrzeń.
-- **Szablony:** utrzymanie struktury notatki, którą omówiliśmy przed chwilą, nie jest oczywiste. Jeżeli utworzymy szablony na przykład w sekcji **system**, to agent będzie mógł je wykorzystać zgodnie z naszą prośbą, zdejmując z nas ten obowiązek.
-- **Organizacja:** po dodaniu notatki agent może sprawdzić czy znajduje się ona we właściwym miejscu i jeśli nie, jedynie zasugerować i uzasadnić potencjalną zmianę.
-- **Linkowanie:** bez względu na to czy zdecydujemy się na pracę w Obsidian, czy nie, linkowanie notatek jest szczególnie ważne. Na pewnym etapie staje się to dość skomplikowane, więc jest to przestrzeń na zastosowanie AI. Warto tylko utworzyć notatkę wyjaśniającą zasady według których mają powstać linki, bądź oprzeć się o sugestie ze strony modelu.
-- **Walidacja:** mając zasady dotyczące linkowania, struktur czy organizacji, możemy skorzystać z AI do weryfikacji każdego z tych aspektów. Pozwoli nam to utrzymać standardy oraz zachować wysoką dyscyplinę organizacji wiedzy.
-- **Komentowanie:** AI nie powinno tworzyć treści naszych notatek, ale możemy stworzyć przestrzeń na ich komentowanie.
-- **Indeksowanie:** w kontekście budowania baz wiedzy często pojawiają się koncepcje **MoC** czyli Map of Content. Są to notatki pełniące rolę indeksu bądź wspomnianej "mapy" dla wybranych obszarów treści. Takie notatki mogą być generowane programistycznie, ale agent również może być zaangażowany w ich tworzenie bądź weryfikację.
-- **Audytowanie:** nie wszystkie pomyłki i braki można zauważyć od razu, więc zaangażowanie agenta w dodatkową weryfikację struktury obejmującą na przykład łączenie notatek bądź archiwizowanie tych, które zaczynają stanowić szum, ma duży sens.
+Powyższe problemy dotyczą niemal każdej osoby w firmie:
 
-![Balans zaangażowania pomiędzy AI a człowiekiem](https://cloud.overment.com/2026-03-09/ai_devs_4_knowledge_balance-5eaa265d-b.png)
+- Obsługa klienta wymaga odnajdywania informacji o ustawieniach konta w panelu administracyjnym
+- Zespół marketingu spędza czas na monitorowaniu skuteczności kampanii w różnych narzędziach i własnych dokumentach
+- Zespół sprzedażowy spędza mnóstwo czasu na aktualizacji systemu CRM, a i tak wciąż zdarzają się braki wynikające z różnych powodów.
+- Osoby zaangażowane w rozwój produktu muszą pozyskiwać informacje z wielu miejsc, również narzędzi z którymi nie pracują tak często jak osoby z konkretnych działów.
 
-Kolejny wniosek, jaki się tutaj nasuwa jest prosty: **my odpowiadamy za treść oraz główne zasady, a AI za jej organizację**. Oczywiście balans zaangażowania jest uzależniony od obszaru bazy wiedzy oraz naszych potrzeb. Jednak taki podział można uznać za dobry punkt startowy.
+Takich scenariuszy jest mnóstwo, a patrząc na możliwości AI, od razu przychodzi do głowy agent ułatwiający pracę tych ludzi. Jednak gdy wejdziemy w szczegóły i nagle okaże się, że ryzyko halucynacji, prompt injection czy techniczne ograniczenia interakcji z danymi nie pozwalają na to, aby agent mógł robić to wszystko jedynie na podstawie poleceń użytkownika. Jest to idealna przestrzeń na powrót do MCP Apps bądź koncepcji generatywnego AI, które omawialiśmy w lekcji **S03E05**.
 
-## Połączenie z agentami
+Po uruchomieniu przykładu **04\_05\_apps** otworzy się okno przeglądarki z prostym interfejsem czatu oraz przykładowymi akcjami związanymi z zarządzaniem **zadaniami, sprzedażą oraz newsletterem**. Nie jest to jednak zwykłe mapowanie dostępnych funkcjonalności, lecz lista dedykowanych interfejsów dopasowana do **procesów biznesowych** takich jak monitorowanie sprzedaży, zarządzanie produktami czy zadaniami powiązanymi z procesami poszczególnych projektów.
 
-Przykład **04\_04\_system** zawiera minimalistyczną logikę systemu wieloagentowego, którego główną część stanowi baza wiedzy w formacie markdown. Jej struktura odzwierciedla to, co do tej pory powiedzieliśmy na temat możliwości organizacji notatek. Znajdziemy więc w niej katalogi **Me / World / Craft / Ops / System.**
+![Zarządzanie procesami w interfejsie czatu](https://cloud.overment.com/2026-03-15/ai_devs_4_chat_ui-dda8757b-6.png)
 
-Na początek warto zajrzeć do katalogu **workspace/system/templates** w którym znajdują się **"szablony"** notatek dla poszczególnych kategorii - profili osób, opisów miejsc, zdarzeń, narzędzi, zasobów itd. Zatem gdy poprosimy agenta o zapisanie informacji, to zamiast samodzielnie decydować o jej strukturze i lokalizacji, skorzysta z dostępnych szablonów oraz zasad.
+W związku z tym, że mamy tu do czynienia ze zdalnym serwerem MCP, możemy bez problemu podłączać te funkcjonalności do interfejsów wspierających MCP Apps, np. Claude. Co więcej, takie podejście pozwala również udostępniać serwery MCP naszym klientom, którzy mogą pracować we własnych interfejsach. Jeśli jednak posiadają one wsparcie dla MCP Apps, integracja nie będzie stanowić problemu. Nawet serwer, który znajduje się w przykładzie **04\_05\_apps** już teraz może być podłączony do Claude.ai.
 
-![Szablony notatek](https://cloud.overment.com/2026-03-10/ai_devs_4_blueprints-c41d89ad-3.png)
+MCP Apps nie mają też na celu pełnego zastąpienia narzędzi, lecz po prostu ułatwienie dostępu do wybranych funkcjonalności bądź danych. Na ostatniej wizualizacji znajdują się przyciski takie jak "**Add follow-up todo**" lub "**Open in Stripe**", które pełnią dokładnie tę rolę.
 
-Przykład działania tych szablonów można zobaczyć uruchamiając polecenie **npm run lesson19:examples -- 3** (flaga na końcu ograniczy liczbę przykładów). Przy ich wykonywaniu agent w pierwszej kolejności **rozejrzy się po strukturze** poprzez sprawdzenie notatki zawierającej "mapę treści", a następnie notatki odpowiedniego **szablonu**. Na tej podstawie podejmie decyzję o jej strukturze i utworzy nowy wpis **bądź doda informację do istniejącego!**
+Poza tym fakt, że MCP Apps zwykle prezentowane są w kontekście interfejsu czatu i rzeczywiście tam sprawdzają się świetnie, tak nie oznacza wcale, że nie mogą być zastosowane na przykład w innych obszarach aplikacji. Tam również może pojawiać się AI czy nawet agenci, ale bez możliwości przesyłania wiadomości o dowolnej treści.
 
-![Autonomiczne zarządzanie notatkami](https://cloud.overment.com/2026-03-10/ai_devs_4_decision-6a8aed19-e.png)
+Podsumowując, możliwość wyświetlania interaktywnych interfejsów pozwala na:
 
-Gdy spojrzymy na listę powyższych kroków, zobaczymy, że na jedną notatkę przypada nawet kilkanaście zapytań do LLM. Dlatego im większa będzie nasza baza wiedzy, tym bardziej skorzystamy z możliwości AI, ponieważ wartość wynikająca ze spójności struktury poszczególnych notatek będzie ogromna. Poza tym, agent wyposażony w taką wiedzę nie tylko skutecznie zapisuje informacje, ale **nawiguje po nich**, a to otwiera nam dużą przestrzeń na autonomiczne działania.
+- Przedstawienie danych w formie wizualnej, z którą znaczniej wygodniej się jest zapoznać
+- Udostępnienie **deterministycznych** akcji, ponieważ interfejs obsługiwany jest z pomocą kodu
+- Połączenie danych oraz akcji pochodzących z wielu narzędzi, co znacznie ułatwia wykonywanie powtarzalnych czynności na określonych stanowiskach
 
-I tutaj do gry wchodzi koncepcja o której już mówiliśmy na przykład w lekcji **S02E03**. Otóż w katalogu **workspace/ops** możemy opisać procesy realizowane wyłącznie przez agentów, uwzględniając przy tym współpracę pomiędzy nimi. I tak w katalogu **workspace/ops/daily-news** znajdziemy cztery pliki: **research | assemble | deliver** oraz **info.md**.
+Jednocześnie MCP Apps z pewnością nie stanowią alternatywy dla bezpośredniego zaangażowania agentów, ponieważ są to rozwiązania komplementarne. Wiele też wskazuje na to, że generatywne interfejsy będą wciąż zyskiwać na popularności, aczkolwiek obecnie są jeszcze na bardzo wczesnym etapie kształtowania.
 
-Główny agent może otrzymać polecenie "Wykonaj proces daily-news", które będzie wysłane do niego automatycznie każdego dnia. Dokument ten zawiera instrukcję opracowania aktualizacji na dany dzień, z uwzględnieniem podziału zadań **pomiędzy agentami.** Każdy z nich otrzymuje więc dalsze polecenie z prośbą o zapoznanie się z instrukcją dotyczącą ich zakresu oraz podjęcie opisanych tam działań. Proces zwizualizowany jest poniżej.
+Na wizualizacji poniżej widzimy ogólną architekturę aplikacji wykorzystującej koncepcję generatywnych interfejsów. Choć mówi ona wprost o MCP Apps, to główne komponenty raczej będą pozostawać takie same, niezależnie od stosowania protokołu czy własnych implementacji.
 
-![Delegowanie zadań w powtarzalnych procesach](https://cloud.overment.com/2026-03-10/ai_devs_4_daily_news_delegation-d2fe03c4-7.png)
+Widzimy więc poniżej jasny podział na warstwę prezentacji (np. aplikacja webowa) oraz back-end w ramach którego funkcjonuje nasze API, połączenie z LLM oraz klient MCP zarządzający połączeniem z serwerem udostępniającym interfejsy oraz akcje. Sam serwer MCP udostępnia nam **narzędzia** pozwalające na wykonanie akcji i/lub wyświetlenie interfejsu.
 
-Czyli raz jeszcze: mówimy tutaj o zaledwie **czterech prostych plikach tekstowych**, które przekładają się na **powtarzalny proces** obejmujący w tym przypadku monitorowanie wybranych stron Internetowych.
+![Architektura aplikacji wykorzystująca generatywne interfejsy](https://cloud.overment.com/2026-03-15/ai-devs_4_mcp_apps_design-7b940be1-a.png)
 
-![Instrukcje dla aktywności w powtarzalnych procesach](https://cloud.overment.com/2026-03-10/ai-devs_4_daily_news_process-8c77ab1b-6.png)
-
-Powyższy przykład powinien wyglądać znajomo, ponieważ podobne rzeczy tworzyliśmy już w lekcji **S02E03**, **S02E04**, **S04E01**, **S04E02** oraz **S04E03**. Teraz jednak mówimy o połączeniu wszystkich tych koncepcji, czyli: bazy wiedzy, systemów wieloagentowych, agentów działających w tle, bezpośredniej pracy z agentami, systemu plików oraz koncepcji cyfrowego ogrodu. Co więcej, możemy wyjść z tym znacznie dalej, opisując kolejne procesy i podłączając kolejne narzędzia.
-
+Mówimy tutaj także o sytuacji, która jest bardzo rzadko spotykana, lecz dopuszczalna, czyli **jednym serwerze MCP podłączonym do więcej niż jednej usługi**. Oczywiście należy podchodzić do tego z rozsądkiem, ponieważ znacznie zwiększa to złożoność serwera i potencjalnie zmniejsza jego elastyczność.
