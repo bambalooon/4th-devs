@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
 import * as readline from 'node:readline'
-import { openai, openaiDirect } from './config.js'
+import { openai, openrouter } from './config.js'
 import { ReportSchema } from './task.js'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
@@ -300,9 +300,6 @@ const tools: Tool[] = [
       const source = typeof args.source === 'string' ? args.source : 'unknown'
       if (!base64) return JSON.stringify({ notes: 'no audio data' })
 
-      const audioBuffer = Buffer.from(base64, 'base64')
-      const ext = mime.includes('wav') ? 'wav' : mime.includes('ogg') ? 'ogg' : 'mp3'
-
       // Check if transcription was already cached in output/
       const transcriptionPath = join(WORKSPACE, 'output', `${source}_transcription.txt`)
       let transcription: string
@@ -310,17 +307,19 @@ const tools: Tool[] = [
         transcription = await readFile(transcriptionPath, 'utf-8')
         console.log(`[analyze_audio:${source}] Using cached transcription`)
       } catch {
-        // Not cached — transcribe via Whisper
-        const blob = new Blob([audioBuffer], { type: mime })
-        const file = new File([blob], `audio.${ext}`, { type: mime })
+        // Not cached — transcribe via OpenRouter STT
+        const ext = mime.includes('wav') ? 'wav' : mime.includes('ogg') ? 'ogg' : 'mp3'
         try {
-          const result = await openaiDirect.audio.transcriptions.create({
-            model: 'whisper-1',
-            file,
-            language: 'pl',
+          const result = await openrouter.stt.createTranscription({
+            sttRequest: {
+              model: 'openai/whisper-1',
+              inputAudio: {
+                data: base64,
+                format: ext as 'mp3' | 'wav' | 'ogg',
+              },
+            },
           })
           transcription = result.text
-          // Cache the transcription
           await mkdir(join(WORKSPACE, 'output'), { recursive: true })
           await writeFile(transcriptionPath, transcription, 'utf-8')
         } catch (err) {

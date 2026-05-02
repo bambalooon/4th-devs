@@ -9,6 +9,7 @@
     "@langfuse/client": "^5.1.0",
     "@langfuse/openai": "^5.1.0",
     "@langfuse/otel": "^5.1.0",
+    "@openrouter/sdk": "^0.12.24",
     "@opentelemetry/sdk-node": "^0.214.0",
     "gray-matter": "^4.0.3",
     "openai": "^4.96.0",
