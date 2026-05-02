@@ -196,7 +196,7 @@ const tools: Tool[] = [
       if (!text.trim()) return JSON.stringify({ notes: 'empty input' })
 
       const response = await openai.chat.completions.create({
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -246,7 +246,7 @@ const tools: Tool[] = [
       if (!base64) return JSON.stringify({ notes: 'no image data' })
 
       const response = await openai.chat.completions.create({
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -324,7 +324,7 @@ const tools: Tool[] = [
       console.log(`[analyze_audio:${source}] Transcription: ${transcription.slice(0, 200)}`)
 
       const response = await openai.chat.completions.create({
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -418,7 +418,7 @@ const tools: Tool[] = [
       const responseSchema = zodToJsonSchema(ReportSchema, { name: 'Report' })
 
       const response = await openai.chat.completions.create({
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
