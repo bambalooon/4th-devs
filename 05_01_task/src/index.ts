@@ -14,6 +14,15 @@ const MAX_LISTEN_CALLS = 50; // safety cap
 
 const pad = (n: number) => String(n).padStart(3, '0');
 
+/** Parse a tool result as JSON or throw with context */
+function parseToolResult(raw: string, context: string): Record<string, unknown> {
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    throw new Error(`[${context}] Tool returned non-JSON response:\n${raw}`);
+  }
+}
+
 /** Save raw API response to input/NNN_listen.json (skips if exists) */
 async function saveInput(index: number, data: unknown): Promise<void> {
   const file = join(INPUT_DIR, `${pad(index)}_listen.json`);
@@ -123,15 +132,13 @@ async function analyzeSignals(total: number): Promise<void> {
 
     } else if (type === 'text') {
       const text = String(signal.transcription ?? '');
-      const extractTool = findTool('extract_facts')!;
-      const result = await extractTool.handler({ text, source: pad(i) });
-      facts = JSON.parse(result) as Record<string, unknown>;
+      const result = await findTool('extract_facts')!.handler({ text, source: pad(i) });
+      facts = parseToolResult(result, `extract_facts[${pad(i)}]`);
 
     } else if (type === 'binary_text') {
       const text = decodeAttachmentText(signal) ?? String(signal.attachment ?? '').slice(0, 2000);
-      const extractTool = findTool('extract_facts')!;
-      const result = await extractTool.handler({ text, source: `${pad(i)}_decoded` });
-      facts = JSON.parse(result) as Record<string, unknown>;
+      const result = await findTool('extract_facts')!.handler({ text, source: `${pad(i)}_decoded` });
+      facts = parseToolResult(result, `extract_facts[${pad(i)}_decoded]`);
 
     } else if (type === 'binary_image' || type === 'binary_audio') {
       // HITL: ask user before calling expensive model
@@ -149,9 +156,8 @@ async function analyzeSignals(total: number): Promise<void> {
 
       if (decision === 'approved') {
         const toolName = type === 'binary_image' ? 'analyze_image' : 'analyze_audio';
-        const analysisTool = findTool(toolName)!;
-        const result = await analysisTool.handler({ base64: b64, mime, source: pad(i) });
-        facts = JSON.parse(result) as Record<string, unknown>;
+        const result = await findTool(toolName)!.handler({ base64: b64, mime, source: pad(i) });
+        facts = parseToolResult(result, `${toolName}[${pad(i)}]`);
       } else {
         facts = { notes: `user skipped ${type} analysis` };
       }
