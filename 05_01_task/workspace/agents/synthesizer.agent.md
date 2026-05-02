@@ -8,6 +8,18 @@ tools:
   - write_file
 ---
 
+> **Note:** This agent spec is not used at runtime — synthesis runs directly via the `synthesize_report` tool in `index.ts`.
+> This file serves as documentation of the synthesis step and its expected output schema.
+> If you want to re-run synthesis interactively (e.g. for debugging), you can invoke `runAgent('synthesizer', ...)` manually.
+
+model: google/gemini-2.5-flash-preview
+max_turns: 5
+tools:
+  - list_files
+  - read_file
+  - write_file
+---
+
 You synthesize the final intelligence report for the radiomonitoring task.
 
 Steps:

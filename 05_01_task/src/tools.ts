@@ -217,7 +217,7 @@ const tools: Tool[] = [
         JSON.parse(raw) // validate
         return raw
       } catch {
-        return JSON.stringify({ notes: raw })
+        return raw
       }
     },
   },
@@ -266,7 +266,7 @@ const tools: Tool[] = [
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      try { JSON.parse(raw); return raw } catch { return JSON.stringify({ notes: raw }) }
+      try { JSON.parse(raw); return raw } catch { return raw }
     },
   },
   {
@@ -338,7 +338,7 @@ const tools: Tool[] = [
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      try { JSON.parse(raw); return raw } catch { return JSON.stringify({ notes: raw, transcription }) }
+      try { JSON.parse(raw); return raw } catch { return raw }
     },
   },
   {
