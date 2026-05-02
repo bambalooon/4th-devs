@@ -2,6 +2,8 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
 import * as readline from 'node:readline'
 import { openai } from './config.js'
+import { ReportSchema } from './task.js'
+import { zodToJsonSchema } from 'zod-to-json-schema'
 
 export interface ToolDefinition {
   type: 'function'
@@ -211,13 +213,11 @@ const tools: Tool[] = [
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      // Strip markdown fences if present
-      const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
       try {
-        JSON.parse(cleaned) // validate
-        return cleaned
+        JSON.parse(raw) // validate
+        return raw
       } catch {
-        return JSON.stringify({ notes: cleaned })
+        return JSON.stringify({ notes: raw })
       }
     },
   },
@@ -266,8 +266,7 @@ const tools: Tool[] = [
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
-      try { JSON.parse(cleaned); return cleaned } catch { return JSON.stringify({ notes: cleaned }) }
+      try { JSON.parse(raw); return raw } catch { return JSON.stringify({ notes: raw }) }
     },
   },
   {
@@ -294,29 +293,36 @@ const tools: Tool[] = [
       const source = typeof args.source === 'string' ? args.source : 'unknown'
       if (!base64) return JSON.stringify({ notes: 'no audio data' })
 
-      // Transcribe first via Whisper, then extract facts
       const audioBuffer = Buffer.from(base64, 'base64')
       const ext = mime.includes('wav') ? 'wav' : mime.includes('ogg') ? 'ogg' : 'mp3'
 
-      // openai.audio.transcriptions requires a File-like object; use a Blob with name
-      const blob = new Blob([audioBuffer], { type: mime })
-      const file = new File([blob], `audio.${ext}`, { type: mime })
-
+      // Check if transcription was already cached in output/
+      const transcriptionPath = join(WORKSPACE, 'output', `${source}_transcription.txt`)
       let transcription: string
       try {
-        const result = await openai.audio.transcriptions.create({
-          model: 'whisper-1',
-          file,
-          language: 'pl',
-        })
-        transcription = result.text
-      } catch (err) {
-        return JSON.stringify({ notes: `Audio transcription failed: ${err instanceof Error ? err.message : String(err)}` })
+        transcription = await readFile(transcriptionPath, 'utf-8')
+        console.log(`[analyze_audio:${source}] Using cached transcription`)
+      } catch {
+        // Not cached — transcribe via Whisper
+        const blob = new Blob([audioBuffer], { type: mime })
+        const file = new File([blob], `audio.${ext}`, { type: mime })
+        try {
+          const result = await openai.audio.transcriptions.create({
+            model: 'whisper-1',
+            file,
+            language: 'pl',
+          })
+          transcription = result.text
+          // Cache the transcription
+          await mkdir(join(WORKSPACE, 'output'), { recursive: true })
+          await writeFile(transcriptionPath, transcription, 'utf-8')
+        } catch (err) {
+          return JSON.stringify({ notes: `Audio transcription failed: ${err instanceof Error ? err.message : String(err)}` })
+        }
       }
 
       console.log(`[analyze_audio:${source}] Transcription: ${transcription.slice(0, 200)}`)
 
-      // Now extract facts from transcription text
       const response = await openai.chat.completions.create({
         model: 'google/gemini-2.5-flash-preview',
         messages: [
@@ -332,8 +338,7 @@ const tools: Tool[] = [
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
-      try { JSON.parse(cleaned); return cleaned } catch { return JSON.stringify({ notes: cleaned, transcription }) }
+      try { JSON.parse(raw); return raw } catch { return JSON.stringify({ notes: raw, transcription }) }
     },
   },
   {
@@ -381,8 +386,8 @@ const tools: Tool[] = [
       type: 'function',
       name: 'synthesize_report',
       description:
-        'Read all output/*.json files and synthesize the final report with cityName, cityArea (2 decimal places), warehousesCount, phoneNumber. ' +
-        'Returns a JSON object ready for radioTransmit.',
+        'Read all output/*.json files and synthesize the final report. ' +
+        'Returns a JSON object matching the ReportSchema (cityName, cityArea, warehousesCount, phoneNumber).',
       parameters: {
         type: 'object',
         properties: {},
@@ -393,7 +398,9 @@ const tools: Tool[] = [
       const outputDir = join(WORKSPACE, 'output')
       let files: string[] = []
       try {
-        files = (await readdir(outputDir)).filter(f => f.endsWith('.json')).sort()
+        files = (await readdir(outputDir))
+          .filter(f => f.endsWith('.json'))
+          .sort()
       } catch {
         return JSON.stringify({ error: 'No output/ directory found. Run pipeline first.' })
       }
@@ -408,6 +415,8 @@ const tools: Tool[] = [
 
       if (!allFacts.length) return JSON.stringify({ error: 'No output files found.' })
 
+      const responseSchema = zodToJsonSchema(ReportSchema, { name: 'Report' })
+
       const response = await openai.chat.completions.create({
         model: 'google/gemini-2.5-flash-preview',
         messages: [
@@ -415,30 +424,40 @@ const tools: Tool[] = [
             role: 'system',
             content:
               'You are synthesizing a final report from radio intercept analysis results. ' +
-              'Given multiple partial fact objects, determine the most reliable values for: ' +
-              'cityName (real name of city codenamed "Syjon"), ' +
-              'cityArea (area in km² as a number — will be formatted to 2dp in code), ' +
-              'warehousesCount (integer), phoneNumber (string). ' +
-              'If there are conflicts, prefer the most specific/consistent value. ' +
-              'Return ONLY JSON: {"cityName":"...","cityArea":12.34,"warehousesCount":5,"phoneNumber":"..."} — no markdown.',
+              'Given multiple partial fact objects, determine the most reliable values. ' +
+              'If facts conflict, prefer the most consistent/specific value. ' +
+              'Return ONLY a JSON object strictly matching the provided schema — no markdown, no commentary.',
           },
           { role: 'user', content: JSON.stringify(allFacts, null, 2) },
         ],
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'Report',
+            strict: true,
+            schema: (
+              (responseSchema as Record<string, unknown>).definitions
+                ? ((responseSchema as Record<string, unknown>).definitions as Record<string, unknown>).Report
+                : responseSchema
+            ) as Record<string, unknown>,
+          },
+        },
         temperature: 0,
       })
 
       const raw = response.choices[0]?.message?.content ?? '{}'
-      const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
 
       try {
-        const parsed = JSON.parse(cleaned) as Record<string, unknown>
-        // Format cityArea to exactly 2 decimal places in code (not LLM)
+        const parsed = JSON.parse(raw)
+        // Validate and coerce cityArea to exactly 2dp in code (not LLM)
         if (typeof parsed.cityArea === 'number') {
-          parsed.cityArea = parsed.cityArea.toFixed(2)
+          parsed.cityArea = (parsed.cityArea as number).toFixed(2)
         }
-        return JSON.stringify(parsed)
-      } catch {
-        return JSON.stringify({ error: 'Failed to parse synthesis', raw: cleaned })
+        // Validate with Zod
+        const validated = ReportSchema.parse(parsed)
+        return JSON.stringify(validated)
+      } catch (err) {
+        return JSON.stringify({ error: 'Validation failed', details: String(err), raw })
       }
     },
   },

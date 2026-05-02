@@ -1,5 +1,6 @@
 // @ts-expect-error — root config is untyped JS
 import { AI_DEVS_API_KEY } from '../../config.js';
+import { z } from 'zod';
 
 const TASK_NAME = 'radiomonitoring';
 const API_URL = 'https://hub.ag3nts.org/verify';
@@ -39,3 +40,14 @@ export type TransmitReport = {
 
 export const radioTransmit = (report: TransmitReport): Promise<ApiResponse> =>
   sendRequest({ action: 'transmit', ...report });
+
+/** Zod schema for the final synthesized report */
+export const ReportSchema = z.object({
+  cityName: z.string().describe('Real city name behind codename "Syjon"'),
+  cityArea: z.string().regex(/^\d+\.\d{2}$/, 'Must be exactly 2 decimal places, e.g. "123.45"'),
+  warehousesCount: z.number().int().nonnegative(),
+  phoneNumber: z.string().describe('Contact phone number as string'),
+});
+
+export type Report = z.infer<typeof ReportSchema>;
+
