@@ -206,8 +206,9 @@ const tools: Tool[] = [
               '"cityName" (real city name — e.g. if text says "Syjon is actually Wrocław", output "Wrocław"), ' +
               '"warehousesCount" (integer count of warehouses/magazyny on Syjon), ' +
               '"phoneNumber" (contact phone number as string), ' +
-              '"cityArea" (area in km² as numeric string e.g. "123.45"), ' +
+              '"cityArea" (area in km² as numeric string e.g. "123.45" — look for fields named occupiedArea, area, powierzchnia, or similar), ' +
               '"notes" (any other relevant clues about Syjon — location, size, infrastructure, people). ' +
+              'IMPORTANT: for structured data like JSON or CSV, extract cityArea from "occupiedArea" or similar numeric area fields for the city identified as Syjon. ' +
               'If nothing about Syjon is found, return {"notes":"no relevant data"}. ' +
               'Output MUST be a raw JSON object — absolutely no markdown fences, no backticks, no ```json.',
           },
@@ -405,6 +406,7 @@ const tools: Tool[] = [
     },
     handler: async () => {
       const outputDir = join(WORKSPACE, 'output')
+      const inputDir = join(WORKSPACE, 'input')
       let files: string[] = []
       try {
         files = (await readdir(outputDir))
@@ -424,6 +426,26 @@ const tools: Tool[] = [
 
       if (!allFacts.length) return JSON.stringify({ error: 'No output files found.' })
 
+      // Also include raw structured attachments (JSON/CSV) for cross-referencing city data
+      // These are useful when the city name is known from other signals but area data lives here
+      const structuredInputs: unknown[] = []
+      try {
+        const inputFiles = (await readdir(inputDir)).filter(f => f.endsWith('.json')).sort()
+        for (const file of inputFiles) {
+          try {
+            const raw = JSON.parse(await readFile(join(inputDir, file), 'utf-8')) as Record<string, unknown>
+            if (raw.attachment && typeof raw.attachment === 'string') {
+              const meta = typeof raw.meta === 'string' ? raw.meta : ''
+              if (meta.includes('json') || meta.includes('text')) {
+                const decoded = Buffer.from(raw.attachment, 'base64').toString('utf-8')
+                const parsed = JSON.parse(decoded)
+                structuredInputs.push({ source: file, data: parsed })
+              }
+            }
+          } catch { /* skip */ }
+        }
+      } catch { /* no input dir */ }
+
       const responseSchema = zodToJsonSchema(ReportSchema, { name: 'Report' })
 
       const response = await openai.chat.completions.create({
@@ -436,10 +458,15 @@ const tools: Tool[] = [
               'Given multiple partial fact objects, determine the most reliable values. ' +
               'If facts conflict, prefer the most consistent/specific value. ' +
               'CRITICAL: "cityName" must be the REAL city name (e.g. "Skarszewy"), NOT the codename "Syjon". ' +
+              'For "cityArea": search ALL sources for any numeric area/surface data associated with the identified city. ' +
+              'Look for fields like "occupiedArea", "area", "powierzchnia" in structured data sources. ' +
               'If a field has NO supporting evidence across all sources, set it to null — do NOT invent or default to zero. ' +
               'Return ONLY a JSON object strictly matching the provided schema — no markdown, no commentary.',
           },
-          { role: 'user', content: JSON.stringify(allFacts, null, 2) },
+          { role: 'user', content: JSON.stringify({
+            analyzedFacts: allFacts,
+            rawStructuredData: structuredInputs,
+          }, null, 2) },
         ],
         response_format: {
           type: 'json_schema',
