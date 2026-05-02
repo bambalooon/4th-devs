@@ -1,5 +1,6 @@
 import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises'
 import {join, relative, resolve} from 'node:path'
+import {taskTools} from "./task.js";
 import {executeCode} from "./sandbox.js";
 
 export interface ToolDefinition {
@@ -23,6 +24,7 @@ function isPathSafe(path: string): boolean {
   return !rel.startsWith('..') && rel !== '..'
 }
 const tools: Tool[] = [
+  ...taskTools,
   {
     definition: {
       type: 'function',
