@@ -14,13 +14,14 @@ const MAX_LISTEN_CALLS = 50; // safety cap
 
 const pad = (n: number) => String(n).padStart(3, '0');
 
-/** Parse a tool result as JSON or throw with context */
+/** Parse a tool result as JSON, stripping markdown fences if present, or throw with context */
 function parseToolResult(raw: string, context: string): Record<string, unknown> {
-  try {
-    return JSON.parse(raw) as Record<string, unknown>;
-  } catch {
-    throw new Error(`[${context}] Tool returned non-JSON response:\n${raw}`);
-  }
+  // Try raw first
+  try { return JSON.parse(raw) as Record<string, unknown> } catch { /* try stripping fences */ }
+  // Strip ```json ... ``` or ``` ... ```
+  const stripped = raw.replace(/^```[a-z]*\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+  try { return JSON.parse(stripped) as Record<string, unknown> } catch { /* fall through */ }
+  throw new Error(`[${context}] Tool returned non-JSON response:\n${raw}`)
 }
 
 /** Save raw API response to input/NNN_listen.json (skips if exists) */

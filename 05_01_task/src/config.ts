@@ -9,4 +9,12 @@ export const openai = observeOpenAI(new OpenAI({
   defaultHeaders: EXTRA_API_HEADERS as Record<string, string>,
 }));
 
+// Whisper client — bypass Langfuse wrapper (it can corrupt multipart requests)
+// Uses same OpenRouter base URL but without the observeOpenAI wrapper
+export const openaiDirect = new OpenAI({
+  apiKey: AI_API_KEY as string,
+  baseURL: CHAT_API_BASE_URL as string,
+  defaultHeaders: EXTRA_API_HEADERS as Record<string, string>,
+});
+
 export { resolveModelForProvider }

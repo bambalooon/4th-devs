@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
 import * as readline from 'node:readline'
-import { openai } from './config.js'
+import { openai, openaiDirect } from './config.js'
 import { ReportSchema } from './task.js'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
@@ -201,11 +201,15 @@ const tools: Tool[] = [
           {
             role: 'system',
             content:
-              'You analyze radio intercept fragments. Extract any facts about the city codenamed "Syjon". ' +
-              'Return ONLY a JSON object with these optional fields: ' +
-              '"cityName" (real name of Syjon), "warehousesCount" (number), "phoneNumber" (string), ' +
-              '"cityArea" (numeric area value as string, e.g. "123.45"), "notes" (other relevant info). ' +
-              'If nothing relevant is found, return {"notes": "no relevant data"}. No markdown, just JSON.',
+              'You analyze radio intercept fragments to find intelligence about a city codenamed "Syjon". ' +
+              'Extract ANY partial facts, even indirect hints. Fields to extract (all optional): ' +
+              '"cityName" (real city name — e.g. if text says "Syjon is actually Wrocław", output "Wrocław"), ' +
+              '"warehousesCount" (integer count of warehouses/magazyny on Syjon), ' +
+              '"phoneNumber" (contact phone number as string), ' +
+              '"cityArea" (area in km² as numeric string e.g. "123.45"), ' +
+              '"notes" (any other relevant clues about Syjon — location, size, infrastructure, people). ' +
+              'If nothing about Syjon is found, return {"notes":"no relevant data"}. ' +
+              'Output MUST be a raw JSON object — absolutely no markdown fences, no backticks, no ```json.',
           },
           { role: 'user', content: `Source: ${source}\n\n${text}` },
         ],
@@ -252,7 +256,8 @@ const tools: Tool[] = [
             role: 'system',
             content:
               'You analyze images from radio intercepts. Extract any facts about the city codenamed "Syjon". ' +
-              'Return ONLY a JSON object with optional fields: cityName, warehousesCount, phoneNumber, cityArea, notes. No markdown.',
+              'Return ONLY a raw JSON object with optional fields: cityName, warehousesCount, phoneNumber, cityArea, notes. ' +
+              'Absolutely NO markdown fences, no ```json, no backticks — just the raw JSON object.',
           },
           {
             role: 'user',
@@ -307,7 +312,7 @@ const tools: Tool[] = [
         const blob = new Blob([audioBuffer], { type: mime })
         const file = new File([blob], `audio.${ext}`, { type: mime })
         try {
-          const result = await openai.audio.transcriptions.create({
+          const result = await openaiDirect.audio.transcriptions.create({
             model: 'whisper-1',
             file,
             language: 'pl',
@@ -330,7 +335,8 @@ const tools: Tool[] = [
             role: 'system',
             content:
               'You analyze radio intercept transcriptions. Extract facts about city codenamed "Syjon". ' +
-              'Return ONLY JSON with optional fields: cityName, warehousesCount, phoneNumber, cityArea, notes. No markdown.',
+              'Return ONLY a raw JSON object with optional fields: cityName, warehousesCount, phoneNumber, cityArea, notes. ' +
+              'Absolutely NO markdown fences, no ```json, no backticks — just the raw JSON object.',
           },
           { role: 'user', content: `Source: ${source}\nTranscription: ${transcription}` },
         ],
