@@ -1,52 +1,41 @@
+// @ts-expect-error — root config is untyped JS
 import { AI_DEVS_API_KEY } from '../../config.js';
 
-const TASK_NAME = 'foodwarehouse';
+const TASK_NAME = 'radiomonitoring';
 const API_URL = 'https://hub.ag3nts.org/verify';
 
 export type ApiResponse = Record<string, unknown>;
 
 const sendRequest = async (answer: unknown): Promise<ApiResponse> => {
   const body = JSON.stringify({ apikey: AI_DEVS_API_KEY, task: TASK_NAME, answer });
-  console.log('[task] →', JSON.stringify(answer).slice(0, 400));
+  console.log('[radio] →', JSON.stringify(answer).slice(0, 200));
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body,
   });
   const result = await response.json() as ApiResponse;
-  console.log('[task] ←', JSON.stringify(result).slice(0, 600));
+  // Log without attachment to keep output readable
+  const logResult = { ...result };
+  if (typeof logResult.attachment === 'string') {
+    logResult.attachment = `<base64 ${logResult.attachment.length} chars>`;
+  }
+  console.log('[radio] ←', JSON.stringify(logResult).slice(0, 400));
   return result;
 };
 
-export const dbQuery = (query: string): Promise<ApiResponse> =>
-  sendRequest({ tool: 'database', query });
+export const radioStart = (): Promise<ApiResponse> =>
+  sendRequest({ action: 'start' });
 
-export const ordersGet = (id?: string): Promise<ApiResponse> =>
-  sendRequest({ tool: 'orders', action: 'get', ...(id ? { id } : {}) });
+export const radioListen = (): Promise<ApiResponse> =>
+  sendRequest({ action: 'listen' });
 
-export const ordersCreate = (
-  title: string,
-  creatorID: number,
-  destination: string | number,
-  signature: string
-): Promise<ApiResponse> =>
-  sendRequest({ tool: 'orders', action: 'create', title, creatorID, destination, signature });
+export type TransmitReport = {
+  cityName: string;
+  cityArea: string;    // "12.34" — exactly 2 decimal places
+  warehousesCount: number;
+  phoneNumber: string;
+};
 
-export const ordersAppend = (
-  id: string,
-  items: Record<string, number>
-): Promise<ApiResponse> =>
-  sendRequest({ tool: 'orders', action: 'append', id, items });
-
-export const generateSignature = (
-  login: string,
-  birthday: string,
-  destination: string | number
-): Promise<ApiResponse> =>
-  sendRequest({ tool: 'signatureGenerator', action: 'generate', login, birthday, destination });
-
-export const taskReset = (): Promise<ApiResponse> =>
-  sendRequest({ tool: 'reset' });
-
-export const taskDone = (): Promise<ApiResponse> =>
-  sendRequest({ tool: 'done' });
+export const radioTransmit = (report: TransmitReport): Promise<ApiResponse> =>
+  sendRequest({ action: 'transmit', ...report });

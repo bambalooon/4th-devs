@@ -1,0 +1,22 @@
+{
+  "name": "05_01_task",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx --env-file=.env src/index.ts",
+    "dev": "npx tsx --watch --env-file=.env src/index.ts"
+  },
+  "dependencies": {
+    "@langfuse/client": "^5.1.0",
+    "@langfuse/openai": "^5.1.0",
+    "@langfuse/otel": "^5.1.0",
+    "@opentelemetry/sdk-node": "^0.214.0",
+    "gray-matter": "^4.0.3",
+    "openai": "^4.96.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
+

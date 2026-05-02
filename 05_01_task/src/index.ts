@@ -1,198 +1,229 @@
-import "./instrumentation"; // Must be the first import
+import "./instrumentation.js";
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { dbQuery, ordersCreate, ordersAppend, generateSignature, taskReset, taskDone, type ApiResponse } from './task.js';
-import { shutdownTracing } from "./instrumentation.js";
+import { radioStart, radioListen, radioTransmit, type TransmitReport } from './task.js';
+import { classifySignal, decodeAttachmentText, findTool } from './tools.js';
+import { runAgent } from './agent.js';
+import { shutdownTracing } from './instrumentation.js';
 
 const WORKSPACE = join(process.cwd(), 'workspace');
-const PIPELINE = join(WORKSPACE, 'pipeline');
+const INPUT_DIR = join(WORKSPACE, 'input');
+const OUTPUT_DIR = join(WORKSPACE, 'output');
+const MAX_LISTEN_CALLS = 50; // safety cap
 
-const save = async (name: string, data: unknown): Promise<void> => {
-  await mkdir(PIPELINE, { recursive: true });
-  await writeFile(join(PIPELINE, name), JSON.stringify(data, null, 2), 'utf-8');
-};
+const pad = (n: number) => String(n).padStart(3, '0');
 
-/** Extract rows from any DB query response shape */
-type Row = Record<string, unknown>;
-function extractRows(resp: ApiResponse): Row[] {
-  for (const key of ['reply', 'rows', 'data', 'results', 'records']) {
-    const val = resp[key];
-    if (Array.isArray(val)) return val as Row[];
-  }
-  return [];
+/** Save raw API response to input/NNN_listen.json (skips if exists) */
+async function saveInput(index: number, data: unknown): Promise<void> {
+  const file = join(INPUT_DIR, `${pad(index)}_listen.json`);
+  await mkdir(INPUT_DIR, { recursive: true });
+  await writeFile(file, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-/** Find which column in rows loosely matches one of the candidate names */
-function findCol(rows: Row[], ...candidates: string[]): string | undefined {
-  if (!rows.length) return undefined;
-  const keys = Object.keys(rows[0]);
-  for (const c of candidates) {
-    const found = keys.find(k => k.toLowerCase().includes(c.toLowerCase()));
-    if (found) return found;
-  }
-  return undefined;
+/** Load raw input if cached */
+async function loadInput(index: number): Promise<Record<string, unknown> | null> {
+  const file = join(INPUT_DIR, `${pad(index)}_listen.json`);
+  if (!existsSync(file)) return null;
+  const raw = await readFile(file, 'utf-8');
+  return JSON.parse(raw) as Record<string, unknown>;
 }
 
-async function main() {
-  // ── 1. Load city needs ───────────────────────────────────────────────────
-  const food4cities = JSON.parse(
-    await readFile(join(WORKSPACE, 'food4cities.json'), 'utf-8')
-  ) as Record<string, Record<string, number>>;
-  console.log('Cities to supply:', Object.keys(food4cities));
+/** Check if output already exists for this index */
+function hasOutput(index: number): boolean {
+  return existsSync(join(OUTPUT_DIR, `${pad(index)}_facts.json`));
+}
 
-  // ── 2. Explore DB schema ─────────────────────────────────────────────────
-  console.log('\n[DB] Discovering schema...');
-  const tablesResp = await dbQuery('show tables');
-  await save('db_tables.json', tablesResp);
+/** Save analysis output */
+async function saveOutput(index: number, facts: unknown): Promise<void> {
+  await mkdir(OUTPUT_DIR, { recursive: true });
+  await writeFile(join(OUTPUT_DIR, `${pad(index)}_facts.json`), JSON.stringify(facts, null, 2), 'utf-8');
+}
 
-  // Collect table names regardless of response shape (reply / tables / data)
-  const tables: string[] = [];
-  for (const key of ['tables', 'reply', 'data', 'rows']) {
-    const val = tablesResp[key];
-    if (Array.isArray(val)) {
-      for (const row of val) {
-        if (typeof row === 'string') tables.push(row);
-        else if (row && typeof row === 'object') tables.push(...Object.values(row as Record<string, string>));
+// ── Phase 1: Collect all signals ─────────────────────────────────────────────
+
+async function collectSignals(): Promise<number> {
+  console.log('\n[Phase 1] Starting radio session...');
+  await radioStart();
+
+  let index = 1;
+  let done = false;
+
+  while (!done && index <= MAX_LISTEN_CALLS) {
+    // Check if we already have this input cached
+    const cached = await loadInput(index);
+
+    let signal: Record<string, unknown>;
+    if (cached) {
+      console.log(`[Phase 1] Signal ${pad(index)} — using cached input`);
+      signal = cached;
+    } else {
+      console.log(`[Phase 1] Signal ${pad(index)} — calling radio_listen...`);
+      signal = await radioListen();
+      await saveInput(index, signal);
+    }
+
+    // Check if the API signals we have enough data
+    const code = Number(signal.code ?? 0);
+    const message = String(signal.message ?? '').toLowerCase();
+    if (
+      code === 200 ||
+      message.includes('enough') ||
+      message.includes('complete') ||
+      message.includes('finished') ||
+      message.includes('done') ||
+      message.includes('wystarczaj')  // Polish: "wystarczająco"
+    ) {
+      console.log(`[Phase 1] API signals collection complete at signal ${pad(index)}.`);
+      // Save this terminal response too, then stop
+      done = true;
+    }
+
+    // If no useful content and no attachment, check for end-of-stream codes
+    if (!signal.transcription && !signal.attachment && code !== 100) {
+      console.log(`[Phase 1] No more signals (code=${code}). Stopping collection.`);
+      done = true;
+    }
+
+    index++;
+  }
+
+  const total = index - 1;
+  console.log(`[Phase 1] Collected ${total} signals.\n`);
+  return total;
+}
+
+// ── Phase 2: Analyze each signal ─────────────────────────────────────────────
+
+async function analyzeSignals(total: number): Promise<void> {
+  console.log('[Phase 2] Analyzing signals...');
+
+  // Build a running summary of facts found so far (for HITL context)
+  const collectedFactsSummary: string[] = [];
+
+  for (let i = 1; i <= total; i++) {
+    if (hasOutput(i)) {
+      console.log(`[Phase 2] Signal ${pad(i)} — output already exists, skipping`);
+      continue;
+    }
+
+    const signal = await loadInput(i);
+    if (!signal) {
+      console.log(`[Phase 2] Signal ${pad(i)} — no input file, skipping`);
+      continue;
+    }
+
+    const type = classifySignal(signal);
+    console.log(`[Phase 2] Signal ${pad(i)} — type: ${type}`);
+
+    let facts: Record<string, unknown> = { notes: 'no relevant data' };
+
+    if (type === 'noise') {
+      facts = { notes: 'noise/no content' };
+
+    } else if (type === 'text') {
+      const text = String(signal.transcription ?? '');
+      const extractTool = findTool('extract_facts')!;
+      const result = await extractTool.handler({ text, source: pad(i) });
+      facts = JSON.parse(result) as Record<string, unknown>;
+
+    } else if (type === 'binary_text') {
+      const text = decodeAttachmentText(signal) ?? String(signal.attachment ?? '').slice(0, 2000);
+      const extractTool = findTool('extract_facts')!;
+      const result = await extractTool.handler({ text, source: `${pad(i)}_decoded` });
+      facts = JSON.parse(result) as Record<string, unknown>;
+
+    } else if (type === 'binary_image' || type === 'binary_audio') {
+      // HITL: ask user before calling expensive model
+      const mime = String(signal.meta ?? (type === 'binary_image' ? 'image/unknown' : 'audio/unknown'));
+      const b64 = String(signal.attachment ?? '');
+      const fileSizeKb = b64.length * 0.75 / 1024; // approx decoded size
+
+      const askTool = findTool('ask_human')!;
+      const decision = await askTool.handler({
+        source: pad(i),
+        mime,
+        fileSizeKb,
+        collectedFacts: collectedFactsSummary.join('; ') || 'none yet',
+      });
+
+      if (decision === 'approved') {
+        const toolName = type === 'binary_image' ? 'analyze_image' : 'analyze_audio';
+        const analysisTool = findTool(toolName)!;
+        const result = await analysisTool.handler({ base64: b64, mime, source: pad(i) });
+        facts = JSON.parse(result) as Record<string, unknown>;
+      } else {
+        facts = { notes: `user skipped ${type} analysis` };
       }
-      break;
     }
-  }
-  console.log('Tables found:', tables);
 
-  // Fetch all data from all tables (paginate since API caps at 30 rows per query)
-  const tableData: Record<string, Row[]> = {};
-  for (const table of tables) {
-    const allRows: Row[] = [];
-    let offset = 0;
-    while (true) {
-      const resp = await dbQuery(`SELECT * FROM ${table} LIMIT 30 OFFSET ${offset}`);
-      const rows = extractRows(resp);
-      if (!rows.length) break;
-      allRows.push(...rows);
-      const total = resp.totalTableRows as number | undefined;
-      if (total !== undefined && allRows.length >= total) break;
-      offset += rows.length;
-    }
-    tableData[table] = allRows;
-  }
-  await save('db_data.json', tableData);
+    await saveOutput(i, facts);
 
-  // ── 3. Identify users and cities tables ──────────────────────────────────
-  let usersTable = '';
-  let citiesTable = '';
-
-  for (const [table, rows] of Object.entries(tableData)) {
-    if (!rows.length) continue;
-    const keys = Object.keys(rows[0]).map(k => k.toLowerCase());
-    if (keys.some(k => k.includes('login') || k.includes('birthday'))) usersTable = table;
-    if (keys.some(k => k.includes('dest') || k.includes('code')) && keys.some(k => k.includes('city') || k.includes('name'))) citiesTable = table;
+    // Update running summary for subsequent HITL prompts
+    const summary = Object.entries(facts)
+      .filter(([k]) => k !== 'notes')
+      .map(([k, v]) => `${k}=${v}`)
+      .join(', ');
+    if (summary) collectedFactsSummary.push(`[${pad(i)}] ${summary}`);
+    console.log(`[Phase 2] Signal ${pad(i)} facts: ${JSON.stringify(facts)}`);
   }
 
-  if (!usersTable) throw new Error('Could not identify users table. DB data: ' + JSON.stringify(tableData));
-  if (!citiesTable) throw new Error('Could not identify cities/destinations table. DB data: ' + JSON.stringify(tableData));
+  console.log('\n[Phase 2] Analysis complete.\n');
+}
 
-  console.log(`Users table: ${usersTable}, Cities table: ${citiesTable}`);
+// ── Phase 3: Synthesize and transmit ─────────────────────────────────────────
 
-  const userRows = tableData[usersTable];
-  const cityRows = tableData[citiesTable];
+async function synthesizeAndTransmit(): Promise<void> {
+  console.log('[Phase 3] Synthesizing final report...');
 
-  // ── 4. Pick a creator user (must have transport role) ───────────────────
-  const idCol   = findCol(userRows, 'user_id', 'id');
-  const loginCol = findCol(userRows, 'login', 'username', 'user');
-  const bdayCol  = findCol(userRows, 'birthday', 'birth', 'date');
-  const roleCol  = findCol(userRows, 'role');
-  const activeCol = findCol(userRows, 'active', 'is_active');
+  const synthTool = findTool('synthesize_report')!;
+  const reportJson = await synthTool.handler({});
 
-  if (!idCol || !loginCol || !bdayCol) {
-    throw new Error(`Cannot find required user columns. Keys: ${Object.keys(userRows[0] ?? {}).join(', ')}`);
+  const report = JSON.parse(reportJson) as Record<string, unknown>;
+  console.log('[Phase 3] Synthesized report:', reportJson);
+
+  if (report.error) {
+    throw new Error(`Synthesis failed: ${report.error}`);
   }
 
-  // Find role_id for transport (look for "transport" in role names)
-  const rolesRows = tableData[Object.keys(tableData).find(t => t !== usersTable && t !== citiesTable) ?? ''] ?? [];
-  const roleIdCol = findCol(rolesRows, 'role_id', 'id');
-  const roleNameCol = findCol(rolesRows, 'name');
-  let transportRoleId: unknown;
-  if (roleIdCol && roleNameCol) {
-    const transportRole = rolesRows.find(r => String(r[roleNameCol]).toLowerCase().includes('transport'));
-    transportRoleId = transportRole?.[roleIdCol];
-  }
-  console.log('Transport role id:', transportRoleId);
-
-  // Pick first active user with transport role
-  const creator = userRows.find(u => {
-    if (activeCol && !u[activeCol]) return false;
-    if (transportRoleId !== undefined && roleCol) return u[roleCol] == transportRoleId;
-    return true;
-  }) ?? userRows[0];
-
-  const creatorID = Number(creator[idCol]);
-  const creatorLogin = String(creator[loginCol]);
-  const creatorBirthday = String(creator[bdayCol]);
-  console.log(`Creator: ${creatorLogin} (id=${creatorID}, birthday=${creatorBirthday})`);
-
-  // ── 5. Build city → destination map ─────────────────────────────────────
-  const nameCol = findCol(cityRows, 'city', 'name', 'town');
-  const destCol = findCol(cityRows, 'dest', 'code', 'id');
-
-  if (!nameCol || !destCol) {
-    throw new Error(`Cannot find city name/destination columns. Keys: ${Object.keys(cityRows[0] ?? {}).join(', ')}`);
-  }
-
-  const cityDestMap: Record<string, string> = {};
-  for (const row of cityRows) {
-    const cityName = String(row[nameCol]).toLowerCase().trim();
-    cityDestMap[cityName] = String(row[destCol]);
-  }
-  await save('city_dest_map.json', cityDestMap);
-  console.log('City→destination map:', cityDestMap);
-
-  // Validate all cities from food4cities.json have a destination
-  for (const city of Object.keys(food4cities)) {
-    if (!cityDestMap[city]) {
-      throw new Error(`No destination found for city: ${city}. Available: ${Object.keys(cityDestMap).join(', ')}`);
+  // Validate required fields
+  const required = ['cityName', 'cityArea', 'warehousesCount', 'phoneNumber'];
+  for (const field of required) {
+    if (report[field] === undefined || report[field] === null) {
+      throw new Error(`Missing required field in report: ${field}`);
     }
   }
 
-  // ── 6. Reset existing orders ─────────────────────────────────────────────
-  console.log('\n[Orders] Resetting...');
-  await taskReset();
-
-  // ── 7. Create one order per city ─────────────────────────────────────────
-  const orderResults: Record<string, unknown> = {};
-
-  for (const [city, items] of Object.entries(food4cities)) {
-    const destination = cityDestMap[city];
-    console.log(`\n[${city}] destination=${destination}`);
-
-    // Generate signature
-    const sigResp = await generateSignature(creatorLogin, creatorBirthday, destination);
-    const signature = String(sigResp.signature ?? sigResp.hash ?? sigResp.reply ?? sigResp.sign ?? '');
-    if (!signature) throw new Error(`No signature returned for ${city}: ${JSON.stringify(sigResp)}`);
-    console.log(`  signature: ${signature}`);
-
-    // Create order
-    const title = `Dostawa dla ${city.charAt(0).toUpperCase()}${city.slice(1)}`;
-    const createResp = await ordersCreate(title, creatorID, destination, signature);
-    const orderObj = createResp.order as Record<string, unknown> | undefined;
-    const orderId = String(createResp.id ?? orderObj?.id ?? createResp.orderId ?? '');
-    if (!orderId) throw new Error(`No order ID returned for ${city}: ${JSON.stringify(createResp)}`);
-    console.log(`  order id: ${orderId}`);
-
-    // Append all goods in batch mode
-    const appendResp = await ordersAppend(orderId, items);
-    const appendCode = Number(appendResp.code ?? 0);
-    if (appendCode < 0) throw new Error(`Append failed for ${city}: ${JSON.stringify(appendResp)}`);
-
-    orderResults[city] = { orderId, destination, signature, items };
+  // Ensure cityArea is a string with exactly 2 decimal places
+  const areaRaw = report.cityArea;
+  let cityArea: string;
+  if (typeof areaRaw === 'string' && /^\d+\.\d{2}$/.test(areaRaw)) {
+    cityArea = areaRaw;
+  } else {
+    cityArea = Number(areaRaw).toFixed(2);
   }
 
-  await save('orders_created.json', orderResults);
+  const transmit: TransmitReport = {
+    cityName: String(report.cityName),
+    cityArea,
+    warehousesCount: Number(report.warehousesCount),
+    phoneNumber: String(report.phoneNumber),
+  };
 
-  // ── 8. Call done ─────────────────────────────────────────────────────────
-  console.log('\n[Done] Calling done...');
-  const result = await taskDone();
-  await save('final_result.json', result);
-  console.log('\nFinal result:', JSON.stringify(result));
+  console.log('[Phase 3] Transmitting:', JSON.stringify(transmit));
+  const result = await radioTransmit(transmit);
+  console.log('[Phase 3] Server response:', JSON.stringify(result));
+
+  await mkdir(join(WORKSPACE, 'report'), { recursive: true });
+  await writeFile(join(WORKSPACE, 'report', 'final.json'), JSON.stringify({ transmit, result }, null, 2), 'utf-8');
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+async function main(): Promise<void> {
+  const total = await collectSignals();
+  await analyzeSignals(total);
+  await synthesizeAndTransmit();
 }
 
 main()
