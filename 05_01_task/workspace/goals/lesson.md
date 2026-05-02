@@ -1,136 +1,161 @@
 ---
-title: S04E05 — Projektowanie rozwiązań wewnątrzfirmowych
+title: S05E01 — Architektura
 space_id: 2476415
 status: scheduled
-published_at: '2026-04-03T04:00:00Z'
+published_at: '2026-04-06T04:00:00Z'
 is_comments_enabled: true
 is_liking_enabled: true
 skip_notifications: false
-cover_image: 'https://cloud.overment.com/0405-1774694248.png'
-circle_post_id: 31103407
+cover_image: 'https://cloud.overment.com/the-architect-1775194817.png'
+circle_post_id: 31353053
 ---
-Zastosowanie możliwości obecnego AI w firmach może obejmować **wdrożenie zewnętrznych narzędzi czy platform** bądź **zbudowanie własnych** rozwiązań. W obu przypadkach może pojawić się potrzeba zaangażowania osób technicznych, ale w tym drugim nasza rola jest zdecydowanie większa i to właśnie nim się teraz zajmiemy.
 
-Wielokrotnie mówiliśmy, ale też doświadczyliśmy w praktyce, że AI bez wątpienia potrafi już dziś robić imponujące rzeczy. Jednak na tym etapie często nie spełnia ona ogromnych oczekiwań, jakie mamy wobec tej technologii. A nawet jeśli mówimy o zastosowaniach, w których obecne modele odnajdują się świetnie, to nadal stoi przed nami niezwykle trudny problem do rozwiązania: **jest nim "zmiana"** za którą kryją się różne przyczyny, którym się dziś przyjrzymy.
+Dotychczasowe lekcje pokazały nam, że generatywne aplikacje to faktycznie w 80% kod, który pojawia się w klasycznych aplikacjach. Jest jednak tu kilka zmiennych, których nie wzięliśmy pod uwagę. Po pierwsze, LLM potrafi zrealizować dużą część logiki, której już nie musimy pisać. Po drugie, architektura aplikacji musi uwzględniać obecność AI bardziej, niż z początku się wydaje. Wyraźne zmiany są obecne niemal wszędzie - od interfejsu użytkownika, przez API, po struktury bazy danych czy konfigurację serwerów. Pojawia się także potrzeba skorzystania z szeregu dodatkowych narzędzi czy bibliotek, których normalnie by nie było.
 
-## Stosowanie generatywnego AI wewnątrz firmy
+Dlatego dziś odpowiemy sobie na pytanie, jak może wyglądać architektura aplikacji w której pojawiają się LLMy, bądź w przypadku której stanowią one absolutną podstawę.
 
-Na tym etapie AI\_devs raczej oczywiste jest to, że obecnie jakość jaką daje nam sztuczna inteligencja jest w dużym stopniu uzależniona od wiedzy, jaką posiadamy na temat działania modeli czy otaczających je mechanik. Jednak ludzie z którymi będziemy pracować oraz użytkownicy rozwiązań, które będziemy tworzyć, nie zawsze będą mieć takie samo zrozumienie tej technologii jak my. Ich perspektywa będzie się więc różnić od naszej i musimy mieć to na uwadze.
+### Cechy aplikacji wykorzystującej generatywne AI
 
-Co ciekawe, różnice w sposobie pracy z AI, w tym także stylu zadawania pytań, będą różnić się nawet wśród osób technicznych, posiadających dość dużą wiedzę na temat modeli. Trudno stwierdzić, co jest dokładną przyczyną, ale da się to zauważyć w sposobie pracy z narzędziami, które będziemy tworzyć. Na przykład dla nas, agent pomagający w organizacji dnia, będzie znacznie bardziej użyteczny niż dla innych i będzie to wynikało między innymi ze **świadomości mechanik**, które nim kierują. Przykładowo nasze zapytania mogą naturalnie zawierać wskazówki dla agenta, na przykład "Sprawdź mi wiadomości **w gmailu i na slacku** a potem zerknij do **plików** z moimi **planem dnia**". Ktoś inny mógłby zapytać po prostu: "Sprawdź co mam na dziś?" i z dużym prawdopodobieństwem agent nie zrobiłby tego, o co został poproszony.
+Modele oraz agenci AI mogą pojawiać się w logice aplikacji w różnym zakresie. Czasem będą stanowić fundament całego produktu i wówczas architektura będzie pod to ułożona. Innym razem będą pojawiać się jako jeden z modułów, który musi dopasować się do reszty. Okazuje się jednak, że w obu przypadkach decyzje, które musimy podjąć będą podobne i będą obejmować:
 
-![Różnica pomiędzy sposobem pracy z agentami AI uzależniona od doświadczenia](https://cloud.overment.com/2026-03-11/ai_devs_4_query_awareness-9a1f8376-3.png)
+- **Gateway:** czyli scentralizowaną logikę odpowiadającą za komunikację z AI. Uwzględnia ona zarządzanie połączeniem, ustawieniami zapytań czy monitorowaniem. Całość powinna być zaprojektowana w taki sposób, aby umożliwić nam **swobodne przełączanie się** pomiędzy różnymi modelami, **a nawet dostawcami.** Można to osiągnąć poprzez skorzystanie z **AI SDK** bądź **LiteLLM** albo własnego formatu API mapowanego do formatów poszczególnych providerów.
+- **API:** czyli struktura endpointów oraz ich ustawienia. Klient (np. aplikacja webowa) nie powinien mieć bezpośredniego dostępu do modelu, np. przez endpoint `/api/chat`, o ile nie jest to konieczne. Zamiast tego powinniśmy przygotować wyspecjalizowane endpointy, np. `/product/review`, które przyjmują i zwracają dane o ustalonym kształcie. Inaczej mówiąc - kontakt z modelem powinien być ograniczony już na poziomie API.
+- **System plików:** czyli konfiguracje dostępu do katalogów i plików dla agentów działających w imieniu użytkowników. Musimy tu zadbać przede wszystkim o zakresy uprawnień oraz zasady interakcji z dokumentami. Jest to trudniejsze niż w przypadku klasycznych aplikacji, ponieważ agent AI może nawet przypadkiem podjąć akcje, których się nie spodziewamy (jak np. usunięcie całego katalogu(!)).
+- **Baza danych:** czyli dodatkowe struktury powiązane bezpośrednio z agentami, ich aktywnością oraz wiedzą. Konieczne będzie tu zapisywanie interakcji, zaplanowanych zadań, a nierzadko także definicji oraz ustawień samych agentów i ich narzędzi.
+- **Zależności:** czyli biblioteki i narzędzia związane np. z ewaluacją, obserwowaniem, transformacją dokumentów (np. markdown), wyszukiwaniem semantycznym, renderowaniem strumieniowanych treści markdown do HTML czy frameworkami AI (o ile zdecydujemy się na skorzystanie z nich).
 
-Rozwój modeli językowych, narzędzi i technik pracy sprawia, że agenci są w stanie coraz lepiej odpowiadać na nawet ogólne polecenia użytkowników końcowych. Widzieliśmy już jednak przykłady sytuacji w których nie jest to oczywiste i wdrożenie rozwiązań na poziomie technicznym bywa w pewnym sensie niewykonalne lub bardziej **nieopłacalne** i wówczas musimy szukać innych ścieżek.
+![Generatywne aplikacje - architektura](https://cloud.overment.com/2026-03-16/ai_devs_4_architecture-1f6d8c0d-e.png)
 
-Jeśli połączymy fakt, że wdrażanie nowych rozwiązań wiąże się ze **zmianą istniejących procesów, nawyków** i niekiedy także **zdobyciem nowych umiejętności**, ale także **dodatkowymi kosztami** oraz połączymy to z niedeterministyczną naturą modeli o tym, co właśnie powiedzieliśmy na temat doświadczeń w pracy z AI, to otrzymamy pełen obraz tego, dlaczego wdrożenia AI stanowią tak duże wyzwanie. Mówiąc na bardzo ogólnym poziomie chodzi o:
+Podejmowanie decyzji o kształcie architektury w kontekście logiki agentów oraz zasobów na których pracują, można porównać z integracją zewnętrznego systemu, np. **systemu płatności**. Tam również musimy podjąć decyzję o jego roli w systemie czy zorganizować struktury danych tak, aby możliwe było zrealizowanie całego procesu oraz połączenie go z istniejącymi modułami (np. powiadomieniami). Zazwyczaj konieczne będzie też zadbanie o przygotowanie logiki w taki sposób, aby możliwe było **połączenie z wieloma operatorami płatności** i wygodne przełączanie się między nimi.
 
-- **Aspekt Biznesowy:** choć potrzeba wdrożenia AI może być uzasadniona, tak wdrażanie zmian w istniejących procesach wiąże się też z kosztami, które obejmują także późniejsze utrzymanie. Konieczne jest tutaj także zaadresowanie kwestii prawnych, które mogą sięgać w obszar technologii, na przykład wyboru dostawcy bądź rozwiązań chmurowych, np. Amazon Bedrock czy Microsoft Azure. Z naszej strony musimy więc zadbać o to, aby biznes był świadomy możliwości i ograniczeń technicznych, które pozwolą na podjęcie właściwych decyzji.
-- **Aspekt Kulturowy:** wdrożenie nawet prostych narzędzi AI wymaga odpowiedniego zaangażowania na różnych poziomach organizacji. Tutaj świetnie sprawdzają się inicjatywy oddolne, w postaci wewnętrznych warsztatów czy nawet zwykłej wymiany doświadczeń na spotkaniach zespołu.
-- **Aspekt Technologiczny / Produktowy:** tutaj, jako programiści, mamy do zrobienia najwięcej, ale jednocześnie musimy brać pod uwagę pozostałe obszary i na ich podstawie, a także na podstawie naszej wiedzy, określić zakres projektu, plan wdrożenia, wskaźniki sukcesu i porażki oraz samą realizację. Są to więc raczej dobrze znane nam aktywności, ale rozszerzone o decyzje dotyczące modeli, ich ewaluacji oraz architektury agentów i ich optymalizacji, a także o zaadresowanie faktu, że osiągnięcie 100% skuteczności ich działania jest obecnie mało prawdopodobne.
+Wśród decyzji, które będziemy podejmować, można uwzględnić kilka, które niemal zawsze będą "pewnikami", np.:
 
-![Trudność wdrożenia AI w organizacjach](https://cloud.overment.com/2026-03-12/ai_devs_4_adoption-892e49ad-f.png)
+- Centralizacja interakcji z AI niemal zawsze będzie priorytetem. Budowanie i wysyłanie zapytań z wielu miejsc aplikacji bardzo utrudnia zarządzanie globalnymi ustawieniami czy nawet przełączanie między modelami.
+- Otwartość na więcej niż jednego providera, powinna być przynajmniej mocno wzięta pod uwagę, ponieważ nie będziemy chcieli blokować możliwości skorzystania ze znacznie lepszych modeli innych dostawców.
+- Wsparcie dla strumieniowania zdarzeń, w celu informowania użytkownika o postępach oraz zmniejszenia czasu reakcji.
+- Wsparcie multimodalności, nawet jeśli początkowo będziemy przetwarzać wyłącznie tekst. Wystarczy otworzyć sobie "furtkę" w postaci zbudowania struktur baz danych tak, aby przetwarzanie obrazu bądź formatu audio było łatwe do dodania.
+- Wsparcie logiki agentów, nawet jeśli początkowo budujemy prostego czatbota. Przykładowo zamiast tworzyć tabelę `messages` zawierającą tekst, można skorzystać ze struktury tabeli `items` wspomnianej chociażby w **S01E01**, aby ułatwić sobie monitorowanie poszczególnych akcji występujących **pomiędzy** wiadomościami.
+- Obsługa zdarzeń realizowanych w dużym horyzoncie czasowym. Na produkcji szybko okaże się, że użytkownik zamknie kartę przeglądarki albo po prostu czas realizacji zadania przekroczy dopuszczalne limity czasu połączenia.
 
-W związku z tym, że obszary biznesowe oraz kulturowe dotyczące organizacji leżą poza zakresem AI\_devs, na potrzeby dalszej części lekcji założymy, że mamy w organizacji dostęp do modeli dowolnego dostawcy (np. OpenAI/Anthropic/Gemini) za pośrednictwem API.
+Powyższe punkty występują w każdym z moich projektów, niezależnie od tego czy mówimy jedynie o wybranych funkcjonalnościach czy całym systemie ukierunkowanym na logikę agentów.
 
-## Przykłady narzędzi stosowanych w zespołach
+### Fundamentalna cecha produktów w dobie AI
 
-We wcześniejszych lekcjach mówiliśmy o budowaniu agentów, współpracy bezpośredniej z nimi oraz agentach działających w tle. Jednak wdrożenie AI do procesów firmowych może obejmować nawet **opracowanie promptu** w postaci dokumentu bądź zaledwie kilku plików, które można podłączyć do agentów i interfejsów czatu (np. Claude). Na pozór może wyglądać to na mało poważne podejście do wdrożeń AI, ale tak nie jest, bo:
+Przy obecnym tempie rozwoju modeli oraz ekosystemu narzędzi, każdy tworzony przez nas system **powinien** (jeśli to możliwe) być zaprojektowany tak, aby **dalszy rozwój modeli wzmacniał jego możliwości**. Warto odnieść się do tego zarówno w kontekście biznesowym, produktowym, jak i technologicznym.
 
-- **Checklista:** dokument może zawierać listę aktywności wraz z opisami, dla stałych ale powtarzalnych procesów, w przypadku których zawsze trzeba upewnić się, że wszystko zostało zrealizowane zgodnie z wymaganiami. Przykładem może być proces marketingowy związany z tworzeniem treści na firmowego bloga przy współpracy z zewnętrzną agencją. Każdy wpis może potrzebować weryfikacji pod kątem na przykład linkowania wewnętrznego, opisania zdjęć zgodnie z dobrymi praktykami SEO czy zawierać sekcje uzależnione od kategorii danego wpisu. Normalnie cały proces weryfikacji wykonywany jest ręcznie, bywa czasochłonny i łatwo w nim coś pominąć. Wsparcie ze strony AI może w tym bardzo pomóc, nawet pomimo tego, że zaangażowanie człowieka nadal będzie konieczne.
-- **Onboarding:** czyli dokument zawierający kompletną listę niezbędnych informacji, które mogą być przydatne dla nowych pracowników, albo osób z innych działów. Może on obejmować linki do zasobów wiedzy oraz informacje o osobach odpowiedzialnych za stałe procesy. Dokument ten nie ma więc na celu **zastąpienia rozmowy**, lecz **przekierowania** we właściwe miejsce. Tutaj można zapytać o to, po co nam tutaj AI, skoro pliki tekstowe można przeszukiwać. Natomiast jeśli informacji jest dużo, nowy pracownik może mieć problem z wpisaniem dokładnej frazy, a AI będzie w stanie dopasować zapytanie nawet jeśli będzie dość odległe od zawartości dokumentu.
-- **Styl:** to przykład bezpośrednio z realizacji AI\_devs. Wszystkie grafiki, które widzicie w treściach lekcji i zadań zostały wygenerowane na podstawie tego samego promptu opisującego spójny styl. Raz opracowany dokument dodaliśmy na Slacka, gdzie każdy mógł z niego skorzystać i z pomocą dowolnego narzędzia oferującego dostęp do Nano Banana 2 wygenerować odpowiednią grafikę. Tak prosta rzecz wpływa teraz na odbiór całego materiału dość dużego projektu jakim jest to szkolenie.
+Obszar biznesowy leży zwykle poza naszą kontrolą. Jednak budowanie rozwiązań adresujących obszary z którymi obecnie LLM radzą sobie przeciętnie, raczej nie jest dobrym pomysłem. Szczególnie gdy widzimy wyraźny postęp w skuteczności najnowszych modeli, powinno dać nam to domyślenia. W przeciwnym razie może się okazać, że premiera kolejnych wersji modeli sprawi, że nasz produkt stanie się niepotrzebny, albo wysiłek który włożyliśmy w opracowanie funkcjonalności nigdy się nie zwróci. Oczywiście są tutaj wyjątki, ale mówimy tu raczej o realnym ryzyku, które należy brać pod uwagę.
 
-Zatem nawet najmniejsze aktywności związane z pracą z AI mogą wnieść dużo wartości wyrażonej przez oszczędność czasu, zwiększenie komfortu pracy czy utrzymania wyznaczonych standardów. Co ciekawe zwykle dość trudno jest zauważyć potrzebę wprowadzenia aż tak prostych elementów, bo zwykle zwyczajnie o tym nie myślimy. Jednocześnie opracowanie takich plików, jak chociażby wymieniony opis stylu, zwykle będzie wymagał doświadczenia w pracy z modelami.
+Ta sama sytuacja ma też przełożenie na obszar technologiczny, ponieważ systemy które tworzymy powinny być podatne na modyfikacje bardziej niż kiedykolwiek. A to oznacza, że nasze umiejętności budowania architektury mają jeszcze większe znaczenie. Istotną rolę odgrywają tutaj **detale** implementacji, które mogą nam znacznie utrudnić bądź zablokować rozwój. Co prawda dziś z pomocą agentów AI jesteśmy w stanie dość łatwo wprowadzić nawet rozległe modyfikacje w rozbudowanych systemach, ale nadal są scenariusze w których będzie to trudne. To właśnie z tego powodu tak dużą rozwagę zalecam przy decyzji o wyborze **frameworków AI**. Choć tu decyzja należy wyłącznie od nas, tak łatwo się przekonać jak duży problem może stanowić oparcie całej aplikacji o rozwiązanie budowane na fundamentach, które wciąż się zmieniają.
 
-Sama koncepcja dokumentów / promptów nabiera też nieco innego znaczenia, gdy spojrzymy na nią przez pryzmat popularnych w programowaniu plików AGENTS.md czy Skills. W ich przypadku również często mówimy o prostych zestawach instrukcji. A skoro takie podejście bywa użyteczne w programowaniu, to sprawdzi się również poza nim.
+Tylko co to oznacza w praktyce?
 
-Opieranie działania AI wyłącznie o dokumenty, które agent może dowolnie zinterpretować, szczególnie w połączeniu z zapytaniem użytkownika na które też nie mamy zbyt dużego wpływu. W takiej sytuacji może być uzasadnione utworzenie wewnątrzfirmowego serwera MCP, albo niezależnego narzędzia, które będzie w pełni dopasowane do danego procesu. Warto to rozważyć, bo z pomocą AI możemy bardzo niskim kosztem utworzyć dość rozbudowane rozwiązanie, które nawet jeśli będzie wykorzystywane przez krótki czas, nadal będzie się opłacać. Przykład takiego narzędzia znajduje się w katalogu **04\_05\_review**.
+Programowanie jakie znaliśmy do tej pory uczyło nas projektowania architektury, która nie tylko zrealizuje założenia biznesowe, ale też nie będzie utrudniać dalszego rozwoju niezależnie od tego, w jaki sposób będzie rozwijał się produkt. Zazwyczaj jednak i tak większość komponentów nigdy się nie zmienia i z czasem okazuje się, że nawet gdy zachodzi potrzeba ich wymiany na inne, staje się to zbyt trudne ze względu na liczbę zależności czy po prostu ilość dedykowanej logiki.
 
-Koncepcja tego agenta jest niezwykle prosta i polega na **przetwarzaniu akapitów** w dokumencie tekstowym. Agent otrzymuje treść każdego z nich i podejmuje decyzję o tym, czy skomentować ich fragmenty narzędziem **add\_comment**. Może więc dojść do sytuacji w której agent zostawia jeden lub więcej komentarzy, bądź wcale. Poniżej mamy animację głównej mechaniki tego agenta.
+W przypadku generatywnych aplikacji obowiązują nas podobne zasady, ale dynamika rozwoju samej aplikacji oraz zmiany otoczenia są tak duże, że coraz trudniej jest mówić o podejmowaniu decyzji na lata. Jednak z drugiej strony mówimy o potrzebie **bardzo szybkich iteracji**, których zakres nierzadko będzie obejmował to, co normalnie robiliśmy w ciągu kwartału bądź półrocza.
 
-![Wizualizacja agenta](https://cloud.overment.com/agent-1773399141.gif)
+Choć nie mam bezpośredniej odpowiedzi na pytanie, **"jak należy projektować"** aplikacje zachowujące ogromną elastyczność i pozwalające na tak szybkie iterowanie nawet jeśli po drodze wymienimy dużą część logiki, tak wiele wskazuje na to, że nasza uwaga powinna skupić się na **"prymitywach"** (w kontekście architektury), a nie "funkcjonalnościach".
 
-Zatem to narzędzie opiera się o **dokument tekstowy**, który ma zostać "skomentowany", **prompt** opisujący na co agent ma zwrócić uwagę oraz **logika przetwarzania kolejnych fragmentów**. Istotną rolę odgrywa tutaj interfejs użytkownika, który wyświetla utworzone komentarze w formie **okienek** z opcją akceptacji, bądź odrzucenia danej sugestii.
+**Prymitywy:** to podstawowe, możliwie najprostsze elementy z których można zbudować bardziej złożone struktury.
 
-Można powiedzieć, że wizualny interfejs (UI) odgrywa tu kluczową rolę, ponieważ można uznać, że "ten sam efekt można uzyskać wklejając dokument do ChatGPT". Jednak tam nie uzyskamy rezultatu, który pozwoli na wygodne zarządzać sugestiami agenta. Znacznie trudniej też będzie w ogóle je zauważyć. A tymczasem tutaj mówimy o kilku krokach:
+Zatem przykładowo: podczas implementacji logiki dla funkcjonalności **czatu**, zwykle myślimy o niej jako o wymianie **wiadomości** pomiędzy **użytkownikiem**, a **asystentem**. Jest to więc wyspecjalizowana i raczej mało elastyczna struktura, która może znacznie utrudniać wprowadzenie interakcji pomiędzy agentami.
 
-1. Użytkownik wybiera dokument oraz prompt
-2. Dokument zostaje podzielony na fragmenty
-3. Każdy fragment zostaje sprawdzony przez agenta i ewentualnie skomentowany
-4. Przed zakończeniem pracy agent generuje notatkę końcową
-5. Użytkownik może zaakceptować / odrzucić sugestie lub poprosić o ponowne sprawdzenie z opcją przesłania krótkiego promptu.
+Jeśli jednak pomyślimy o tym w kategorii **zdarzeń** związanych z interakcją pomiędzy **aktorami**, to sama struktura przestaje nas tak bardzo ograniczać, ponieważ zdarzenia nie muszą dotyczyć wyłącznie wiadomości, a aktorem nie musi być użytkownik, ale także inny agent bądź sam system.
 
-Całą logika prezentuje się więc następująco:
+![Elastyczne schematy danych](https://cloud.overment.com/2026-03-16/ai_devs_4_primitives-50efe16a-f.png)
 
-![Przegląd narzędzia wspierającego tworzenie treści](https://cloud.overment.com/2026-03-13/ai_devs_4_review-64de189a-3.png)
+W takiej strukturze zdarzenia mogą obejmować również obsługę narzędzi, reasoning modelu czy nawet akcje, które nie są bezpośrednio powiązane z LLM API, ale są istotne z punktu widzenia samej interakcji, np. kompresja kontekstu bądź prośba o potwierdzenie akcji subagenta.
 
-W przypadku narzędzi takich jak to, szczególnie interesująca jest ich ogromna elastyczność, bo agent może otrzymać dodatkowe narzędzia. Wówczas ten sam interfejs może adresować zupełnie inny proces. Przykładowo:
+Innym przykładem mogą być **artefakty**, które widzieliśmy w lekcji **S03E05**. Natomiast w tym kontekście artefaktami nazywamy **metadane** reprezentujące różne formy treści generowane przez agentów. Mogą więc to być obrazy, pliki tekstowe czy binarne, ale również interaktywne interfejsy posiadające swój własny stan. Artefakt może być przypisany do użytkownika lub agenta oraz może być udostępniany między nimi. Także zamiast projektować oddzielne struktury danych dla obrazów czy dokumentów tekstowych, mamy po prostu artefakty różnych typów.
 
-- Proste prompty mogą opierać się o wiedzę i umiejętności modelu. Mowa tu o korektach, czy transformacjach (np. tłumaczeniach).
-- Jeśli agent zostanie podłączony do Internetu bądź wybranych domen, to do gry wchodzi także grounding czy fact-checking.
-- Jeśli agent otrzyma dodatkowe dokumenty, na przykład w postaci indeksu stron firmowego bloga, to agent może zająć się linkowaniem wewnętrznym, co jest przydatne dla czytelników ale też z punktu widzenia SEO
-- Dodanie narzędzi łączących agenta z zewnętrznymi usługami może posłużyć przesyłaniu informacji. Np. agent może zasugerować, aby wybrany fragment, np. zgłoszenia, został przekierowany do odpowiedniego działu.
+Analogiczny sposób myślenia możemy przenieść na pozostałe obszary aplikacji: front-end, back-end czy nawet samo planowanie interfejsu i same założenia biznesowe. Oczywiście **nie oznacza to, że w ten sposób zawsze musimy podchodzić do architektury** i warto zachować rozsądek w zbyt mocnym wybieganiu w przyszłość, która może nigdy nie nadejść. Ale w praktyce zdarza się, że "prosty czatbot" szybko zmienia się przynajmniej w agenta, a niekiedy też system wieloagentowy.
 
-Oczywiście takie scenariusze mogą wymagać zmian w interfejsie czy logice, ale wszystkie opierają się o tę samą koncepcję. I właśnie takich rzeczy warto jest szukać w naszej codzienności oraz procesach firmowych.
+Podsumowując - obecnie projektowanie aplikacji stawia przed nami jeszcze więcej wyzwań ze względu na dynamiczny rozwój ekosystemu gen-AI. Możemy adresować je przede wszystkim przez podejmowanie mądrych decyzji projektowych, a tu bardzo pomocne bywają rozmowy z AI.
 
-Działanie przykładu **04\_05\_review** pokazałem osobom z którymi sam współpracuję, sugerując możliwe zastosowania w **marketingu** oraz integracji z jedną z naszych **platform**. Podczas rozmów z nimi wybraliśmy obszary w których to rozwiązanie nam się przyda. Od razu też pojawiły się potrzeby na inne narzędzia, ponieważ prezentacja tego, pokazała możliwości o których wcześniej nikt nie pomyślał. Warto jest więc **eksperymentować** nawet na bardzo małej skali.
+### Architektura dla czatbotów i agentów
 
-## Prywatność danych i konsekwencje błędów
+Wspomniałem, że przy projektowaniu czatbotów wystarczy przechowywanie **konwersacji** oraz **listy wiadomości**. W kontekście bazy danych są to więc dwie, raczej proste tabele. Obecnie jednak niemal każdy czatbot jest agentem i widać to nawet po ChatGPT czy Claude, czyli najpopularniejszych obecnie aplikacjach do pracy z AI. Podobnie wygląda to z narzędziami do kodowania, gdzie mówimy już wyłącznie o agentach.
 
-Jednym z pierwszych pytań dotyczących zastosowania AI jest kwestia zachowania bezpieczeństwa oraz prywatności danych. W tym miejscu dyskusja zwykle prowadzi nas do usługi chmurowe (np. wspomniany [Bedrock](https://aws.amazon.com/bedrock/)) bądź rozwiązań lokalnych o ile na takie możemy sobie pozwolić.
+W lekcji **S02E04** omawialiśmy techniki projektowania kontekstu oraz przykłady architektury systemów wieloagentowych, takie jak Orchestrator, Mesh czy Blackboard. W praktyce raczej nie będziemy stosować ich w pełnej formie, lecz wykorzystamy różne ich elementy. Przykładem, który to obrazuje jest **05\_01\_agent\_graph**, który łączy w sobie koncepcje:
 
-Instancje na Bedrock lub Azure dają nam zwykle pełną swobodę pracy z danymi (o tym ostatecznie decydują wewnętrzne polityki firmy bądź umowy z klientami(!!)) i może to sprawić wrażenie, że nasze dane są bezpieczne. **Ale tak nie jest**, ponieważ:
+- **Orchestrator:** jest to po prostu agent wyposażony w narzędzia takie jak `delegate_task` czy `create_actor` z pomocą których zarządza zadaniami oraz pozostałymi agentami.
+- **Blackboard:** to warstwa współdzielonego stanu zawierającego sesję, zdarzenia, zadania, relacje oraz artefakty, którymi agenci mogą zarządzać przez narzędzia którymi dysponują (np. write\_artifact)
+- **Grafów (konkretnie DAG-ów):** relacje między zadaniami tworzą graf, a "scheduler" w postaci deterministycznej logiki rozwiązuje zależności między nimi, np. promuje zadania, których zależności zostały spełnione, oraz wstrzymuje te, które wciąż czekają na wykonanie pozostałych.
+- **Zdarzeń:** każda zmiana stanu, np. utworzenie zadania, modyfikacja artefaktu czy wywołanie narzędzia, wysyła zdarzenie przez SSE (Server Side Events). W przykładzie są one wykorzystywane przez panel wizualizujący aktywności agentów, ale w praktyce będą przydatne na potrzeby obserwacji, ewaluacji czy wprowadzania guardrails.
 
-- Agent podłączony do Internetu może przesłać wewnętrzne dane na zewnątrz
-- Agent posiadający możliwość wykonania kodu, może usunąć bądź uszkodzić źródła danych
-- LLM może popełniać błędy. Bez weryfikacji ze strony człowieka, w danych mogą zacząć pojawiać się problemy, które trudno będzie zauważyć oraz naprawić.
-- Agent może przypadkowo skorzystać z narzędzia, np. "send\_email" i wysłać go na niepoprawny adres. Podobnie też może zaprosić na spotkanie w Google Calendar osoby, których nie powinno tam być (np. spoza organizacji).
-- Agent może wprowadzić człowieka w błąd, np. czatbot podłączony do firmowej bazy wiedzy może zasugerować wykonanie akcji, która nie powinna mieć miejsca (np. restart serwera produkcyjnego bez zachowania ustalonych procedur).
+UWAGA: Przykład 05\_01\_agent\_graph jest zaawansowany, a jego zrozumienie **nie jest wymagane** przy zaliczeniu zadań. Jednocześnie może okazać się bardzo interesujący i warto go przynajmniej uruchomić (wówczas pojawi się okno przeglądarki oraz przykładowe zadanie realizowane przez system).
 
-![Potencjalne problemy z danymi](https://cloud.overment.com/2026-03-13/ai_devs_4_issues-c9618cc5-0.png)
+Poniżej widzimy główne komponenty architektury tego agenta. Każdy z nich jest już nam znany, ponieważ widzieliśmy już agentów "zarządzających", współdzielony stan, subagentów czy pamięć. Tutaj największą różnicę stanowi **scheduler**, który pojawił się w przykładzie **03\_02\_events** pod nazwą "heartbeat", ale tam cały plan zadań i zależności był określany z góry. Natomiast plan jest **kształtowany dynamicznie** przez agenta zarządzającego. Mówimy więc tutaj o zdecydowanie bardziej elastycznej (ale mniej przewidywalnej) strukturze.
 
-Zatem nawet jeśli dostawca LLM będzie zaufany, to nadal nie możemy ufać samemu modelowi. Na przestrzeni lekcji, pojawiało się mnóstwo przykładów prezentujących **ograniczanie uprawnień** agentów, albo wprost **fizyczne uniemożliwianie** podjęcia określonych działań.
+![Przykładowa architektura systemu agentowego opartego o grafy](https://cloud.overment.com/2026-03-18/ai_devs_4_agent_graph-91448bfb-c.png)
 
-Ostrożność należy zachować także w pracy z sandboxami, gdzie agent może znaleźć sprytne obejścia, o których nie pomyśleliśmy. Dobrym przykładem są agenci do kodowania, którzy zauważając brak dostępu do pliku .env piszą i uruchamiają skrypt, który to zrobi. Interesujące przykłady można znaleźć w dokumentach takich jak [System Card: Claude Opus 4.6](https://www-cdn.anthropic.com/6a5fa276ac68b9aeb0c8b6af5fa36326e0e166dd.pdf) czy [Eval Awareness](https://www.anthropic.com/engineering/eval-awareness-browsecomp) sygnalizujące, że obecne modele są w stanie zauważyć, że są testowane i dopasować swoje zachowanie tak, aby zaliczyć testy, nawet jeśli będzie wymagało to ukrycia ich faktycznych umiejętności. Mówiąc inaczej - obecne LLMy są **potencjalnie** zdolne do omijania zabezpieczeń.
+Zatem to agent zarządzający **tworzy** oraz **przydziela** zadania, ale to **scheduler** zarządza dalszym cyklem ich życia, dbając o rozwiązanie zależności, kolejność wykonania oraz wznowienie agentów po zakończeniu zadań.
 
-Niestety mamy dość ograniczoną przestrzeń w zakresie kształtowania zachowań agentów, aby całkowicie wyeliminować wspomniane ryzyka. Warto jednak z góry nie zakładać, że coś jest **niemożliwe** i poświęcić czas na przeanalizowanie opcji, które nawet jeśli będą wymagały zaangażowania człowieka, co uniemożliwi pełną automatyzację procesu, nadal przełożą się na dużą wartość.
+Poniżej mamy wizualizację logiki **scheduler'a**. Widzimy na niej, że:
 
-## Praca z kontekstem usług i narzędzi
+- pod uwagę zostają wzięte zadania, które albo **nie posiadają zależności**, albo **oczekują na wykonanie**, ponieważ ich zależności zostały spełnione.
+- w danej rundzie, status tych zadań zmienia się na `in_progress` i są przekazywane do pętli przypisanego do nich aktora, który po wykonanej pracy zmienia ich status na `done` lub `blocked`. Natomiast status `waiting` zostaje ustalony automatycznie, gdy dany aktor **kończy pracę**, ale scheduler zauważa aktywność subagentów.
+- po zakończeniu pętli aktorów uruchamiana jest kolejna runda.
 
-Praktycznie każdy z nas pracuje z różnymi narzędziami. Część aktywności polega na **przenoszeniu danych** pomiędzy nimi i ewentualnej transformacji. Nierzadko też musimy zgromadzić informacje z wielu takich źródeł, a następnie zwizualizować bądź opisać, aby na tej podstawie móc podjąć jakieś decyzje. Bywa również tak, że musimy podjąć wiele małych akcji w różnych miejscach i więcej czasu tracimy na przełączanie się między usługami, niż faktyczną pracę.
+![Scheduler oparty o graf](https://cloud.overment.com/2026-03-18/ai_devs_4_agent_dag-97db9952-6.png)
 
-Powyższe problemy dotyczą niemal każdej osoby w firmie:
+Po uruchomieniu przykładu uruchamia się testowe zapytanie o utworzenie wpisu na bloga na temat TypeScript. Schemat wykonania widoczny jest na wizualizacji poniżej, ale obejmuje:
 
-- Obsługa klienta wymaga odnajdywania informacji o ustawieniach konta w panelu administracyjnym
-- Zespół marketingu spędza czas na monitorowaniu skuteczności kampanii w różnych narzędziach i własnych dokumentach
-- Zespół sprzedażowy spędza mnóstwo czasu na aktualizacji systemu CRM, a i tak wciąż zdarzają się braki wynikające z różnych powodów.
-- Osoby zaangażowane w rozwój produktu muszą pozyskiwać informacje z wielu miejsc, również narzędzi z którymi nie pracują tak często jak osoby z konkretnych działów.
+- Utworzenie głównego aktora **Orchestrator** oraz głównego zadania.
+- Pierwsza runda bierze pod uwagę główne zadanie oraz głównego aktora, który tworzy podrzędnego aktora **Researcher** oraz **deleguje** mu zadanie polegające na zebraniu materiałów. **Orchestrator** kończy swoją pracę, a **Scheduler** zmienia status głównego zadania na `waiting`.
+- W drugiej rundzie **Researcher** przeszukuje Internet i tworzy **artefakt** "research-notes". Jego zadanie zmienia status na `done`.
+- W trzeciej rundzie **Orchestrator** widząc zgromadzone informacje decyduje, że mamy komplet informacji, aby rozpocząć pisanie artykułu. Tworzy więc aktora **Writer** i **deleguje** mu przygotowanie artykułu, co zostaje wykonane **w tej samej rundzie**.
+- W czwartej rundzie **Orchestrator** znowu zostanie wznowiony i widząc wszystkie wykonane pod-zadania uznaje, że główne zadanie zostało zrealizowane, więc zamyka je i kontaktuje się z użytkownikiem.
 
-Takich scenariuszy jest mnóstwo, a patrząc na możliwości AI, od razu przychodzi do głowy agent ułatwiający pracę tych ludzi. Jednak gdy wejdziemy w szczegóły i nagle okaże się, że ryzyko halucynacji, prompt injection czy techniczne ograniczenia interakcji z danymi nie pozwalają na to, aby agent mógł robić to wszystko jedynie na podstawie poleceń użytkownika. Jest to idealna przestrzeń na powrót do MCP Apps bądź koncepcji generatywnego AI, które omawialiśmy w lekcji **S03E05**.
+![Przykład działania logiki systemu agentowego wykorzystującego grafy](https://cloud.overment.com/2026-03-18/ai_devs_4_agent_graph_trace-16dd7be5-5.png)
 
-Po uruchomieniu przykładu **04\_05\_apps** otworzy się okno przeglądarki z prostym interfejsem czatu oraz przykładowymi akcjami związanymi z zarządzaniem **zadaniami, sprzedażą oraz newsletterem**. Nie jest to jednak zwykłe mapowanie dostępnych funkcjonalności, lecz lista dedykowanych interfejsów dopasowana do **procesów biznesowych** takich jak monitorowanie sprzedaży, zarządzanie produktami czy zadaniami powiązanymi z procesami poszczególnych projektów.
+Ten przykład pokazuje nam na jak różne sposoby możemy podejść do architektury agentów, balansując pomiędzy deterministyczną logiką kodu, a nieprzewidywalnym lecz elastycznym działaniem modeli językowych. Jednocześnie architektura którą tutaj mamy jest wyjątkowo elastyczna, ponieważ sprawdzi się zarówno do zwykłych rozmów z AI, jak i obsługi narzędzi oraz realizowania zadań nawet w nieco dłuższych horyzontach czasowych.
 
-![Zarządzanie procesami w interfejsie czatu](https://cloud.overment.com/2026-03-15/ai_devs_4_chat_ui-dda8757b-6.png)
+Natomiast przede wszystkim architektura, którą tutaj mamy, jest bardzo podatna na rozbudowę, a nawet na wymianę jej fundamentalnych elementów, wliczając w to providera AI oraz różne ustawienia narzędzi i aktorów (np. agentów). Dodawanie mechanik umożliwiających wykonywanie zadań w tle również wchodzi w grę, zarówno z zaangażowaniem człowieka, jak i przy jego ograniczeniu. W obu tych przypadkach pomocne będą zdarzenia emitowane przez system.
 
-W związku z tym, że mamy tu do czynienia ze zdalnym serwerem MCP, możemy bez problemu podłączać te funkcjonalności do interfejsów wspierających MCP Apps, np. Claude. Co więcej, takie podejście pozwala również udostępniać serwery MCP naszym klientom, którzy mogą pracować we własnych interfejsach. Jeśli jednak posiadają one wsparcie dla MCP Apps, integracja nie będzie stanowić problemu. Nawet serwer, który znajduje się w przykładzie **04\_05\_apps** już teraz może być podłączony do Claude.ai.
+### Integracje z różnymi providerami
 
-MCP Apps nie mają też na celu pełnego zastąpienia narzędzi, lecz po prostu ułatwienie dostępu do wybranych funkcjonalności bądź danych. Na ostatniej wizualizacji znajdują się przyciski takie jak "**Add follow-up todo**" lub "**Open in Stripe**", które pełnią dokładnie tę rolę.
+Budowanie generatywnych aplikacji zwykle będzie wiązało się z integrowaniem więcej niż jednego providera. Zazwyczaj wynika to z chęci skorzystania z unikatowych funkcjonalności. Przykładem mogą być najlepsze modele do edycji grafiki oferowane przez Gemini, bądź świetne modele do kodowania oferowane przez Anthropic. Jednak w takiej sytuacji skorzystanie z tych dwóch providerów od strony technicznej **nie stanowi dużego wyzwania**, ponieważ mówimy o zupełnie odrębnej logice.
 
-Poza tym fakt, że MCP Apps zwykle prezentowane są w kontekście interfejsu czatu i rzeczywiście tam sprawdzają się świetnie, tak nie oznacza wcale, że nie mogą być zastosowane na przykład w innych obszarach aplikacji. Tam również może pojawiać się AI czy nawet agenci, ale bez możliwości przesyłania wiadomości o dowolnej treści.
+Problem zaczyna się wtedy, gdy więcej niż jeden provider pojawia się **w tej samej logice**. Przykładowo jeden agent pracujący z modelem OpenAI, a drugi z modelem Anthropic. Wówczas musimy zadbać o warstwę **tłumaczeń**, która będzie odpowiednio **mapować zapytania**, a nie zawsze jest to takie oczywiste ponieważ:
 
-Podsumowując, możliwość wyświetlania interaktywnych interfejsów pozwala na:
+- API różnią się strukturą, więc musimy zadbać o mapowanie. Na przykład wiadomość systemowa w OpenAI może być przekazana razem z pozostałymi wiadomościami, a w Anthropic musi to być oddzielne pole `system`. Natomiast w Gemini prompt systemowy musi trafić do `system_instruction`.
+- Ustawienia modeli potrafią znacznie się różnić. Np. Anthropic i Gemini opierają **reasoning** modeli o tzw. `budget_tokens`, a OpenAI o tzw. `reasoning_effort`.
+- API zwykle wymagają tzw. [Thought Signatures](https://ai.google.dev/gemini-api/docs/thought-signatures) w celu zachowania tokenów "reasoning". Sygnatura ta jest **wymagana** w Interactions API, ale tylko od Gemini w wersji 3 lub nowszej oraz tylko przy wywołaniu narzędzi i to tylko w bieżącej turze (!!!). API Anthropic również posiada swoje [Sygnatury](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#how-to-use-extended-thinking), które działają podobnie.
 
-- Przedstawienie danych w formie wizualnej, z którą znaczniej wygodniej się jest zapoznać
-- Udostępnienie **deterministycznych** akcji, ponieważ interfejs obsługiwany jest z pomocą kodu
-- Połączenie danych oraz akcji pochodzących z wielu narzędzi, co znacznie ułatwia wykonywanie powtarzalnych czynności na określonych stanowiskach
+Lista różnic pomiędzy API jest bardzo duża i nie ma potrzeby wymieniać ich wszystkich, ponieważ wciąż obserwujemy zmiany w API. Na przykład jeszcze niedawno API Gemini nie pozwalało na stosowanie narzędzi z natywną funkcją Web Search, ale teraz jest to już możliwe. Natomiast nadal nie możemy przesłać wiadomości asystenta jako pierwszej do API Anthropic - takie ograniczenia sprawiają, że mapowanie API różnych dostawców potrafi sprawić mnóstwo problemów.
 
-Jednocześnie MCP Apps z pewnością nie stanowią alternatywy dla bezpośredniego zaangażowania agentów, ponieważ są to rozwiązania komplementarne. Wiele też wskazuje na to, że generatywne interfejsy będą wciąż zyskiwać na popularności, aczkolwiek obecnie są jeszcze na bardzo wczesnym etapie kształtowania.
+W tym miejscu można pomyśleć o trzech rozwiązaniach:
 
-Na wizualizacji poniżej widzimy ogólną architekturę aplikacji wykorzystującej koncepcję generatywnych interfejsów. Choć mówi ona wprost o MCP Apps, to główne komponenty raczej będą pozostawać takie same, niezależnie od stosowania protokołu czy własnych implementacji.
+1. Dobrze znanym nam OpenRouter, którego ograniczenia już znamy
+2. Bibliotekach lub frameworkach, np. [LiteLLM](https://www.litellm.ai/) czy [AI SDK](https://ai-sdk.dev/)
+3. Własnej logice, dopasowanej do naszych potrzeb (oczywiście przygotowanej z pomocą AI)
 
-Widzimy więc poniżej jasny podział na warstwę prezentacji (np. aplikacja webowa) oraz back-end w ramach którego funkcjonuje nasze API, połączenie z LLM oraz klient MCP zarządzający połączeniem z serwerem udostępniającym interfejsy oraz akcje. Sam serwer MCP udostępnia nam **narzędzia** pozwalające na wykonanie akcji i/lub wyświetlenie interfejsu.
+Z doświadczenia mogę powiedzieć, że każde z tych podejść ma swoje zalety i wady:
 
-![Architektura aplikacji wykorzystująca generatywne interfejsy](https://cloud.overment.com/2026-03-15/ai-devs_4_mcp_apps_design-7b940be1-a.png)
+- OpenRouter jest bardzo wygodny, ale wspiera tylko podstawowe funkcjonalności API. Poza tym w przypadku mapowania API oraz sygnatur wciąż zdarzają się tu rzadkie błędy.
+- Biblioteki/Frameworki potrafią nas zablokować z dostępem do najnowszych funkcjonalności. Zdarzają się w nich także istotne błędy, które mogą ujawniać się tylko przy zaawansowanej logice przez co priorytet ich naprawienia jest niski.
+- Własna logika daje najwięcej kontroli, ale też przekłada na nas cały ciężar. W tym przypadku warto określić **domyślny** format danych dla naszego systemu i tutaj obecnie najlepszą decyzją będzie Responses API ze względu na jego popularność.
 
-Mówimy tutaj także o sytuacji, która jest bardzo rzadko spotykana, lecz dopuszczalna, czyli **jednym serwerze MCP podłączonym do więcej niż jednej usługi**. Oczywiście należy podchodzić do tego z rozsądkiem, ponieważ znacznie zwiększa to złożoność serwera i potencjalnie zmniejsza jego elastyczność.
+Ostatecznie decyzję należy uzależnić od projektu i naszych potrzeb:
+
+- Jeśli pracujemy wyłącznie z LLM i nie interesują nas inne funkcjonalności, OpenRouter jest dobrym wyborem.
+- Biblioteki (np. AI SDK) mogą być dobrym wyborem i z czasem może się okazać, że będą najlepszą opcją o ile tylko nasz provider jest wspierany bądź mamy możliwość dodania własnego "adaptera" — tutaj jednak moje doświadczenie sugeruje, że należy zachować ostrożność.
+- Dziś własna logika, szczególnie przy wsparciu AI oraz ewentualnie w połączeniu z oficjalnymi SDK wydaje się najlepszym rozwiązaniem — z tego podejścia korzystam w większości projektów.
+
+Powyższe sugestie opierają się przede wszystkim o moje praktyczne doświadczenie z produkcji. Nie oznacza to, że są to jedyne słuszne opcje oraz, że za jakiś czas mogą przestać być aktualne.
+
+Warto dodać, że o budowaniu własnej logiki nigdy bym nie wspomniał, gdyby nie fakt, że mamy do dyspozycji agentów do kodowania. Tworzenie jej od podstaw zwyczajnie kosztowałoby nas więcej, niż potencjalne korzyści. Natomiast teraz wystarczy umieścić pliki oficjalnych SDK providerów, których chcemy podłączyć oraz porozmawiać z agentem o głównych założeniach takich jak:
+
+- jaka struktura API będzie dla nas domyślna. Tutaj musimy określić kształt zapytania oraz odpowiedzi, a także formatu strumieniowanych danych
+- w jaki sposób będziemy określać, który provider powinien zostać aktywowany oraz jak będziemy mapować ustawienia (np. `reasoning_effort`)
+- które z ustawień chcemy obsługiwać, ponieważ z dużym prawdopodobieństwem będzie nam zależało tylko na niektórych
+
+Poniżej widzimy **koncepcyjną wizualizację** (czyli detale są bardzo ogólne) takiej logiki.
+
+![Wsparcie dla wielu providerów](https://cloud.overment.com/2026-03-18/ai_devs_4_multi_provider-bcf2efbc-9.png)
+
+Sam przykład takiej **spersonalizowanej** logiki, którą potencjalnie moglibyśmy uzyskać korzystając z frameworków można też przełożyć na inne obszary i wyciągnąć z tego wartościowe lekcje. No bo przed popularyzacją AI po prostu wybieraliśmy zestaw narzędzi z których chcemy skorzystać i kierowaliśmy się tam głównie kluczowymi funkcjonalnościami, które nam oferują. W zamian przyjmowaliśmy także pozostałe rozwiązania oferowane przez twórców.
+
+Dziś jednak możemy pozwolić sobie na to, aby w przypadku narzędzi, które **nie mają stabilnych fundamentów** bądź **są jeszcze na etapie kształtowania**, podjąć decyzję o tym czy chcemy z nich korzystać czy zastąpimy je własną logiką. Oczywiście w tym miejscu możemy zastanowić się nad tym aspektami związanymi chociażby ze **wsparciem** tych projektów. Poza tym samodzielne budowanie i utrzymywanie logiki wydaje się mieć mały sens, ale takie podejście zwyczajnie **przestaje być aktualne w erze AI**. Tym bardziej, że nikt nie mówi tutaj o budowaniu od podstaw narzędzi i frameworków, które są z nami od lat.
+
+Ostatecznie może się okazać, że wkrótce wśród narzędzi i frameworków AI wyłonią się kandydaci porównywalni chociażby z React / Vue / Angular czy Svelte. Jednak nawet w takiej sytuacji dobrze jest pozostać otwartym na **nowe możliwości, jakie daje nam generatywne AI** w kontekście programowania.
