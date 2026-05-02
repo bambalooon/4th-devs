@@ -256,6 +256,8 @@ const tools: Tool[] = [
             role: 'system',
             content:
               'You analyze images from radio intercepts. Extract any facts about the city codenamed "Syjon". ' +
+              'IMPORTANT: "Syjon" is a codename — "cityName" must be the REAL city name (e.g. "Skarszewy"), NOT "Syjon" itself. ' +
+              'Look for: city name labels, warehouse/magazyn counts, phone numbers, area/surface data. ' +
               'Return ONLY a raw JSON object with optional fields: cityName, warehousesCount, phoneNumber, cityArea, notes. ' +
               'Absolutely NO markdown fences, no ```json, no backticks — just the raw JSON object.',
           },
@@ -322,7 +324,9 @@ const tools: Tool[] = [
           await mkdir(join(WORKSPACE, 'output'), { recursive: true })
           await writeFile(transcriptionPath, transcription, 'utf-8')
         } catch (err) {
-          return JSON.stringify({ notes: `Audio transcription failed: ${err instanceof Error ? err.message : String(err)}` })
+          const msg = err instanceof Error ? err.message : String(err)
+          console.warn(`[analyze_audio:${source}] Whisper unavailable: ${msg}`)
+          return JSON.stringify({ notes: `audio skipped - transcription unavailable: ${msg}` })
         }
       }
 
@@ -432,6 +436,8 @@ const tools: Tool[] = [
               'You are synthesizing a final report from radio intercept analysis results. ' +
               'Given multiple partial fact objects, determine the most reliable values. ' +
               'If facts conflict, prefer the most consistent/specific value. ' +
+              'CRITICAL: "cityName" must be the REAL city name (e.g. "Skarszewy"), NOT the codename "Syjon". ' +
+              'If a field has NO supporting evidence across all sources, set it to null — do NOT invent or default to zero. ' +
               'Return ONLY a JSON object strictly matching the provided schema — no markdown, no commentary.',
           },
           { role: 'user', content: JSON.stringify(allFacts, null, 2) },
