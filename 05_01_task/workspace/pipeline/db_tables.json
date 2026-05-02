@@ -1,0 +1,13 @@
+{
+  "code": 150,
+  "message": "Database table list loaded.",
+  "tool": "database",
+  "mode": "read-only",
+  "query": "show tables",
+  "tables": [
+    "destinations",
+    "roles",
+    "users"
+  ],
+  "count": 3
+}

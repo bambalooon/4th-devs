@@ -1,0 +1,894 @@
+{
+  "destinations": [
+    {
+      "destination_id": 707536,
+      "name": "Karlinkowo"
+    },
+    {
+      "destination_id": 955390,
+      "name": "Reszel"
+    },
+    {
+      "destination_id": 741906,
+      "name": "Celbowo"
+    },
+    {
+      "destination_id": 725741,
+      "name": "Cewice"
+    },
+    {
+      "destination_id": 390716,
+      "name": "Tykocin"
+    },
+    {
+      "destination_id": 917631,
+      "name": "Wyszogrod"
+    },
+    {
+      "destination_id": 695992,
+      "name": "Mechowo"
+    },
+    {
+      "destination_id": 415722,
+      "name": "Krokowa"
+    },
+    {
+      "destination_id": 471906,
+      "name": "Mrozy"
+    },
+    {
+      "destination_id": 884889,
+      "name": "Sompolno"
+    },
+    {
+      "destination_id": 961067,
+      "name": "Rydzyna"
+    },
+    {
+      "destination_id": 988770,
+      "name": "Pasym"
+    },
+    {
+      "destination_id": 271814,
+      "name": "Gniewino"
+    },
+    {
+      "destination_id": 234434,
+      "name": "Brudzewo"
+    },
+    {
+      "destination_id": 968008,
+      "name": "Bobolice"
+    },
+    {
+      "destination_id": 575378,
+      "name": "Tolkmicko"
+    },
+    {
+      "destination_id": 441899,
+      "name": "Kleczew"
+    },
+    {
+      "destination_id": 991828,
+      "name": "Opalino"
+    },
+    {
+      "destination_id": 181279,
+      "name": "Rewal"
+    },
+    {
+      "destination_id": 744542,
+      "name": "Frombork"
+    },
+    {
+      "destination_id": 574835,
+      "name": "Resko"
+    },
+    {
+      "destination_id": 385126,
+      "name": "Ryn"
+    },
+    {
+      "destination_id": 369482,
+      "name": "Biskupiec"
+    },
+    {
+      "destination_id": 106710,
+      "name": "Susz"
+    },
+    {
+      "destination_id": 240752,
+      "name": "Bisztynek"
+    },
+    {
+      "destination_id": 790221,
+      "name": "Hel"
+    },
+    {
+      "destination_id": 140606,
+      "name": "Puck"
+    },
+    {
+      "destination_id": 529177,
+      "name": "Choczewo"
+    },
+    {
+      "destination_id": 273656,
+      "name": "Jastarnia"
+    },
+    {
+      "destination_id": 676323,
+      "name": "Darzlubie"
+    },
+    {
+      "destination_id": 413085,
+      "name": "Tarczyn"
+    },
+    {
+      "destination_id": 761834,
+      "name": "Domatowo"
+    },
+    {
+      "destination_id": 169318,
+      "name": "Brok"
+    },
+    {
+      "destination_id": 315955,
+      "name": "Linia"
+    },
+    {
+      "destination_id": 804616,
+      "name": "Korsze"
+    },
+    {
+      "destination_id": 333749,
+      "name": "Pyzdry"
+    },
+    {
+      "destination_id": 342844,
+      "name": "Orneta"
+    },
+    {
+      "destination_id": 852982,
+      "name": "Krobia"
+    },
+    {
+      "destination_id": 388942,
+      "name": "Skoki"
+    },
+    {
+      "destination_id": 401110,
+      "name": "Karlino"
+    }
+  ],
+  "roles": [
+    {
+      "role_id": 1,
+      "name": "Pomoc techniczna"
+    },
+    {
+      "role_id": 2,
+      "name": "Obsługa transportów"
+    },
+    {
+      "role_id": 3,
+      "name": "Praktykant"
+    },
+    {
+      "role_id": 4,
+      "name": "Programista"
+    },
+    {
+      "role_id": 5,
+      "name": "Specjalista AI"
+    },
+    {
+      "role_id": 6,
+      "name": "Vibe Coder"
+    }
+  ],
+  "users": [
+    {
+      "user_id": 1,
+      "login": "azurek",
+      "name_surname": "Antonina Żurek",
+      "password": "3208b5e09f4572e8abc2d09a7b39995e",
+      "birthday": "1983-09-23",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 2,
+      "login": "tgajewski",
+      "name_surname": "Tymon Gajewski",
+      "password": "8693b092bd2c229941f7128fa78363e4",
+      "birthday": "1991-04-06",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 3,
+      "login": "bczajkowski",
+      "name_surname": "Bartosz Czajkowski",
+      "password": "ffecdc5deb2e823f1ca0164325df489d",
+      "birthday": "1989-06-04",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 4,
+      "login": "esadowska",
+      "name_surname": "Edyta Sadowska",
+      "password": "a2bfd65b39206ff14f11578e7d95ac24",
+      "birthday": "1950-09-20",
+      "role": 4,
+      "is_active": 1
+    },
+    {
+      "user_id": 5,
+      "login": "mkoodziej",
+      "name_surname": "Mariusz Kołodziej",
+      "password": "de11d12b3bf3a9e19be2661177a2e14b",
+      "birthday": "1987-08-14",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 6,
+      "login": "jgacek",
+      "name_surname": "Jerzy Gacek",
+      "password": "fe4017a71e1cca2f86a892ae79a875c2",
+      "birthday": "1978-12-25",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 7,
+      "login": "bkurek",
+      "name_surname": "Bożena Kurek",
+      "password": "a68d1fba0ed1817615e1d64abce53145",
+      "birthday": "1951-04-12",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 8,
+      "login": "gjabonski",
+      "name_surname": "Gustaw Jabłoński",
+      "password": "f0ca11ecb8b751f846dda0650a25687b",
+      "birthday": "1981-06-27",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 9,
+      "login": "mkrol",
+      "name_surname": "Marcel Król",
+      "password": "b429d188fd3c68b1eb353142e7a7bc6f",
+      "birthday": "1962-09-21",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 10,
+      "login": "bkos",
+      "name_surname": "Bruno Kłos",
+      "password": "19aaad5b44351abb490bb6ed12561a0d",
+      "birthday": "1992-05-08",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 11,
+      "login": "iwojcik",
+      "name_surname": "Izabela Wójcik",
+      "password": "f6e644fc55d9a91ce0c2e6b08271baa5",
+      "birthday": "1970-07-20",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 12,
+      "login": "apietrzak",
+      "name_surname": "Angelika Pietrzak",
+      "password": "2664a66aa149cd02f2ae32598e2c48c5",
+      "birthday": "1976-09-19",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 13,
+      "login": "ikubiak",
+      "name_surname": "Izabela Kubiak",
+      "password": "007ad08c7bca84d0f28fc28c7de57099",
+      "birthday": "1965-01-31",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 14,
+      "login": "dsikora",
+      "name_surname": "Dawid Sikora",
+      "password": "5dc448541c662ad2ec994043046ab155",
+      "birthday": "1970-04-29",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 15,
+      "login": "jmichalski",
+      "name_surname": "Jakub Michalski",
+      "password": "ca7ad3289296bf63f227b954dc3fa87c",
+      "birthday": "1983-04-19",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 16,
+      "login": "dbaran",
+      "name_surname": "Dionizy Baran",
+      "password": "7c0f723f37a345ebf948e719afa55773",
+      "birthday": "1958-10-25",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 17,
+      "login": "badamczyk",
+      "name_surname": "Bernadeta Adamczyk",
+      "password": "c0b154836e0b64a5d2b9c9f5935c42ea",
+      "birthday": "1987-07-12",
+      "role": 4,
+      "is_active": 1
+    },
+    {
+      "user_id": 18,
+      "login": "fgacek",
+      "name_surname": "Felicja Gacek",
+      "password": "217dd9dbe01f656f0eefe9bfa3926d91",
+      "birthday": "1955-04-18",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 19,
+      "login": "switkowski",
+      "name_surname": "Szymon Witkowski",
+      "password": "d64d092100d1b529c88f81ce4e185019",
+      "birthday": "1990-09-05",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 20,
+      "login": "tjakubowski",
+      "name_surname": "Tomasz Jakubowski",
+      "password": "13b0a4baada52c78c80c4987cc4d3500",
+      "birthday": "2000-09-19",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 21,
+      "login": "bkoodziej",
+      "name_surname": "Bernadeta Kołodziej",
+      "password": "23fe2cad0945c58f6c2009dbcab52e40",
+      "birthday": "1955-06-26",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 22,
+      "login": "smalinowska",
+      "name_surname": "Sylwia Malinowska",
+      "password": "a1a689f6c033c04c7b1ac2f09c7e7c72",
+      "birthday": "1987-08-07",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 23,
+      "login": "kmichalska",
+      "name_surname": "Kamila Michalska",
+      "password": "00094ed9f048d205fd60c57cf6d40633",
+      "birthday": "1998-08-19",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 24,
+      "login": "dwojciechowska",
+      "name_surname": "Daniela Wojciechowska",
+      "password": "74a187db517a02ad199c737772207593",
+      "birthday": "1996-02-24",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 25,
+      "login": "akrajewski",
+      "name_surname": "Antoni Krajewski",
+      "password": "d1f5d421a9067b9206b462b406b7cf00",
+      "birthday": "1987-10-12",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 26,
+      "login": "szajac",
+      "name_surname": "Sylwester Zając",
+      "password": "ff59aaf2a3aef0c007fcb7ebc3d9ff47",
+      "birthday": "1976-10-30",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 27,
+      "login": "nborowski",
+      "name_surname": "Natan Borowski",
+      "password": "e6e889797702d6515a699baf0cfcfa81",
+      "birthday": "1992-12-16",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 28,
+      "login": "eszymanski",
+      "name_surname": "Eryk Szymański",
+      "password": "569314fc0a2d5505c5115e8c50010cc0",
+      "birthday": "1970-12-01",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 29,
+      "login": "bbaszczyk",
+      "name_surname": "Bianka Błaszczyk",
+      "password": "975a737d4a4b40e71d685e85416c0180",
+      "birthday": "2000-10-12",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 30,
+      "login": "wgowacki",
+      "name_surname": "Wiesław Głowacki",
+      "password": "c5b30f7106cd25c619794153ccf3f737",
+      "birthday": "1972-09-15",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 31,
+      "login": "anowicka",
+      "name_surname": "Antonina Nowicka",
+      "password": "1866f4200a3f1c8aaaabbef3df4e2116",
+      "birthday": "1970-01-27",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 32,
+      "login": "ppietrzak",
+      "name_surname": "Piotr Pietrzak",
+      "password": "8139574d13f193e7ca63ee8c042b1f6b",
+      "birthday": "1991-05-02",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 33,
+      "login": "durbanska",
+      "name_surname": "Daniela Urbańska",
+      "password": "5294f5d0293a4c707e941034c10c5f6e",
+      "birthday": "1985-05-30",
+      "role": 4,
+      "is_active": 1
+    },
+    {
+      "user_id": 34,
+      "login": "mczarnecka",
+      "name_surname": "Magdalena Czarnecka",
+      "password": "fd8396ba88726652ec30b78c9eb435a3",
+      "birthday": "1969-01-12",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 35,
+      "login": "fczajkowska",
+      "name_surname": "Feliksja Czajkowska",
+      "password": "64cac16206dfce340622021878c404d1",
+      "birthday": "1951-08-21",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 36,
+      "login": "rwojcik",
+      "name_surname": "Ryszard Wójcik",
+      "password": "3a9c582d49ce37f5b785e0d364399d82",
+      "birthday": "1966-08-24",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 37,
+      "login": "gpietrzak",
+      "name_surname": "Gabriela Pietrzak",
+      "password": "99268e3f88bb5b06d7fd3a944c4c7358",
+      "birthday": "1981-05-10",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 38,
+      "login": "dbak",
+      "name_surname": "Dorota Bąk",
+      "password": "4d695149aec6f57453a1ea1e7f052229",
+      "birthday": "1988-03-10",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 39,
+      "login": "jsliwinska",
+      "name_surname": "Jadwiga Śliwińska",
+      "password": "6731db1953163000e1f25f41575a7982",
+      "birthday": "1950-04-26",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 40,
+      "login": "kkowalczyk",
+      "name_surname": "Karolina Kowalczyk",
+      "password": "dcce6f097fe94bf716762fdeb193f3e3",
+      "birthday": "1999-11-15",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 41,
+      "login": "fkedziora",
+      "name_surname": "Florentyna Kędziora",
+      "password": "ad578f09e0ceb1661d3b83f551d7683b",
+      "birthday": "1958-01-12",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 42,
+      "login": "sszymanski",
+      "name_surname": "Sylwester Szymański",
+      "password": "9a0391656f9cbd005feaad3418aaca51",
+      "birthday": "1993-11-19",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 43,
+      "login": "cborowski",
+      "name_surname": "Czesław Borowski",
+      "password": "dff07c60eb0d2bde3413f62ae94313b4",
+      "birthday": "1967-08-10",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 44,
+      "login": "awalczak",
+      "name_surname": "Amelia Walczak",
+      "password": "5f777b78f338336db1be0ae267f17a3c",
+      "birthday": "1969-07-19",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 45,
+      "login": "dmichalski",
+      "name_surname": "Damian Michalski",
+      "password": "7beab29965eac6a92eb26700be07a017",
+      "birthday": "1957-10-06",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 46,
+      "login": "wwitkowska",
+      "name_surname": "Wanda Witkowska",
+      "password": "e9ac6872199dd2bdfd9dd704cba8e3ce",
+      "birthday": "2000-12-01",
+      "role": 4,
+      "is_active": 1
+    },
+    {
+      "user_id": 47,
+      "login": "kpietrzak",
+      "name_surname": "Kamila Pietrzak",
+      "password": "ce5aebdb5295030ca31effa679fd020b",
+      "birthday": "1952-11-01",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 48,
+      "login": "brutkowski",
+      "name_surname": "Bruno Rutkowski",
+      "password": "7454d3cdba871a83812b9114395068e5",
+      "birthday": "1952-07-29",
+      "role": 4,
+      "is_active": 1
+    },
+    {
+      "user_id": 49,
+      "login": "mrogowska",
+      "name_surname": "Marta Rogowska",
+      "password": "5b07b9c1b5ebcb9d779ec5ec80b6bbce",
+      "birthday": "1998-06-02",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 50,
+      "login": "wgowacka",
+      "name_surname": "Wioletta Głowacka",
+      "password": "ab97ef96abce90ceed08fff71bef7729",
+      "birthday": "1989-04-12",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 51,
+      "login": "zfijakowska",
+      "name_surname": "Żaneta Fijałkowska",
+      "password": "c1d608e455943b0c291b45b15fe30a8f",
+      "birthday": "1957-03-25",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 52,
+      "login": "pkaczmarczyk",
+      "name_surname": "Patryk Kaczmarczyk",
+      "password": "ca1628fbe7789855f082bd6d3b46f12d",
+      "birthday": "1986-10-06",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 53,
+      "login": "zpiekarska",
+      "name_surname": "Zuzanna Piekarska",
+      "password": "83e3da3620f499a7aafba9caeac5ac2b",
+      "birthday": "1975-07-08",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 54,
+      "login": "gsieradzka",
+      "name_surname": "Gabriela Sieradzka",
+      "password": "bdd926e3de6ed753a244dadbeabd0d0b",
+      "birthday": "1989-08-28",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 55,
+      "login": "jgajewska",
+      "name_surname": "Janina Gajewska",
+      "password": "a673cb7852baee34f8218fd4e7046260",
+      "birthday": "1986-10-08",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 56,
+      "login": "wwrona",
+      "name_surname": "Waldemar Wrona",
+      "password": "9b579393534110fe864b843ce2f21cbf",
+      "birthday": "1989-09-19",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 57,
+      "login": "akowalczyk",
+      "name_surname": "Aneta Kowalczyk",
+      "password": "cc2a44125531535ddde8070ee3ac734f",
+      "birthday": "1957-02-18",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 58,
+      "login": "pjasinska",
+      "name_surname": "Paulina Jasińska",
+      "password": "0a56536b2a260b5c3cfd67646ddc347d",
+      "birthday": "1992-08-20",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 59,
+      "login": "bkazmierczak",
+      "name_surname": "Barbara Kaźmierczak",
+      "password": "8982fe1c9a98e6c0ce7acf5d97afe2d1",
+      "birthday": "1971-07-07",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 60,
+      "login": "mzurek",
+      "name_surname": "Miłosz Żurek",
+      "password": "fde104291e8f6817dfc82c8a3d8e46ff",
+      "birthday": "1976-10-28",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 61,
+      "login": "swozniak",
+      "name_surname": "Stefan Woźniak",
+      "password": "9c91ba772027f039f9423af09a65852e",
+      "birthday": "1951-08-20",
+      "role": 2,
+      "is_active": 1
+    },
+    {
+      "user_id": 62,
+      "login": "wszczepanski",
+      "name_surname": "Wacław Szczepański",
+      "password": "93468a547d87356ba5a8e9aea3185e9a",
+      "birthday": "1984-06-06",
+      "role": 4,
+      "is_active": 1
+    },
+    {
+      "user_id": 63,
+      "login": "fmalinowska",
+      "name_surname": "Franciszka Malinowska",
+      "password": "9baf9986c5350752eda800c29ac6c1bd",
+      "birthday": "1996-04-04",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": 64,
+      "login": "bwodarczyk",
+      "name_surname": "Bruno Włodarczyk",
+      "password": "abba7b240de7fdb3a958173709e019a2",
+      "birthday": "1995-01-10",
+      "role": 5,
+      "is_active": 1
+    },
+    {
+      "user_id": 65,
+      "login": "rwroblewska",
+      "name_surname": "Regina Wróblewska",
+      "password": "c312339828a0b829ed52f312faa811c0",
+      "birthday": "1996-04-10",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 66,
+      "login": "lsokoowska",
+      "name_surname": "Liwia Sokołowska",
+      "password": "857fcb4461256986f52a6429c3a62694",
+      "birthday": "1951-05-08",
+      "role": 1,
+      "is_active": 1
+    },
+    {
+      "user_id": 67,
+      "login": "awroblewska",
+      "name_surname": "Alina Wróblewska",
+      "password": "3f9f991cda326ef113a4795de2079aed",
+      "birthday": "1983-12-05",
+      "role": 3,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "sergouda",
+      "name_surname": "pZSBjb3MgemxlIHpkZWtvZG93YW",
+      "password": "2b9f0247289d4146edbce4397d15123e",
+      "birthday": "1998-03-22",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "nocnykebab",
+      "name_surname": "COImD2zf9avSbSBoRKi6Chygunk",
+      "password": "0e4cf471e04b26d32b7ae5be91c520e6",
+      "birthday": "1990-11-27",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "kosmicznypaczek",
+      "name_surname": "/+nkVOQ6PoXdsr7vhsR5diG9mzh",
+      "password": "670ef4d0459b030c14092184ffe343c8",
+      "birthday": "1985-04-30",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "zwyklysernik",
+      "name_surname": "xvIHRlbXUgYmVqc3UuLi4gaSBjY",
+      "password": "4b09e783bbf6933f8370f155176ea2f5",
+      "birthday": "1996-05-10",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "glodnywombat",
+      "name_surname": "HWd0ny/KbF1Ni7wslqsHUVWnL2o",
+      "password": "77c3ccc7698abc31b45a7e8feec47112",
+      "birthday": "1982-08-19",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "lubieplacki",
+      "name_surname": "OcpLlXKQPHq7I5yoRo41i5TU9J7",
+      "password": "f7b1097ba1a9d983d0081b352e424b37",
+      "birthday": "1988-02-14",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "lordkalafior",
+      "name_surname": "kNRgXZeAAuN6q3fAAAAA==",
+      "password": "a3e5a95681f96b792b762d89100feb27",
+      "birthday": "1976-12-12",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "wujekbagieta",
+      "name_surname": "PIy4GVguLizeHGysa23eIkn5wjJ",
+      "password": "ba77292007e206cf5c1d07c1fd52619c",
+      "birthday": "1979-10-06",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "bezloginu",
+      "name_surname": "IAAFQDEKwjAU3f8pnqOLB+hWpZa",
+      "password": "24b42da13707b5d2c142aa7c69324afc",
+      "birthday": "1992-09-03",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "mrocznymsciciel69",
+      "name_surname": "H4sIEMggzmkA/yAgIENoeWJhIHN",
+      "password": "a8970cf9e09d84b24b81fe0f57bed7f3",
+      "birthday": "2000-01-15",
+      "role": 6,
+      "is_active": 1
+    },
+    {
+      "user_id": null,
+      "login": "aleurwal",
+      "name_surname": "Wx5IG1pc3Rlcm55IHBsYW4uLi4g",
+      "password": "ef048ba7a870898e92f1d7d5ec503938",
+      "birthday": "1994-07-18",
+      "role": 6,
+      "is_active": 1
+    }
+  ]
+}
