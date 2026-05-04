@@ -1,0 +1,22 @@
+{
+  "name": "02_04_ops",
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file=.env src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts"
+  },
+  "dependencies": {
+    "@langfuse/client": "^5.0.2",
+    "@langfuse/openai": "^5.0.2",
+    "@langfuse/otel": "^5.0.2",
+    "@opentelemetry/sdk-node": "^0.214.0",
+    "gray-matter": "^4.0.3",
+    "openai": "^6.17.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

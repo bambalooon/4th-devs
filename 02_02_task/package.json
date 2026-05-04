@@ -1,0 +1,16 @@
+{
+  "name": "02_02_task",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "sharp": "^0.34.5",
+    "terminal-image": "^4.2.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}
