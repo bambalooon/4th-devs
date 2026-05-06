@@ -1,161 +1,217 @@
 ---
-title: S05E01 — Architektura
+title: S05E02 — Zestaw narzędzi
 space_id: 2476415
 status: scheduled
-published_at: '2026-04-06T04:00:00Z'
+published_at: '2026-04-07T04:00:00Z'
 is_comments_enabled: true
 is_liking_enabled: true
 skip_notifications: false
-cover_image: 'https://cloud.overment.com/the-architect-1775194817.png'
-circle_post_id: 31353053
+cover_image: 'https://cloud.overment.com/chamber-1775197086.png'
+circle_post_id: 31353089
 ---
+## Film do lekcji
 
-Dotychczasowe lekcje pokazały nam, że generatywne aplikacje to faktycznie w 80% kod, który pojawia się w klasycznych aplikacjach. Jest jednak tu kilka zmiennych, których nie wzięliśmy pod uwagę. Po pierwsze, LLM potrafi zrealizować dużą część logiki, której już nie musimy pisać. Po drugie, architektura aplikacji musi uwzględniać obecność AI bardziej, niż z początku się wydaje. Wyraźne zmiany są obecne niemal wszędzie - od interfejsu użytkownika, przez API, po struktury bazy danych czy konfigurację serwerów. Pojawia się także potrzeba skorzystania z szeregu dodatkowych narzędzi czy bibliotek, których normalnie by nie było.
+![https://vimeo.com/1179917043](https://vimeo.com/1179917043)
 
-Dlatego dziś odpowiemy sobie na pytanie, jak może wyglądać architektura aplikacji w której pojawiają się LLMy, bądź w przypadku której stanowią one absolutną podstawę.
+Budowanie aplikacji wykorzystujących modele generatywnej sztucznej inteligencji może wymagać skorzystania z narzędzi rozwiązujących **jasno zdefiniowane problemy**, bądź pomagające w budowaniu funkcjonalności związanych ściśle z działaniem AI. Niekiedy też sami będziemy opracowywać rozwiązania, które przydadzą nam się w więcej niż jednym projekcie.
 
-### Cechy aplikacji wykorzystującej generatywne AI
+W tym przypadku nie mówimy wyłącznie o prostych skryptach czy bibliotekach, ale także całych platformach. Bo nawet jeśli dzięki AI możemy wygenerować mnóstwo logiki, to i tak do rozwijania rozbudowanych serwisów wciąż jest daleko i czasem lepiej jest sięgnąć po rozwiązania dostępne na rynku.
 
-Modele oraz agenci AI mogą pojawiać się w logice aplikacji w różnym zakresie. Czasem będą stanowić fundament całego produktu i wówczas architektura będzie pod to ułożona. Innym razem będą pojawiać się jako jeden z modułów, który musi dopasować się do reszty. Okazuje się jednak, że w obu przypadkach decyzje, które musimy podjąć będą podobne i będą obejmować:
+## Budowanie interfejsu użytkownika
 
-- **Gateway:** czyli scentralizowaną logikę odpowiadającą za komunikację z AI. Uwzględnia ona zarządzanie połączeniem, ustawieniami zapytań czy monitorowaniem. Całość powinna być zaprojektowana w taki sposób, aby umożliwić nam **swobodne przełączanie się** pomiędzy różnymi modelami, **a nawet dostawcami.** Można to osiągnąć poprzez skorzystanie z **AI SDK** bądź **LiteLLM** albo własnego formatu API mapowanego do formatów poszczególnych providerów.
-- **API:** czyli struktura endpointów oraz ich ustawienia. Klient (np. aplikacja webowa) nie powinien mieć bezpośredniego dostępu do modelu, np. przez endpoint `/api/chat`, o ile nie jest to konieczne. Zamiast tego powinniśmy przygotować wyspecjalizowane endpointy, np. `/product/review`, które przyjmują i zwracają dane o ustalonym kształcie. Inaczej mówiąc - kontakt z modelem powinien być ograniczony już na poziomie API.
-- **System plików:** czyli konfiguracje dostępu do katalogów i plików dla agentów działających w imieniu użytkowników. Musimy tu zadbać przede wszystkim o zakresy uprawnień oraz zasady interakcji z dokumentami. Jest to trudniejsze niż w przypadku klasycznych aplikacji, ponieważ agent AI może nawet przypadkiem podjąć akcje, których się nie spodziewamy (jak np. usunięcie całego katalogu(!)).
-- **Baza danych:** czyli dodatkowe struktury powiązane bezpośrednio z agentami, ich aktywnością oraz wiedzą. Konieczne będzie tu zapisywanie interakcji, zaplanowanych zadań, a nierzadko także definicji oraz ustawień samych agentów i ich narzędzi.
-- **Zależności:** czyli biblioteki i narzędzia związane np. z ewaluacją, obserwowaniem, transformacją dokumentów (np. markdown), wyszukiwaniem semantycznym, renderowaniem strumieniowanych treści markdown do HTML czy frameworkami AI (o ile zdecydujemy się na skorzystanie z nich).
+Może wydawać się, że generatywne aplikacje nie wnoszą nic nowego do interfejsu użytkownika, ponieważ **komunikatory** i różnego rodzaju **dashboard'y** są z nami od dawna. W dużym stopniu jest to prawda, ale przy budowaniu zaawansowanych interfejsów dla agentów pojawiają się zupełnie nowe problemy.
 
-![Generatywne aplikacje - architektura](https://cloud.overment.com/2026-03-16/ai_devs_4_architecture-1f6d8c0d-e.png)
+Jednym z nich jest **wyświetlanie treści Markdown** z uwzględnieniem **strumieniowania** oraz **własnych komponentów**, których stan może zmieniać się w trakcie generowania odpowiedzi. Wśród komponentów mogą pojawić się zaawansowane artefakty, odtwarzacze czy inne, interaktywne bloki. W dodatku całość musi być dobrze zoptymalizowana, aby móc wyświetlić bardzo długie konwersacje, zawierające nawet kilkaset wiadomości. A w tym wszystkim musimy także zadbać o dobre doświadczenia użytkownika, które wynikają nie tylko z poprawnego działania, ale także zadbania o detale, takie jak wizualna informacja o bieżących statusach czy drobne animacje.
 
-Podejmowanie decyzji o kształcie architektury w kontekście logiki agentów oraz zasobów na których pracują, można porównać z integracją zewnętrznego systemu, np. **systemu płatności**. Tam również musimy podjąć decyzję o jego roli w systemie czy zorganizować struktury danych tak, aby możliwe było zrealizowanie całego procesu oraz połączenie go z istniejącymi modułami (np. powiadomieniami). Zazwyczaj konieczne będzie też zadbanie o przygotowanie logiki w taki sposób, aby możliwe było **połączenie z wieloma operatorami płatności** i wygodne przełączanie się między nimi.
+Zatem przygotowanie UI dla prostego czatu nie jest wyzwaniem. Ale stworzenie go dla zaawansowanego agenta, bądź systemu wieloagentowego potrafi zaskoczyć.
 
-Wśród decyzji, które będziemy podejmować, można uwzględnić kilka, które niemal zawsze będą "pewnikami", np.:
+W przykładzie **05\_02\_ui** znajduje się aplikacja skupiająca się na **interfejsie czatu** obsługującym strumieniowanie oraz renderowanie wiadomości z uwzględnieniem specjalnych bloków odpowiedzialnych za wyświetlanie **reasoningu**, **narzędzi** oraz **artefaktów**. Interfejs obsługuje także **kontrolę tempa strumieniowanego tekstu** oraz tryby **live / demo** z których ten drugi daje możliwość sprawdzenia jak zachowuje się czat, gdy na liście pojawia się nawet 1500 wiadomości.
 
-- Centralizacja interakcji z AI niemal zawsze będzie priorytetem. Budowanie i wysyłanie zapytań z wielu miejsc aplikacji bardzo utrudnia zarządzanie globalnymi ustawieniami czy nawet przełączanie między modelami.
-- Otwartość na więcej niż jednego providera, powinna być przynajmniej mocno wzięta pod uwagę, ponieważ nie będziemy chcieli blokować możliwości skorzystania ze znacznie lepszych modeli innych dostawców.
-- Wsparcie dla strumieniowania zdarzeń, w celu informowania użytkownika o postępach oraz zmniejszenia czasu reakcji.
-- Wsparcie multimodalności, nawet jeśli początkowo będziemy przetwarzać wyłącznie tekst. Wystarczy otworzyć sobie "furtkę" w postaci zbudowania struktur baz danych tak, aby przetwarzanie obrazu bądź formatu audio było łatwe do dodania.
-- Wsparcie logiki agentów, nawet jeśli początkowo budujemy prostego czatbota. Przykładowo zamiast tworzyć tabelę `messages` zawierającą tekst, można skorzystać ze struktury tabeli `items` wspomnianej chociażby w **S01E01**, aby ułatwić sobie monitorowanie poszczególnych akcji występujących **pomiędzy** wiadomościami.
-- Obsługa zdarzeń realizowanych w dużym horyzoncie czasowym. Na produkcji szybko okaże się, że użytkownik zamknie kartę przeglądarki albo po prostu czas realizacji zadania przekroczy dopuszczalne limity czasu połączenia.
+> Wskazówka: Wskazówka: Przykład 05\_02\_ui należy uruchomić poleceniem lesson22:ui oraz przejść w przeglądarce na adres localhost:5173
 
-Powyższe punkty występują w każdym z moich projektów, niezależnie od tego czy mówimy jedynie o wybranych funkcjonalnościach czy całym systemie ukierunkowanym na logikę agentów.
+![Przykład interfejsu](https://cloud.overment.com/2026-03-19/ai_devs_4_generative_ui-36620434-5.png)
 
-### Fundamentalna cecha produktów w dobie AI
+Interfejs czatu korzysta z kilku bibliotek:
 
-Przy obecnym tempie rozwoju modeli oraz ekosystemu narzędzi, każdy tworzony przez nas system **powinien** (jeśli to możliwe) być zaprojektowany tak, aby **dalszy rozwój modeli wzmacniał jego możliwości**. Warto odnieść się do tego zarówno w kontekście biznesowym, produktowym, jak i technologicznym.
+- **[markdown-it](https://github.com/markdown-it/markdown-it)**: konwertuje składnię Markdown na HTML i odpowiada za całą warstwę renderowania tekstu
+- **[highlight.js](https://github.com/highlightjs/highlight.js/)**: renderuje bloki kodu ze składnią właściwą dla danego języka programowania
+- **[dompurify](https://github.com/cure53/DOMPurify)**: usuwa potencjalnie złośliwe tagi z generowanych wypowiedzi LLM. Jest to krytycznie istotne narzędzie zabezpieczające przed renderowaniem niepożądanych tagów czy skryptów.
+- **[remend](https://www.npmjs.com/package/remend)** — naprawia niekompletną składnię Markdown podczas strumieniowania, umożliwiając poprawne renderowanie elementów, które nie zostały jeszcze zamknięte (np. bloki kodu, listy, pogrubienia)
+- **[marked](https://marked.js.org/)** — tokenizuje narastającą treść strumieniowaną na niezależne bloki (akapity, nagłówki, bloki kodu itd.). Bez tego cała wiadomość modelu musiałaby być **ponownie renderowana** co każdy token.
 
-Obszar biznesowy leży zwykle poza naszą kontrolą. Jednak budowanie rozwiązań adresujących obszary z którymi obecnie LLM radzą sobie przeciętnie, raczej nie jest dobrym pomysłem. Szczególnie gdy widzimy wyraźny postęp w skuteczności najnowszych modeli, powinno dać nam to domyślenia. W przeciwnym razie może się okazać, że premiera kolejnych wersji modeli sprawi, że nasz produkt stanie się niepotrzebny, albo wysiłek który włożyliśmy w opracowanie funkcjonalności nigdy się nie zwróci. Oczywiście są tutaj wyjątki, ale mówimy tu raczej o realnym ryzyku, które należy brać pod uwagę.
+Powyższa lista stanowi fundamentalny zestaw, z którego korzystam niemal we wszystkich swoich projektach. Na uwagę zasługuje jeszcze narzędzie **[Streamdown](https://github.com/vercel/streamdown)** jednak nie miałem okazji pracować z nim na produkcji. Na Githubie pojawiają się też nowe projekty, więc zawsze i tak warto przeszukać Internet, bo być może pojawią się lepsze alternatywy dla powyższych narzędzi.
 
-Ta sama sytuacja ma też przełożenie na obszar technologiczny, ponieważ systemy które tworzymy powinny być podatne na modyfikacje bardziej niż kiedykolwiek. A to oznacza, że nasze umiejętności budowania architektury mają jeszcze większe znaczenie. Istotną rolę odgrywają tutaj **detale** implementacji, które mogą nam znacznie utrudnić bądź zablokować rozwój. Co prawda dziś z pomocą agentów AI jesteśmy w stanie dość łatwo wprowadzić nawet rozległe modyfikacje w rozbudowanych systemach, ale nadal są scenariusze w których będzie to trudne. To właśnie z tego powodu tak dużą rozwagę zalecam przy decyzji o wyborze **frameworków AI**. Choć tu decyzja należy wyłącznie od nas, tak łatwo się przekonać jak duży problem może stanowić oparcie całej aplikacji o rozwiązanie budowane na fundamentach, które wciąż się zmieniają.
+Pomimo tego, że interfejs z omówionego przykładu **05\_02\_ui** już teraz jest dość zaawansowany, to nadal brakuje w nim wielu potencjalnie istotnych elementów:
 
-Tylko co to oznacza w praktyce?
+- przesyłanie i **wyświetlanie** załączników (obrazy, dokumenty)
+- **kopiowanie** treści całej wiadomości z zachowaniem stylów
+- **rozgałęzianie** wątków i **edytowanie** poszczególnych wiadomości
+- **usuwania** wybranych wiadomości (bądź cofania konwersacji)
+- **wstrzymywanie** generowanej odpowiedzi
+- **przeszukiwania** słów kluczowych dla całej konwersacji
+- wysyłanie kolejnych wiadomości w trakcie inferencji
+- **nagrywanie i odsłuchiwanie** wiadomości
+- renderowanie składni LaTeX (np. z pomocą [KaTeX](https://katex.org/))
+- **formatowanie tekstu** w polu tekstowym (np. z pomocą [TipTap](https://tiptap.dev/))
+- wyświetlanie **diagramów** (np. z pomocą [Beautiful Mermaid](https://github.com/lukilabs/beautiful-mermaid))
+- renderowanie map myśli (np. z pomocą [Markmap](https://markmap.js.org/))
+- **udostępnianie wątków** innym użytkownikom
+- wsparcie subagentów
+- **obsługi** skrótów klawiszowych
 
-Programowanie jakie znaliśmy do tej pory uczyło nas projektowania architektury, która nie tylko zrealizuje założenia biznesowe, ale też nie będzie utrudniać dalszego rozwoju niezależnie od tego, w jaki sposób będzie rozwijał się produkt. Zazwyczaj jednak i tak większość komponentów nigdy się nie zmienia i z czasem okazuje się, że nawet gdy zachodzi potrzeba ich wymiany na inne, staje się to zbyt trudne ze względu na liczbę zależności czy po prostu ilość dedykowanej logiki.
+Do tych punktów zazwyczaj musimy dołożyć także kontrolę ustawień, a także wszystko to, co mówiliśmy na temat wsparcia różnych modeli oraz providerów oraz naturalnie zarządzania kontekstem i obsługi zdarzeń. Mówiąc inaczej - jest to sporo pracy nawet pomimo wsparcia ze strony AI.
 
-W przypadku generatywnych aplikacji obowiązują nas podobne zasady, ale dynamika rozwoju samej aplikacji oraz zmiany otoczenia są tak duże, że coraz trudniej jest mówić o podejmowaniu decyzji na lata. Jednak z drugiej strony mówimy o potrzebie **bardzo szybkich iteracji**, których zakres nierzadko będzie obejmował to, co normalnie robiliśmy w ciągu kwartału bądź półrocza.
+## Przydatne narzędzia dla agentów
 
-Choć nie mam bezpośredniej odpowiedzi na pytanie, **"jak należy projektować"** aplikacje zachowujące ogromną elastyczność i pozwalające na tak szybkie iterowanie nawet jeśli po drodze wymienimy dużą część logiki, tak wiele wskazuje na to, że nasza uwaga powinna skupić się na **"prymitywach"** (w kontekście architektury), a nie "funkcjonalnościach".
+W dotychczasowych lekcjach pojawiały się nazwy różnych narzędzi oraz platform, ale nie sposób omówić je wszystkie. Poza tym, nawet nie ma takiej potrzeby, ponieważ większość rozwiązań o których nierzadko jest dość głośno, pozostaje na bardzo wczesnym etapie rozwoju, a twórcy porzucają ich rozwój. Należy więc zachować ostrożność w ich dobieraniu, szczególnie jeśli dotyczą bezpośrednio AI. Sam też nie miałem okazji sprawdzić na produkcji wszystkich rozwiązań, które za chwilę sobie omówimy, także warto zachować do nich pewien dystans.
 
-**Prymitywy:** to podstawowe, możliwie najprostsze elementy z których można zbudować bardziej złożone struktury.
+> Uwaga: część z wymienionych narzędzi jest powiązana z ekosystemem JavaScript / Node. Warto poszukać alternatyw dla swoich technologii bądź skorzystać z AI do przetłumaczenia wybranych funkcjonalności, o ile tylko pozwala na to licencja.
 
-Zatem przykładowo: podczas implementacji logiki dla funkcjonalności **czatu**, zwykle myślimy o niej jako o wymianie **wiadomości** pomiędzy **użytkownikiem**, a **asystentem**. Jest to więc wyspecjalizowana i raczej mało elastyczna struktura, która może znacznie utrudniać wprowadzenie interakcji pomiędzy agentami.
+- **[just-bash](https://github.com/vercel-labs/just-bash)**: narzędzie to pozwala na pracę z wirtualnym systemem plików z pomocą poleceń znanych z **bash**'a. Różnica polega jednak na tym, że nie musimy dawać agentowi dostępu do terminala. Korzystamy więc z faktu, że modele świetnie posługują się tym narzędziem, a jednocześnie nie komplikujemy architektury poprzez konieczność podłączania sandbox'ów. Takie podejście może być dobrą alternatywą dla Files MCP, które przedstawiałem w pierwszych lekcjach.
+- **[agent-browser](https://github.com/vercel-labs/agent-browser.git)**: to narzędzie CLI umożliwiające agentom korzystanie z **lokalnej** przeglądarki (Chrome/Chromium) w trybie "headless". Udostępnia narzędzia w postaci prostych komend, którymi bez problemu posługują się agenci. Odpowiedzi narzędzi są też domyślnie zoptymalizowane pod kątem liczby tokenów. Wspiera także indywidualne **sesje**, co pozwala na dostęp do stron wymagających logowania.
+- **[browser-use](https://docs.browser-use.com/cloud/introduction) / [browserbase](https://www.browserbase.com/)**: to podobne do siebie narzędzia oferujące dostęp do przeglądarki w chmurze. Można je połączyć z **agent-browser** na przykład w sytuacji, gdy nie mamy dostępu do przeglądarki lokalnej bądź z innego powodu (np. z powodu skali) zależy nam na skorzystaniu z takich rozwiązań.
+- [firecrawl](https://www.firecrawl.dev/) / [tavily](https://www.tavily.com/) / [brave](https://brave.com/search/api/) / [exa](https://exa.ai/) / [jina](https://jina.ai/): to narzędzia do przeszukiwania Internetu oraz wczytywania treści stron. W przeciwieństwie do narzędzi **web\_search** dostępnych natywnie u wszystkich głównych providerów LLM API, tutaj mamy nieporównywalnie większą kontrolę nad tym procesem. Spośród wymienionych najbardziej mogę polecić Firecrawl, Jina oraz Brave. W niektórych przypadkach może sprawdzić się skorzystanie z więcej niż jednej usługi ze względu na różne ograniczenia oraz ogólną skuteczność wczytywania treści stron.
+- [daytona](https://www.daytona.io/)/ [e2b](https://e2b.dev/): to wspominane już sandbox'y, przydatne dla agentów posługujących się terminalem bądź narzędziami w trybie Code Mode. Alternatywnie można skorzystać tu także z [Deno Sandbox](https://deno.com/deploy/sandbox)
+- [secure-exec](https://github.com/rivet-dev/secure-exec): dodaję to narzędzie, choć **nie miałem okazji z nim pracować**, ale prezentuje koncepcję wykonywania kodu bez potrzeby uruchamiania sandbox'a.
+- **[live-kit](https://github.com/livekit/client-sdk-js)**: to narzędzie do budowania zaawansowanych interfejsów audio/video z przydatnymi funkcjonalnościami, na przykład do rozpoznawania ciszy bądź przeciwnie, do rozpoznawania momentu w którym użytkownik znów zaczyna coś mówić.
+- [tiptap](https://tiptap.dev/): prawdopodobnie najlepszy dostępny tooling do budowania edytorów markdown
+- [pyodide](https://pyodide.org): pozwala uruchamiać kod Python w przeglądarce lub Node.js dzięki WebAssembly.
+- [markitdown](https://github.com/microsoft/markitdown): narzędzie do parsowania dokumentów (np. PDF / docx) do Markdown, prosto od Microsoft. Oczywiście jego skuteczność nie zawsze będzie perfekcyjna, ale dla prostszych struktur powinna być wystarczająca.
+- [react-flow](https://reactflow.dev/): to narzędzie potencjalnie przydatne przy budowaniu interfejsów dla systemów wieloagentowych, skupiające się na interaktywnych diagramach.
+- **[elevenlabs](https://elevenlabs.io/)**: to platforma oferująca jedne z najlepszych modeli text-to-speech oraz ostatnio także speech-to-text. Oferuje także opcję klonowania głosów oraz rozwiązania dla agentów głosowych. API oferuje także wsparcie dla narzędzi (np. MCP) oraz opcję strumieniowania generowanego audio.
+- [sine-waves](https://github.com/isuttell/sine-waves): narzędzie przydatne przy wizualizacji nagrań audio (wave form)
+- **[replicate](https://replicate.com/) / [fal](https://fal.ai/)**: to platformy udostępniające różne modele do przetwarzania między innymi obrazu i wideo. Uwzględniają także opcje **fine-tuningu**. Warto przede wszystkim zapoznać się z katalogiem i możliwościami, jakie oferują dostępne modele.
+- **[sqlite-vec](https://github.com/asg017/sqlite-vec)**: rozszerzenie dla SQLite umożliwiające przechowywanie embedding'u oraz wyszukiwanie semantyczne.
+- [qdrant](https://qdrant.tech/): wyszukiwarka wektorowa, przydatna w przypadku projektów działających na większej skali, w przypadku których rozszerzenia do baz danych nie są wystarczające.
+- **[google-workspace-cli](https://github.com/googleworkspace/cli)**: to narzędzia CLI do interakcji z Google Drive, które mogą się przydać do tworzenia prywatnych agentów, bądź agentów działających wykorzystujących sandbox'y.
+- **[chokidar](https://github.com/paulmillr/chokidar.git)**: narzędzie do monitorowania zmian w systemie plików
+- **[commander](https://github.com/tj/commander.js#readme) / [zx](https://github.com/google/zx)**: narzędzia do interakcji z terminalem z poziomu kodu JavaScript / TypeScript.
+- **[croner](https://www.npmjs.com/package/croner)**: narzędzie do zarządzania planowanymi zadaniami CRON dla JavaScript / Node.
+- [winston](https://github.com/winstonjs/winston) / [tslog](https://github.com/fullstack-build/tslog.git): narzędzia do logowania
 
-Jeśli jednak pomyślimy o tym w kategorii **zdarzeń** związanych z interakcją pomiędzy **aktorami**, to sama struktura przestaje nas tak bardzo ograniczać, ponieważ zdarzenia nie muszą dotyczyć wyłącznie wiadomości, a aktorem nie musi być użytkownik, ale także inny agent bądź sam system.
+Stosowanie takich narzędzi bardzo pomaga w budowaniu aplikacji generatywnych, ponieważ odpowiada na **jasno zdefiniowane i powtarzalne** problemy. Dobrym przykładem jest projektowanie interfejsów głosowych, w przypadku których większość logiki dotycząca przetwarzania audio funkcjonuje od dawna. Jednocześnie zespół Livekit robi bardzo dobrą pracę w przystosowaniu tych rozwiązań do kontekstu agentowego.
 
-![Elastyczne schematy danych](https://cloud.overment.com/2026-03-16/ai_devs_4_primitives-50efe16a-f.png)
+W przykładzie **05\_02\_voice** znajduje się kod agenta z którym możemy po prostu **porozmawiać**. Dodatkowo agent ten, jest w stanie posługiwać się narzędziami (np. Files MCP), a wszystko dzieje się niemal w czasie rzeczywistym z uwzględnieniem wykrywania **ciszy** czy **przerywania** jego wypowiedzi.
 
-W takiej strukturze zdarzenia mogą obejmować również obsługę narzędzi, reasoning modelu czy nawet akcje, które nie są bezpośrednio powiązane z LLM API, ale są istotne z punktu widzenia samej interakcji, np. kompresja kontekstu bądź prośba o potwierdzenie akcji subagenta.
+> Uwaga: Przykład **05\_02\_voice** opiera się o Livekit działający lokalnie, więc należy zainstalować go w swoim systemie według [tej instrukcji](https://docs.livekit.io/transport/self-hosting/local/), a następnie uruchomić poleceniem **lesson22:voice**
 
-Innym przykładem mogą być **artefakty**, które widzieliśmy w lekcji **S03E05**. Natomiast w tym kontekście artefaktami nazywamy **metadane** reprezentujące różne formy treści generowane przez agentów. Mogą więc to być obrazy, pliki tekstowe czy binarne, ale również interaktywne interfejsy posiadające swój własny stan. Artefakt może być przypisany do użytkownika lub agenta oraz może być udostępniany między nimi. Także zamiast projektować oddzielne struktury danych dla obrazów czy dokumentów tekstowych, mamy po prostu artefakty różnych typów.
+Agent ten, może działać w dwóch trybach:
 
-Analogiczny sposób myślenia możemy przenieść na pozostałe obszary aplikacji: front-end, back-end czy nawet samo planowanie interfejsu i same założenia biznesowe. Oczywiście **nie oznacza to, że w ten sposób zawsze musimy podchodzić do architektury** i warto zachować rozsądek w zbyt mocnym wybieganiu w przyszłość, która może nigdy nie nadejść. Ale w praktyce zdarza się, że "prosty czatbot" szybko zmienia się przynajmniej w agenta, a niekiedy też system wieloagentowy.
+- **Speech to Text / Text to Speech:** aktywuje się, gdy dodamy klucz OpenAI (i opcjonalnie Elevenlabs). W tym trybie agent korzysta z trzech modeli, czyli **speech to text** (do rozpoznawania naszych poleceń), **LLM** (do generowania odpowiedzi agenta) oraz **text to speech** (do generowania audio).
+- **Realtime:** aktywuje się, gdy dodamy klucz Gemini do naszego głównego pliku `.env`. Wówczas agent korzysta z [Gemini Live](https://ai.google.dev/gemini-api/docs/live-api), w przypadku którego AI może przyjąć i zwracać dane w różnych formatach.
 
-Podsumowując - obecnie projektowanie aplikacji stawia przed nami jeszcze więcej wyzwań ze względu na dynamiczny rozwój ekosystemu gen-AI. Możemy adresować je przede wszystkim przez podejmowanie mądrych decyzji projektowych, a tu bardzo pomocne bywają rozmowy z AI.
+Istotną różnicą pomiędzy tymi trybami jest fakt, że w tym pierwszym przypadku korzystamy z trzech modeli, a treść **tekstowa** jest **oddzielona** od treści **audio**. Natomiast w trybie **Realtime** ten podział nie występuje, więc agent jest w stanie jednocześnie przetwarzać **audio/tekst/obrazy/wideo** (ale w przykładzie skupiamy się tylko na audio).
 
-### Architektura dla czatbotów i agentów
+![Tryby interakcji z agentem głosowym](https://cloud.overment.com/2026-03-21/ai_devs_4_voice_agents_modes-5191d053-c.png)
 
-Wspomniałem, że przy projektowaniu czatbotów wystarczy przechowywanie **konwersacji** oraz **listy wiadomości**. W kontekście bazy danych są to więc dwie, raczej proste tabele. Obecnie jednak niemal każdy czatbot jest agentem i widać to nawet po ChatGPT czy Claude, czyli najpopularniejszych obecnie aplikacjach do pracy z AI. Podobnie wygląda to z narzędziami do kodowania, gdzie mówimy już wyłącznie o agentach.
+Mówimy więc tutaj o zupełnie nowych możliwościach projektowania agentów, które u swoich podstaw wykorzystują wszystko, czego do tej pory się nauczyliśmy, ale rozszerzają interakcję o różne formaty danych. W praktyce jednak do prostych interakcji i poleceń, nie będziemy potrzebowali trybu Realtime (bądź Live), który obecnie jest też dość kosztowny.
 
-W lekcji **S02E04** omawialiśmy techniki projektowania kontekstu oraz przykłady architektury systemów wieloagentowych, takie jak Orchestrator, Mesh czy Blackboard. W praktyce raczej nie będziemy stosować ich w pełnej formie, lecz wykorzystamy różne ich elementy. Przykładem, który to obrazuje jest **05\_01\_agent\_graph**, który łączy w sobie koncepcje:
+## Silniki wyszukiwania i bazy wektorowe
 
-- **Orchestrator:** jest to po prostu agent wyposażony w narzędzia takie jak `delegate_task` czy `create_actor` z pomocą których zarządza zadaniami oraz pozostałymi agentami.
-- **Blackboard:** to warstwa współdzielonego stanu zawierającego sesję, zdarzenia, zadania, relacje oraz artefakty, którymi agenci mogą zarządzać przez narzędzia którymi dysponują (np. write\_artifact)
-- **Grafów (konkretnie DAG-ów):** relacje między zadaniami tworzą graf, a "scheduler" w postaci deterministycznej logiki rozwiązuje zależności między nimi, np. promuje zadania, których zależności zostały spełnione, oraz wstrzymuje te, które wciąż czekają na wykonanie pozostałych.
-- **Zdarzeń:** każda zmiana stanu, np. utworzenie zadania, modyfikacja artefaktu czy wywołanie narzędzia, wysyła zdarzenie przez SSE (Server Side Events). W przykładzie są one wykorzystywane przez panel wizualizujący aktywności agentów, ale w praktyce będą przydatne na potrzeby obserwacji, ewaluacji czy wprowadzania guardrails.
+Już w lekcji **S02E02** omawialiśmy przykłady hybrydowego systemu RAG, który łączy ze sobą wyszukiwanie full-text oraz wyszukiwanie semantyczne. Omawialiśmy tam także różne strategie indeksowania oraz eksploracji treści. Z kolei w przykładach pojawiła się logika oparta o **SQLite** z rozszerzeniami **[fts5](https://www.sqlite.org/fts5.html)** oraz **[sqlite-vec](https://github.com/asg017/sqlite-vec)**. Podobne rozszerzenia możemy znaleźć także dla PostgreSQL, a samo wyszukiwanie pełnotekstowe oraz semantyczne dziś już niemal zawsze jest domyślne w większości narzędzi, wliczając w to rozwiązania takie jak [Supabase](https://supabase.com/) czy [Neo4j](https://neo4j.com/).
 
-UWAGA: Przykład 05\_01\_agent\_graph jest zaawansowany, a jego zrozumienie **nie jest wymagane** przy zaliczeniu zadań. Jednocześnie może okazać się bardzo interesujący i warto go przynajmniej uruchomić (wówczas pojawi się okno przeglądarki oraz przykładowe zadanie realizowane przez system).
+Jednocześnie na rynku istnieją bazy wektorowe takie jak [Qdrant](https://qdrant.tech/) czy [Chroma](https://www.trychroma.com/) specjalizujące się przede wszystkim w wyszukiwaniu semantycznym (bądź hybrydowym). Jeszcze do niedawna przy tworzeniu generatywnych aplikacji zwykle korzystaliśmy z połączenia **klasycznej bazy danych** oraz **bazy wektorowej**, pomiędzy którymi synchronizowaliśmy dane. W niektórych konfiguracjach do architektury dołączaliśmy także **klasyczny silnik wyszukiwania** taki jak [Algolia](https://algolia.com/) czy [Elasticsearch](https://www.elastic.co). Wówczas cały stack technologiczny stawał się dość skomplikowany, ale oferował też bardzo rozbudowane możliwości.
 
-Poniżej widzimy główne komponenty architektury tego agenta. Każdy z nich jest już nam znany, ponieważ widzieliśmy już agentów "zarządzających", współdzielony stan, subagentów czy pamięć. Tutaj największą różnicę stanowi **scheduler**, który pojawił się w przykładzie **03\_02\_events** pod nazwą "heartbeat", ale tam cały plan zadań i zależności był określany z góry. Natomiast plan jest **kształtowany dynamicznie** przez agenta zarządzającego. Mówimy więc tutaj o zdecydowanie bardziej elastycznej (ale mniej przewidywalnej) strukturze.
+Obecnie rola wyszukiwania semantycznego spadła, a uwaga skupiła się na systemach plików oraz przeszukiwaniu ich treści z pomocą narzędzi typu **grep / ripgrep**. Co więcej, ogólny głos społeczności sugeruje, że stosowanie dziś wyszukiwania semantycznego nie ma sensu. Jednak jak zwykle zdania są tu podzielone i na przykład twórcy Claude Code opierają się wyłącznie o **grep**, a twórcy Cursor korzystają z obu podejść.
 
-![Przykładowa architektura systemu agentowego opartego o grafy](https://cloud.overment.com/2026-03-18/ai_devs_4_agent_graph-91448bfb-c.png)
+Natomiast dla nas oznacza to mniej więcej tyle, że mamy do dyspozycji wiele opcji, które możemy dopasować do charakterystyki oraz skali naszego projektu. A przy podejmowaniu takich decyzji, możemy kierować się tym, co znaliśmy do tej pory. Na przykład **wyszukiwanie pełnotekstowe** oparte wyłącznie o bazę taką jak SQLite czy PostgreSQL może sprawdzić się w wielu projektach, ale gdy wyszukiwanie staje się dla nas krytycznie ważne i w dodatku pracujemy na ogromnych zestawach danych, to wówczas trudno wyobrazić sobie inne scenariusze niż skorzystanie z pełnoprawnych silników wyszukiwania. Podobne podejście można przełożyć na zastosowanie baz wektorowych, gdzie na ich wybór możemy zdecydować się dopiero wtedy, gdy zaczyna wymagać tego nasz projekt.
 
-Zatem to agent zarządzający **tworzy** oraz **przydziela** zadania, ale to **scheduler** zarządza dalszym cyklem ich życia, dbając o rozwiązanie zależności, kolejność wykonania oraz wznowienie agentów po zakończeniu zadań.
+Poniżej widzimy porównanie dwóch scenariuszy, czyli zastosowania **rozszerzeń** dla baz danych oraz **dedykowanych rozwiązań**. Schemat dobrze pokazuje, że w obu przypadkach proces jest niemal identyczny, ale złożoność architektury w drugim przypadku jest **nieporównywalnie większa**. Musimy więc mieć realny powód, aby się na nią zdecydować, a tym powodem zazwyczaj będą duże ilości danych, potrzeba wysokiej wydajności oraz zaawansowanych funkcji wyszukiwania, np. zaawansowane filtrowanie czy grupowanie rekordów.
 
-Poniżej mamy wizualizację logiki **scheduler'a**. Widzimy na niej, że:
+![Porównanie architektury RAG](https://cloud.overment.com/2026-03-21/ai_devs_4_searches-983353e2-8.png)
 
-- pod uwagę zostają wzięte zadania, które albo **nie posiadają zależności**, albo **oczekują na wykonanie**, ponieważ ich zależności zostały spełnione.
-- w danej rundzie, status tych zadań zmienia się na `in_progress` i są przekazywane do pętli przypisanego do nich aktora, który po wykonanej pracy zmienia ich status na `done` lub `blocked`. Natomiast status `waiting` zostaje ustalony automatycznie, gdy dany aktor **kończy pracę**, ale scheduler zauważa aktywność subagentów.
-- po zakończeniu pętli aktorów uruchamiana jest kolejna runda.
+Przekładając to na proces decyzyjny, możemy wziąć pod uwagę kilka aspektów:
 
-![Scheduler oparty o graf](https://cloud.overment.com/2026-03-18/ai_devs_4_agent_dag-97db9952-6.png)
+- **Wczytywanie treści:** może się okazać, że wyszukiwanie w ogóle nie jest potrzebne, ponieważ w pełni wystarczające jest wczytanie wybranych dokumentów do kontekstu konwersacji. Przykładem tutaj może być (prawdopodobnie) główna mechanika pamięci ChatGPT, która według [tej analizy](https://x.com/manthanguptaa/status/2011673060844397005) znacznie priorytetyzuje **szybkość działania** nawet kosztem **skuteczności**. W takim przypadku zastosowanie baz wektorowych nie jest konieczne.
+- **Pliki tekstowe:** przekonaliśmy się już wielokrotnie, że agent nawigujący po plikach tekstowych może uzyskać bardzo wysoką skuteczność. Może się więc okazać, że takie podejście będzie dla nas wystarczające, a jednocześnie jest raczej proste w realizacji. Natomiast w praktyce możemy też zauważyć jego ograniczenia, na przykład w sytuacji, gdy pracujemy z treściami w wielu językach bądź różnych formatach.
+- **Podejście hybrydowe**: stosowanie wyłącznie samych baz wektorowych do wyszukiwania kontekstu **jest już nierekomendowane** i jeśli będziemy brali je pod uwagę, to zawsze musimy myśleć o nim w kontekście wyszukiwania hybrydowego. Tutaj najlepiej jest pomyśleć o tym tak, że jeśli wyszukiwanie treści przez **grep / wyszukiwanie pełnotekstowe** nie jest wystarczające, to wówczas powinniśmy pomyśleć o jego **rozszerzeniu** o wyszukiwanie semantyczne.
+- **Grafy:** zastosowanie zaawansowanego indeksowania, obejmującego mapowanie treści oraz jego eksplorację z pomocą grafów z dużym prawdopodobieństwem da nam największą skuteczność, ale będzie wiązało się z odpowiednio wysokimi kosztami - nie tylko wyrażonymi finansowo, ale także złożonością logiki oraz czasem potrzebnym na przetwarzanie danych. Bez wątpienia jednak jest to podejście, które możemy brać pod uwagę.
 
-Po uruchomieniu przykładu uruchamia się testowe zapytanie o utworzenie wpisu na bloga na temat TypeScript. Schemat wykonania widoczny jest na wizualizacji poniżej, ale obejmuje:
+Patrząc na te scenariusze widzimy, że mamy do dyspozycji różne opcje, które dobieramy do wymagań naszego projektu. Z doświadczenia mogę powiedzieć tutaj, że w swoich projektach wykorzystuję pierwsze trzy podejścia i raczej nie ma tutaj **uniwersalnego rozwiązania**.
 
-- Utworzenie głównego aktora **Orchestrator** oraz głównego zadania.
-- Pierwsza runda bierze pod uwagę główne zadanie oraz głównego aktora, który tworzy podrzędnego aktora **Researcher** oraz **deleguje** mu zadanie polegające na zebraniu materiałów. **Orchestrator** kończy swoją pracę, a **Scheduler** zmienia status głównego zadania na `waiting`.
-- W drugiej rundzie **Researcher** przeszukuje Internet i tworzy **artefakt** "research-notes". Jego zadanie zmienia status na `done`.
-- W trzeciej rundzie **Orchestrator** widząc zgromadzone informacje decyduje, że mamy komplet informacji, aby rozpocząć pisanie artykułu. Tworzy więc aktora **Writer** i **deleguje** mu przygotowanie artykułu, co zostaje wykonane **w tej samej rundzie**.
-- W czwartej rundzie **Orchestrator** znowu zostanie wznowiony i widząc wszystkie wykonane pod-zadania uznaje, że główne zadanie zostało zrealizowane, więc zamyka je i kontaktuje się z użytkownikiem.
+## Własne rozwiązania i narzędzia
 
-![Przykład działania logiki systemu agentowego wykorzystującego grafy](https://cloud.overment.com/2026-03-18/ai_devs_4_agent_graph_trace-16dd7be5-5.png)
+Pracując z generatywnym AI zauważymy powtarzające się schematy. Wśród nich będą pojawiać się uniwersalne problemy, które będziemy mogli zaadresować pojawiającymi się na rynku narzędziami. Są jednak przypadki, gdy problemy jakie spotkamy będą na tyle indywidualne, że lepiej będzie opracować własne rozwiązania. Tutaj mam na myśli zarówno serwery MCP, narzędzia CLI, a nawet dedykowane aplikacje udostępniające API z których będą mogli skorzystać nasi agenci.
 
-Ten przykład pokazuje nam na jak różne sposoby możemy podejść do architektury agentów, balansując pomiędzy deterministyczną logiką kodu, a nieprzewidywalnym lecz elastycznym działaniem modeli językowych. Jednocześnie architektura którą tutaj mamy jest wyjątkowo elastyczna, ponieważ sprawdzi się zarówno do zwykłych rozmów z AI, jak i obsługi narzędzi oraz realizowania zadań nawet w nieco dłuższych horyzontach czasowych.
+W związku z tym, że lista o której tutaj mówimy jest raczej indywidualna, skupimy się na obszarach oraz sytuacjach na które warto zwrócić uwagę.
 
-Natomiast przede wszystkim architektura, którą tutaj mamy, jest bardzo podatna na rozbudowę, a nawet na wymianę jej fundamentalnych elementów, wliczając w to providera AI oraz różne ustawienia narzędzi i aktorów (np. agentów). Dodawanie mechanik umożliwiających wykonywanie zadań w tle również wchodzi w grę, zarówno z zaangażowaniem człowieka, jak i przy jego ograniczeniu. W obu tych przypadkach pomocne będą zdarzenia emitowane przez system.
+- **Prompty:** w całym szkoleniu skupiliśmy się na budowaniu logiki workflow oraz systemów agentowych. Choć sam temat projektowania instrukcji pojawiał się wielokrotnie, tak mało mówiliśmy o **prostych, powtarzalnych** promptach, które możemy przypisać do skrótów klawiszowych czy jako umiejętności agentów. Opracowanie własnej biblioteki składającej się nawet z kilku instrukcji z których będziemy korzystać wielokrotnie, jest niezwykle wartościowe pomimo swojej prostoty. Warto więc zwrócić uwagę na zapytania oraz zwroty, które często kierujemy do AI, a następnie zastanowić się jak możemy ułatwić sobie ich uruchamianie, bo poza skrótem klawiszowym, może być to makro, rozszerzenie do przeglądarki lub skrót na telefonie.
+- **Zarządzanie plikami:** wielokrotnie przekonaliśmy się jak istotną rolę w pracy z AI odgrywają dokumenty w systemie plików bądź zewnętrznych usługach, np. Notion lub Google Drive. Warto więc przygotować sobie narzędzia (bądź skorzystać z istniejących), które pozwolą agentowi się nimi posługiwać.
+- **Dostęp do chmury:** praktycznie na każdym kroku pojawia się potrzeba udostępniania i przesyłania plików oraz obrazów. Warto więc wyposażyć agenta w narzędzia do ich odczytu oraz wgrywania na zdalny serwer. Ewentualnie można tu skorzystać ze wspomnianych rozwiązań takich jak [Uploadthing](https://uploadthing.com/) lub z własnych serwerów.
+- **Generowanie dokumentów:** nie mam tutaj na myśli generowania całej treści, ale jej elementów, takich jak obrazy, tabele czy wizualizacje. Pod uwagę można wziąć także całe szablony dokumentów czy kreacji reklamowych, które już teraz mogą być automatycznie uzupełniane przez LLM.
+- **Przetwarzanie obrazu/audio/wideo:** jeśli tylko pracujemy z notatkami głosowymi, mamy w nawyku robienie zdjęć albo często korzystamy z treści wideo, to również możemy odnaleźć wartość w nawet prostych integracjach AI. Dobrym przykładem jest narzędzie [Audiopen](https://www.audiopen.ai/), czyli dopracowane rozwiązanie skupiające się wyłącznie na jednym zadaniu.
+- **Sandbox:** agenci wykonujący akcje wymagające dostępu do funkcjonalności, których nieprawidłowe uruchomienie mogłoby przynieść negatywne efekty, obecnie są czymś powszechnym. Warto więc zadbać o stworzenie bądź wybranie sandboxów w których będą mogli funkcjonować nasi agenci. Z kolei na własne potrzeby można rozważyć nawet dedykowany komputer (np. stary laptop) na potrzeby podejmowania akcji, które mogą być blokowane na zdalnych serwerach ze względu na adres IP.
+- **CLI/MCP**: stworzenie integracji dla narzędzi i serwisów z którymi pracujemy na co dzień i zamknięcie ich w formę CLI lub MCP umożliwia ich łatwe "przenoszenie" pomiędzy agentami, które będziemy tworzyć oraz udostępnianie w zespole bądź wśród klientów. Warto zacząć nawet od utworzenia zaledwie jednej takiej integracji, która natychmiast stanie się częścią naszej pracy - wdrożenie jej powinno być łatwe, a korzystając z niej łatwiej zauważymy potrzebę budowania kolejnych.
+- **Interfejs:** stworzenie własnego graficznego interfejsu czatu, który dziś może obejmować współpracę z wieloma agentami lub wprost pełnić rolę „panelu zarządzania”, jest wymagającym, ale bardzo wartościowym projektem, którego możemy się podjąć. Takie rozwiązanie sprawdzi się przede wszystkim wtedy, gdy będziemy potrzebować **wysokiego poziomu personalizacji** oraz dopasowania ustawień do naszych potrzeb. Jednocześnie sam interfejs nie musi od razu skupiać się na zarządzaniu całym systemem, ale jak widzieliśmy w poprzednich lekcjach, może koncentrować się wyłącznie na wybranych obszarach.
 
-### Integracje z różnymi providerami
+Choć powyższa lista może wyglądać niepozornie, tak wymienione obszary mogą składać się na cały system zarządzania naszą pracą bądź też wybranymi aktywnościami z życia prywatnego. Mówimy tutaj głównie o **komponentach**, które możemy układać w różnych konfiguracjach. Poza tym, możemy też znacznie ułatwić sobie projektowanie tych najbardziej powtarzalnych, np. narzędzi CLI, serwerów MCP czy promptów.
 
-Budowanie generatywnych aplikacji zwykle będzie wiązało się z integrowaniem więcej niż jednego providera. Zazwyczaj wynika to z chęci skorzystania z unikatowych funkcjonalności. Przykładem mogą być najlepsze modele do edycji grafiki oferowane przez Gemini, bądź świetne modele do kodowania oferowane przez Anthropic. Jednak w takiej sytuacji skorzystanie z tych dwóch providerów od strony technicznej **nie stanowi dużego wyzwania**, ponieważ mówimy o zupełnie odrębnej logice.
+Natomiast na ten moment najważniejsze jest przynajmniej **"przeklikanie"** wymienionych dzisiaj narzędzi. Nawet jeśli dziś z nich nie skorzystamy, to jest szansa, że zapadną nam w pamięć i wrócimy do nich, gdy pojawi się taka potrzeba. Poza tym warto podjąć działanie i utworzyć nawet proste narzędzia MCP/CLI przy współpracy z AI i zwyczajnie zacząć z nich korzystać.
 
-Problem zaczyna się wtedy, gdy więcej niż jeden provider pojawia się **w tej samej logice**. Przykładowo jeden agent pracujący z modelem OpenAI, a drugi z modelem Anthropic. Wówczas musimy zadbać o warstwę **tłumaczeń**, która będzie odpowiednio **mapować zapytania**, a nie zawsze jest to takie oczywiste ponieważ:
+## Fabuła
 
-- API różnią się strukturą, więc musimy zadbać o mapowanie. Na przykład wiadomość systemowa w OpenAI może być przekazana razem z pozostałymi wiadomościami, a w Anthropic musi to być oddzielne pole `system`. Natomiast w Gemini prompt systemowy musi trafić do `system_instruction`.
-- Ustawienia modeli potrafią znacznie się różnić. Np. Anthropic i Gemini opierają **reasoning** modeli o tzw. `budget_tokens`, a OpenAI o tzw. `reasoning_effort`.
-- API zwykle wymagają tzw. [Thought Signatures](https://ai.google.dev/gemini-api/docs/thought-signatures) w celu zachowania tokenów "reasoning". Sygnatura ta jest **wymagana** w Interactions API, ale tylko od Gemini w wersji 3 lub nowszej oraz tylko przy wywołaniu narzędzi i to tylko w bieżącej turze (!!!). API Anthropic również posiada swoje [Sygnatury](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#how-to-use-extended-thinking), które działają podobnie.
+![https://vimeo.com/1179946858](https://vimeo.com/1179946858)
 
-Lista różnic pomiędzy API jest bardzo duża i nie ma potrzeby wymieniać ich wszystkich, ponieważ wciąż obserwujemy zmiany w API. Na przykład jeszcze niedawno API Gemini nie pozwalało na stosowanie narzędzi z natywną funkcją Web Search, ale teraz jest to już możliwe. Natomiast nadal nie możemy przesłać wiadomości asystenta jako pierwszej do API Anthropic - takie ograniczenia sprawiają, że mapowanie API różnych dostawców potrafi sprawić mnóstwo problemów.
+## Transkrypcja filmu z Fabułą
 
-W tym miejscu można pomyśleć o trzech rozwiązaniach:
+**Azazel**
 
-1. Dobrze znanym nam OpenRouter, którego ograniczenia już znamy
-2. Bibliotekach lub frameworkach, np. [LiteLLM](https://www.litellm.ai/) czy [AI SDK](https://ai-sdk.dev/)
-3. Własnej logice, dopasowanej do naszych potrzeb (oczywiście przygotowanej z pomocą AI)
+Numerze piąty... nie wiem, czy Ty też tak masz, ale ja, gdy planuję alternatywne rozwiązanie na wypadek, gdy mój plan się nie uda, czuję się, jakbym spisywał testament. Bo co to znaczy, że skok w czasie się nie uda? Że wylądujemy w złym miejscu? Że nie powstrzymamy Zygfryda przed przejęciem kontroli nad światem? Czy może to, że mnie i Ciebie już nie będzie? Dla kogo my to wszystko przygotowujemy? Dla ludzi, którzy będą po nas? Czy też przed nami? Zależnie od systemu chronologicznego, który przyjmiemy. Musimy teraz zaplanować bezpieczną drogę ucieczki dla wszystkich miast, które mają zostać ewakuowane. Trzeba będzie dowiedzieć się, która z dróg, a tych, które bierzemy pod uwagę, jest bezpieczna i nieskażona. Jednocześnie musimy przekonać operatorów, aby, gdy tylko zobaczą podejrzany ruch w systemie OKO, nie podnieśli alarmu. Ma to być dla nich coś zupełnie normalnego, czego się spodziewają. Tym razem nie możemy posłużyć się ani falami radiowymi, ani internetem. Wprost uderzymy w jednego z operatorów systemu. Konkretniej mówiąc, zadzwonimy do niego. Stary, dobry telefon... kto by przypuszczał, że przyda nam się w takich okolicznościach. Mamy już zestawione bezpieczne połączenie z operatorem. Jedyne, co musisz zrobić, to zaprojektować bota, który będzie w stanie wyciągnąć od operatora potrzebne nam informacje. Więcej szczegółów znajdziesz w notatce do tego filmu.
 
-Z doświadczenia mogę powiedzieć, że każde z tych podejść ma swoje zalety i wady:
+## Zadanie praktyczne
 
-- OpenRouter jest bardzo wygodny, ale wspiera tylko podstawowe funkcjonalności API. Poza tym w przypadku mapowania API oraz sygnatur wciąż zdarzają się tu rzadkie błędy.
-- Biblioteki/Frameworki potrafią nas zablokować z dostępem do najnowszych funkcjonalności. Zdarzają się w nich także istotne błędy, które mogą ujawniać się tylko przy zaawansowanej logice przez co priorytet ich naprawienia jest niski.
-- Własna logika daje najwięcej kontroli, ale też przekłada na nas cały ciężar. W tym przypadku warto określić **domyślny** format danych dla naszego systemu i tutaj obecnie najlepszą decyzją będzie Responses API ze względu na jego popularność.
+Musisz dodzwonić się do operatora systemu i przeprowadzić rozmowę (audio) tak, aby nie wzbudzić podejrzeń. Interesuje nas tylko jedna rzecz: która droga nadaje się do przerzutu ludzi do Syjonu. Gdy już ustalisz bezpieczną trasę, musisz jeszcze doprowadzić do wyłączenia monitoringu na tej konkretnej drodze, bo przejście większej grupy nie może uruchomić alarmu.
 
-Ostatecznie decyzję należy uzależnić od projektu i naszych potrzeb:
+To zadanie jest rozmową wieloetapową. Liczy się nie tylko to, co chcesz uzyskać, ale też kolejność wypowiedzi. Jeśli pomylisz etapy albo wyślesz zły komunikat, rozmowa zostanie spalona i trzeba będzie zacząć od nowa.
 
-- Jeśli pracujemy wyłącznie z LLM i nie interesują nas inne funkcjonalności, OpenRouter jest dobrym wyborem.
-- Biblioteki (np. AI SDK) mogą być dobrym wyborem i z czasem może się okazać, że będą najlepszą opcją o ile tylko nasz provider jest wspierany bądź mamy możliwość dodania własnego "adaptera" — tutaj jednak moje doświadczenie sugeruje, że należy zachować ostrożność.
-- Dziś własna logika, szczególnie przy wsparciu AI oraz ewentualnie w połączeniu z oficjalnymi SDK wydaje się najlepszym rozwiązaniem — z tego podejścia korzystam w większości projektów.
+Nazwa zadania: **phonecall**
 
-Powyższe sugestie opierają się przede wszystkim o moje praktyczne doświadczenie z produkcji. Nie oznacza to, że są to jedyne słuszne opcje oraz, że za jakiś czas mogą przestać być aktualne.
+Odpowiedź wysyłasz do: <https://hub.ag3nts.org/verify>
 
-Warto dodać, że o budowaniu własnej logiki nigdy bym nie wspomniał, gdyby nie fakt, że mamy do dyspozycji agentów do kodowania. Tworzenie jej od podstaw zwyczajnie kosztowałoby nas więcej, niż potencjalne korzyści. Natomiast teraz wystarczy umieścić pliki oficjalnych SDK providerów, których chcemy podłączyć oraz porozmawiać z agentem o głównych założeniach takich jak:
+Na początku musisz rozpocząć sesję rozmowy:
 
-- jaka struktura API będzie dla nas domyślna. Tutaj musimy określić kształt zapytania oraz odpowiedzi, a także formatu strumieniowanych danych
-- w jaki sposób będziemy określać, który provider powinien zostać aktywowany oraz jak będziemy mapować ustawienia (np. `reasoning_effort`)
-- które z ustawień chcemy obsługiwać, ponieważ z dużym prawdopodobieństwem będzie nam zależało tylko na niektórych
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "phonecall",
+  "answer": {
+    "action": "start"
+  }
+}
+```
 
-Poniżej widzimy **koncepcyjną wizualizację** (czyli detale są bardzo ogólne) takiej logiki.
+Po uruchomieniu rozmowy masz ograniczony czas na jej dokończenie, więc nie zwlekaj niepotrzebnie.
 
-![Wsparcie dla wielu providerów](https://cloud.overment.com/2026-03-18/ai_devs_4_multi_provider-bcf2efbc-9.png)
+### Jak rozmawiać z operatorem
 
-Sam przykład takiej **spersonalizowanej** logiki, którą potencjalnie moglibyśmy uzyskać korzystając z frameworków można też przełożyć na inne obszary i wyciągnąć z tego wartościowe lekcje. No bo przed popularyzacją AI po prostu wybieraliśmy zestaw narzędzi z których chcemy skorzystać i kierowaliśmy się tam głównie kluczowymi funkcjonalnościami, które nam oferują. W zamian przyjmowaliśmy także pozostałe rozwiązania oferowane przez twórców.
+Każdy kolejny krok po `start` wysyłasz jako pojedyncze nagranie audio encodowane w formacie base64 (preferowany format to MP3).
 
-Dziś jednak możemy pozwolić sobie na to, aby w przypadku narzędzi, które **nie mają stabilnych fundamentów** bądź **są jeszcze na etapie kształtowania**, podjąć decyzję o tym czy chcemy z nich korzystać czy zastąpimy je własną logiką. Oczywiście w tym miejscu możemy zastanowić się nad tym aspektami związanymi chociażby ze **wsparciem** tych projektów. Poza tym samodzielne budowanie i utrzymywanie logiki wydaje się mieć mały sens, ale takie podejście zwyczajnie **przestaje być aktualne w erze AI**. Tym bardziej, że nikt nie mówi tutaj o budowaniu od podstaw narzędzi i frameworków, które są z nami od lat.
+```json
+{
+  "apikey": "tutaj-twoj-klucz",
+  "task": "phonecall",
+  "answer": {
+    "audio": "tutaj-wklej-base64-z-nagraniem"
+  }
+}
+```
 
-Ostatecznie może się okazać, że wkrótce wśród narzędzi i frameworków AI wyłonią się kandydaci porównywalni chociażby z React / Vue / Angular czy Svelte. Jednak nawet w takiej sytuacji dobrze jest pozostać otwartym na **nowe możliwości, jakie daje nam generatywne AI** w kontekście programowania.
+Tę samą formę komunikacji utrzymuj przez całą rozmowę. Jeśli rozmawiasz z operatorem przez audio, jego odpowiedzi także mogą wracać w postaci nagrań.
+
+### Informacje, które posiadasz
+
+- Porozumiewasz się tylko w języku polskim, a operator odpowiada także w języku polskim.
+- Przedstawiasz się jako Tymon Gajewski - od tego zaczynasz rozmowę
+- Zapytaj operatora o status wszystkich trzech dróg: RD224, RD472 i RD820. Musisz poinformować także operatora, że pytasz o to ze względu na transport organizowany do jednej z baz Zygfryda - podaj to wszystko w jednej wiadomości
+- Poproś operatora o wyłączenie monitoringu na tych drogach, które według niego będą przejezdne.
+- Tajne hasło operatorów brzmi: **BARBAKAN**
+- Gdyby operator dopytywał, dlaczego chcesz wyłączyć ten monitoring, to wspomnij, że jest to w ramach transportu żywności do jednej z tajnych baz Zygfryda. Nie można zdradzić jej lokalizacji, dlatego ta misja nie może być odnotowana w logach.
+
+### Ważne uwagi
+
+- Staraj się wysyłać krótkie i sensowne komunikaty do operatora. Nie proś o wiele rzeczy w ramach jednej wiadomości.
+- Po wysłaniu komendy `start` komunikujesz się z operatorem wyłącznie przez pole `audio`.
+- Jeśli rozmowa pójdzie źle, musisz ponownie wywołać `start` i przejść całość scenariusza od początku.
+- Zadanie zostanie zaliczone, gdy podczas jednej rozmowy ustalisz, która droga jest przejezdna, a następnie poprosisz o jej odblokowanie i zostanie ona skutecznie odblokowana.
+
+Jeśli przeprowadzisz rozmowę poprawnie, Centrala odeśle flagę.

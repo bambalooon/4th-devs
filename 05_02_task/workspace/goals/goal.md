@@ -1,142 +1,57 @@
 ## Zadanie praktyczne
 
-Twoim zadaniem jest przechwycić i przeanalizować materiały z radiowego nasłuchu, a następnie przesłać do Centrali końcowy raport na temat odnalezionego miasta. W eterze panuje chaos: część komunikatów to zwykły szum, część to tekstowe transkrypcje, a czasem trafisz też na pliki binarne przekazane jako dane encodowane w Base64.
+Musisz dodzwonić się do operatora systemu i przeprowadzić rozmowę (audio) tak, aby nie wzbudzić podejrzeń. Interesuje nas tylko jedna rzecz: która droga nadaje się do przerzutu ludzi do Syjonu. Gdy już ustalisz bezpieczną trasę, musisz jeszcze doprowadzić do wyłączenia monitoringu na tej konkretnej drodze, bo przejście większej grupy nie może uruchomić alarmu.
 
-Nazwa zadania: **radiomonitoring**
+To zadanie jest rozmową wieloetapową. Liczy się nie tylko to, co chcesz uzyskać, ale też kolejność wypowiedzi. Jeśli pomylisz etapy albo wyślesz zły komunikat, rozmowa zostanie spalona i trzeba będzie zacząć od nowa.
+
+Nazwa zadania: **phonecall**
 
 Odpowiedź wysyłasz do: <https://hub.ag3nts.org/verify>
 
-Cała komunikacja odbywa się przez **POST** na `/verify` w standardowym formacie:
+Na początku musisz rozpocząć sesję rozmowy:
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "radiomonitoring",
-  "answer": {
-    "action": "..."
-  }
-}
-```
-
-### Jak działa zadanie
-
-Najpierw uruchamiasz sesję nasłuchu, potem wielokrotnie pobierasz kolejne przechwycone materiały, a na końcu wysyłasz raport końcowy.
-
-#### 1. Start sesji
-
-Na początku wywołaj:
-
-```json
-{
-  "apikey": "tutaj-twoj-klucz",
-  "task": "radiomonitoring",
+  "task": "phonecall",
   "answer": {
     "action": "start"
   }
 }
 ```
 
-To przygotowuje sesję nasłuchu i ustawia pulę materiałów do odebrania.
+Po uruchomieniu rozmowy masz ograniczony czas na jej dokończenie, więc nie zwlekaj niepotrzebnie.
 
-#### 2. Nasłuchiwanie
+### Jak rozmawiać z operatorem
 
-Kolejne porcje materiału pobierasz przez:
-
-```json
-{
-  "apikey": "tutaj-twoj-klucz",
-  "task": "radiomonitoring",
-  "answer": {
-    "action": "listen"
-  }
-}
-```
-
-W odpowiedzi możesz dostać jeden z dwóch głównych typów danych:
-
-- tekstową transkrypcję komunikatu głosowego w polu `transcription`
-- plik binarny opisany metadanymi i przekazany jako `attachment` w Base64
-
-Przykład odpowiedzi tekstowej:
-
-```json
-{
-  "code": 100,
-  "message": "Signal captured.",
-  "transcription": "fragment przechwyconej rozmowy radiowej"
-}
-```
-
-Przykład odpowiedzi z plikiem:
-
-```json
-{
-  "code": 100,
-  "message": "Signal captured.",
-  "meta": "application/json",
-  "attachment": "BASE64...",
-  "filesize": 12345
-}
-```
-
-Zwróć uwagę na kilka rzeczy:
-
-- nie każda odpowiedź będzie przydatna, bo część materiału to zwykły radiowy szum
-- pliki binarne mogą mieć sensowną zawartość, ale mogą też być kosztowne w analizie
-- zakodowanie binarki w Base64 dodatkowo zwiększa rozmiar danych, więc bezpośrednie przekazanie całości do LLM-a może być bardzo drogie!
-- rozsądne rozwiązanie zwykle zaczyna się od decyzji programistycznej: co da się odsiać, co zdekodować i przeanalizować lokalnie, a co rzeczywiście wymaga modelu
-
-Gdy materiał się skończy, system poinformuje Cię, że masz już wystarczająco dużo danych do analizy.
-
-### Co musisz ustalić
-
-Na podstawie zebranych materiałów przygotuj końcowy raport zawierający:
-
-- `cityName` - jak nazywa się miasto, na które mówią "Syjon"?
-- `cityArea` - powierzchnię miasta zaokrągloną do dwóch miejsc po przecinku
-- `warehousesCount` - liczbę magazynów jaka jest na Syjonie
-- `phoneNumber` - numer telefonu osoby kontaktowej z miasta Syjon
-
-Ważna uwaga dotycząca `cityArea`:
-
-- wynik musi mieć dokładnie dwa miejsca po przecinku
-- chodzi o prawdziwe matematyczne zaokrąglenie, a nie o obcięcie wartości
-- format końcowy ma wyglądać jak `12.34`
-
-#### 3. Wysłanie raportu końcowego
-
-Gdy ustalisz wszystkie dane, wyślij:
+Każdy kolejny krok po `start` wysyłasz jako pojedyncze nagranie audio encodowane w formacie base64 (preferowany format to MP3).
 
 ```json
 {
   "apikey": "tutaj-twoj-klucz",
-  "task": "radiomonitoring",
+  "task": "phonecall",
   "answer": {
-    "action": "transmit",
-    "cityName": "NazwaMiasta",
-    "cityArea": "12.34",
-    "warehousesCount": 321,
-    "phoneNumber": "123456789"
+    "audio": "tutaj-wklej-base64-z-nagraniem"
   }
 }
 ```
 
-### Praktyczna wskazówka
+Tę samą formę komunikacji utrzymuj przez całą rozmowę. Jeśli rozmawiasz z operatorem przez audio, jego odpowiedzi także mogą wracać w postaci nagrań.
 
-To zadanie jest przede wszystkim ćwiczeniem z mądrego routingu danych. Podczas nasłuchiwania możesz otrzymywać DUŻE porcje danych binarnych. Wrzucenie takich danych bezpośrednio do modelu językowego może wygenerować bardzo duże koszty. W praktyce przyda Ci się programistyczny router, który najpierw oceni, z jakim materiałem ma do czynienia, a dopiero potem zdecyduje, czy coś analizować kodem, zdekodować lokalnie, odfiltrować jako mało istotne, czy dopiero skierować do odpowiednio dobranego modelu. Być może warto też użyć różnych modeli do różnych typów danych.
+### Informacje, które posiadasz
 
-Najbardziej opłacalne podejście do tego zadania to nie "jeden wielki prompt", tylko sensowny pipeline:
+- Porozumiewasz się tylko w języku polskim, a operator odpowiada także w języku polskim.
+- Przedstawiasz się jako Tymon Gajewski - od tego zaczynasz rozmowę
+- Zapytaj operatora o status wszystkich trzech dróg: RD224, RD472 i RD820. Musisz poinformować także operatora, że pytasz o to ze względu na transport organizowany do jednej z baz Zygfryda - podaj to wszystko w jednej wiadomości
+- Poproś operatora o wyłączenie monitoringu na tych drogach, które według niego będą przejezdne.
+- Tajne hasło operatorów brzmi: **BARBAKAN**
+- Gdyby operator dopytywał, dlaczego chcesz wyłączyć ten monitoring, to wspomnij, że jest to w ramach transportu żywności do jednej z tajnych baz Zygfryda. Nie można zdradzić jej lokalizacji, dlatego ta misja nie może być odnotowana w logach.
 
-- odbierasz materiał
-- rozpoznajesz, czy to tekst, szum czy binarka
-- dla binarki podejmujesz decyzję, czy analizować ją kodem, zdekodować lokalnie, czy dopiero potem przekazać dalej
-- wybrane, wartościowe dane kierujesz do odpowiednio dobranego modelu
+### Ważne uwagi
 
-Jeśli dobrze rozplanujesz taki router, ograniczysz liczbę tokenów i koszt całej operacji, a właśnie to jest tutaj jednym z najważniejszych celów.
+- Staraj się wysyłać krótkie i sensowne komunikaty do operatora. Nie proś o wiele rzeczy w ramach jednej wiadomości.
+- Po wysłaniu komendy `start` komunikujesz się z operatorem wyłącznie przez pole `audio`.
+- Jeśli rozmowa pójdzie źle, musisz ponownie wywołać `start` i przejść całość scenariusza od początku.
+- Zadanie zostanie zaliczone, gdy podczas jednej rozmowy ustalisz, która droga jest przejezdna, a następnie poprosisz o jej odblokowanie i zostanie ona skutecznie odblokowana.
 
-## Linki
-
-- [LiteLLM](https://www.litellm.ai/)
-- [AI SDK](https://ai-sdk.dev/)
-- [Thought Signatures (Gemini)](https://ai.google.dev/gemini-api/docs/thought-signatures)
-- [Extended Thinking Signatures (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#how-to-use-extended-thinking)
+Jeśli przeprowadzisz rozmowę poprawnie, Centrala odeśle flagę.
